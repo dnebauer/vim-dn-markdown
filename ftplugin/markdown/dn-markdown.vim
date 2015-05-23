@@ -75,12 +75,34 @@ endif                                                               " }}}2
 
 " 3.  FUNCTIONS                                                       {{{1
 
+" Function: s:get_css_dir                                             {{{2
+" Purpose:  get path to plugin css directory
+" Params:   nil
+" Return:   string
+function! s:get_css_dir()
+    let l:rtp_dirs = split(&runtimepath, ',')
+    let l:css_dirs = []
+    for l:dir in l:rtp_dirs
+        let l:css_dir = l:dir . '/vim-dn-markdown-css'
+        if isdirectory(l:css_dir)
+            call add(l:css_dirs, l:css_dir)
+        endif
+    endfor
+    for l:dir in l:css_dirs
+        echo l:dir
+    endfor
+endfunction
+" ------------------------------------------------------------------------
 " Function: DNM_HtmlOutput                                            {{{2
 " Purpose:  generate html output
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_HtmlOutput(...)
 	echo '' | " clear command line
+
+    call s:get_css_dir()
+    return
+
     " variables
     let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
     let l:style = $VIMHOME . '\\after\\ftplugin\\markdown\\buttondown.css'
