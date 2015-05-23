@@ -75,23 +75,92 @@ endif                                                               " }}}2
 
 " 3.  FUNCTIONS                                                       {{{1
 
-" Function: s:get_css_dir                                             {{{2
-" Purpose:  get path to plugin css directory
-" Params:   nil
+" Function: s:select_item                                             {{{2
+" Purpose:  user selects item from a list
+" Params:   1 - Hash 'params' (
+"                   items
+"                       => List [required],
+"                   return_values
+"                       => List [optional,
+"                                ignored if not same size as items,
+"                                use items if missing],
+"                   prompt
+"                       => string [optional, default='Select option:']
+"           )
 " Return:   string
-function! s:get_css_dir()
-    let l:rtp_dirs = split(&runtimepath, ',')
-    let l:css_dirs = []
-    for l:dir in l:rtp_dirs
-        let l:css_dir = l:dir . '/vim-dn-markdown-css'
-        echo l:css_dir
-        if isdirectory(l:css_dir)
-            call add(l:css_dirs, l:css_dir)
+function! s:select_item(params)
+    " variables
+    " - params
+    if type(a:params) != type({})
+        call DNU_Error('s:select_item param must be hash')
+        return ''
+    endif
+    " - params: items
+    if !has_key(a:params, 'items')
+        call DNU_Error('s:select_item got no items in param')
+        return ''
+    endif
+    let l:items = a:params['items']
+    if type(l:items) != type([])
+        call DNU_Error('a:select_item got items not in a list')
+        return ''
+    endif
+    if len(l:items) == 0
+        call DNU_Warn('a:select_item got no items')
+        return ''
+    endif
+    " - params: prompt
+    let l:prompt = 'Select option:'    " default
+    if has_key(a:params, 'prompt')
+        let l:prompt = a:params['prompt']
+    endif
+    " - params: return_values
+    let l:return_values = copy(l:items)
+    if has_key(a:params, 'return_values')
+        if type(a:params['return_values']) == type([])
+            if len(a:params['return_values']) == len(l:items)
+                let l:return_values = copy(a:params['return_values'])
+            else
+                call DNU_Warn('ignoring retvals - wrong length')
+            endif
+        else
+            call DNU_Error('ignoring retvals - no in list')
         endif
+    else
+        call DNU_Error('no return values supplied')
+    endif
+    " if only one item
+    if len(l:items) == 1
+        return l:return_values[0]
+    endif
+    " choose from multiple items
+    let l:menu_items = []
+    let l:option_num = 1
+    for l:item in l:items
+        let l:menu_item = l:option_num . '. ' . l:item
+        call add(l:menu_items, l:menu_item)
+        let l:option_num += 1
     endfor
-    for l:dir in l:css_dirs
-        echo l:dir
-    endfor
+    let l:no_selection = b:dn_true
+    while l:no_selection
+        try
+            echo l:prompt
+            let l:menu_pick = inputlist(l:menu_items)
+            if l:menu_pick >= 0 && l:menu_pick <= len(l:items)
+                let l:no_selection = b:dn_false
+            else
+                echo "\n"
+                call DNU_Error('Not a valid selection')
+            endif
+        catch
+        endtry
+    endwhile
+    echo "\n" |    " make sure cursor is on new line
+    if l:menu_pick == 0
+        return ''
+    else
+        return l:return_values[l:menu_pick - 1]
+    endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_HtmlOutput                                            {{{2
@@ -100,13 +169,20 @@ endfunction
 " Return:   nil
 function! DNM_HtmlOutput(...)
 	echo '' | " clear command line
-
-    call s:get_css_dir()
-    return
-
     " variables
     let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
-    let l:style = $VIMHOME . '\\after\\ftplugin\\markdown\\buttondown.css'
+    let l:css_dir = globpath(&rtp, "vim-dn-markdown-css")
+    let l:css_filepaths = glob(l:css_dir . "/*", b:dn_false, b:dn_true)
+    let l:css_names = []
+    for l:css_filepath in l:css_filepaths
+        call add(l:css_names, fnamemodify(l:css_filepath, ':t:r'))
+    endfor
+    " get style file to use
+    let l:style = s:select_item({
+                \ 'items': l:css_names,
+                \ 'return_values': l:css_filepaths,
+                \ 'prompt': 'Select style:',
+                \ })
     let l:output = substitute( expand('%'), '\.md$', '.html', '' )
     let l:source = expand('%')
     " generate output
