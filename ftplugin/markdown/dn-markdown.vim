@@ -84,6 +84,7 @@ function! s:get_css_dir()
     let l:css_dirs = []
     for l:dir in l:rtp_dirs
         let l:css_dir = l:dir . '/vim-dn-markdown-css'
+        echo l:css_dir
         if isdirectory(l:css_dir)
             call add(l:css_dirs, l:css_dir)
         endif
