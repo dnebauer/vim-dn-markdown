@@ -1,0 +1,129 @@
+*dn-markdown-ftplugin.txt*    For Vim version 7.4        Last changed: 2015 May 01
+
+Filetype plugin for markdown                         *dn-markdown-ftplugin*
+                                                             *DNM_ftplugin*
+Dn Markdown Filetype Plugin
+-------------------------------------------------------------------------
+                                                     *dn-markdown-contents*
+1. Contents
+
+     1. Contents .......................... |dn-markdown-contents|
+     2. Overview .......................... |dn-markdown-overview|
+     3. Installation ...................... |dn-markdown-install|
+     4. Dependencies ...................... |dn-markdown-dependencies|
+     5. Variables ......................... |dn-markdown-variables|
+     6. Output functions .................. |dn-markdown-output|
+     7. Viewing functions ................. |dn-markdown-view|
+-------------------------------------------------------------------------
+                                                     *dn-markdown-overview*
+2. Overview
+
+An auxiliary filetype plugin for the markdown language.
+
+All functions in this library are global. They all have the prefix 'DNM_'
+to try and avoid namespace collisions.
+
+Some mappings are also provided.
+-------------------------------------------------------------------------
+                                                      *dn-markdown-install*
+3. Installation
+
+As this filetype plugin does not interfere with the standard markdown
+filetype plugin, the load order of these ftplugins does not matter. To
+account for future development, however, it is recommended that this
+ftplugin is put in an 'after' directory.
+-------------------------------------------------------------------------
+                                                 *dn-markdown-dependencies*
+4. Dependencies
+
+This ftplugin requires the |dn-utils-plugin|.
+-------------------------------------------------------------------------
+                                                    *dn-markdown-variables*
+5. Variables
+
+This ftplugin uses the |b:dn-true| and |b:dn-false| variables provided by
+|dn-utils-plugin|.
+
+                                                         *dn-markdown-help*
+This ftplugin contributes to the |dn-utils-plugin| help system (see |DNU_Help|
+for details). In the help system navigate to: vim -> markdown ftplugin.
+-------------------------------------------------------------------------
+                                                       *dn-markdown-output*
+6. Output functions
+
+Functions enabling user to generate output. The pandoc utility is used to
+produce the output.
+
+                                                           *DNM_HtmlOutput*
+DNM_HtmlOutput()
+    purpose: generate output file with html extension
+    params:  nil
+    insert:  nil
+    return:  nil
+    note:    output file has same basename as markdown script with
+             '.html' extension
+    note:    an existing output file will be silently overwritten
+
+                                                            *dn-mapping-gh*
+This function is mapped by default to '<LocalLeader>gh', usually '\gh',
+in Insert and Normal modes.
+
+                                                           *GenerateHTML()*
+This function is bound to the command 'GenerateHTML'.
+
+                                                            *DNM_PdfOutput*
+DNM_PdfOutput()
+    purpose: generate output file with pdf extension
+    params:  nil
+    insert:  nil
+    return:  nil
+    note:    uses lualatex
+    note:    output file has same basename as markdown script with
+             '.pdf' extension
+    note:    an existing output file will be silently overwritten
+
+                                                            *dn-mapping-gp*
+This function is mapped by default to '<LocalLeader>gp', usually '\gp',
+in Insert and Normal modes.
+
+                                                            *GeneratePDF()*
+This function is bound to the command 'GeneratePDF'.
+
+-------------------------------------------------------------------------
+                                                         *dn-markdown-view*
+7. Viewing functions
+
+Functions enabling user to view output. The system default viewing
+applications are used to display the output.
+
+                                                             *DNM_ViewHtml*
+DNM_ViewHtml()
+    purpose: Display html output
+    params:  nil
+    insert:  nil
+    return:  nil
+    note:    uses system default application for html files
+
+                                                            *dn-mapping-vh*
+This function is mapped by default to '<LocalLeader>vh', usually '\vh',
+in Insert and Normal modes.
+
+                                                               *ViewHTML()*
+This function is bound to command 'ViewHTML'.
+
+                                                              *DNM_ViewPdf*
+DNM_ViewPdf()
+    purpose: Display pdf output
+    params:  nil
+    insert:  nil
+    return:  nil
+    note:    uses system default application for pdf files
+
+                                                            *dn-mapping-vp*
+This function is mapped by default to '<LocalLeader>vp', usually '\vp',
+in Insert and Normal modes.
+                                                                *ViewPDF()*
+This function is bound to command 'ViewPDF'.
+
+-------------------------------------------------------------------------
+ vim:tw=78:fo=tcq2:ts=4:ft=help:
