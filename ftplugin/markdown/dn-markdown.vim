@@ -75,94 +75,6 @@ endif                                                               " }}}2
 
 " 3.  FUNCTIONS                                                       {{{1
 
-" Function: s:select_item                                             {{{2
-" Purpose:  user selects item from a list
-" Params:   1 - Hash 'params' (
-"                   items
-"                       => List [required],
-"                   return_values
-"                       => List [optional,
-"                                ignored if not same size as items,
-"                                use items if missing],
-"                   prompt
-"                       => string [optional, default='Select option:']
-"           )
-" Return:   string
-function! s:select_item(params)
-    " variables
-    " - params
-    if type(a:params) != type({})
-        call DNU_Error('s:select_item param must be hash')
-        return ''
-    endif
-    " - params: items
-    if !has_key(a:params, 'items')
-        call DNU_Error('s:select_item got no items in param')
-        return ''
-    endif
-    let l:items = a:params['items']
-    if type(l:items) != type([])
-        call DNU_Error('a:select_item got items not in a list')
-        return ''
-    endif
-    if len(l:items) == 0
-        call DNU_Warn('a:select_item got no items')
-        return ''
-    endif
-    " - params: prompt
-    let l:prompt = 'Select option:'    " default
-    if has_key(a:params, 'prompt')
-        let l:prompt = a:params['prompt']
-    endif
-    " - params: return_values
-    let l:return_values = copy(l:items)
-    if has_key(a:params, 'return_values')
-        if type(a:params['return_values']) == type([])
-            if len(a:params['return_values']) == len(l:items)
-                let l:return_values = copy(a:params['return_values'])
-            else
-                call DNU_Warn('ignoring retvals - wrong length')
-            endif
-        else
-            call DNU_Error('ignoring retvals - no in list')
-        endif
-    else
-        call DNU_Error('no return values supplied')
-    endif
-    " if only one item
-    if len(l:items) == 1
-        return l:return_values[0]
-    endif
-    " choose from multiple items
-    let l:menu_items = []
-    let l:option_num = 1
-    for l:item in l:items
-        let l:menu_item = l:option_num . '. ' . l:item
-        call add(l:menu_items, l:menu_item)
-        let l:option_num += 1
-    endfor
-    let l:no_selection = b:dn_true
-    while l:no_selection
-        try
-            echo l:prompt
-            let l:menu_pick = inputlist(l:menu_items)
-            if l:menu_pick >= 0 && l:menu_pick <= len(l:items)
-                let l:no_selection = b:dn_false
-            else
-                echo "\n"
-                call DNU_Error('Not a valid selection')
-            endif
-        catch
-        endtry
-    endwhile
-    echo "\n" |    " make sure cursor is on new line
-    if l:menu_pick == 0
-        return ''
-    else
-        return l:return_values[l:menu_pick - 1]
-    endif
-endfunction
-" ------------------------------------------------------------------------
 " Function: DNM_HtmlOutput                                            {{{2
 " Purpose:  generate html output
 " Params:   1 - insert mode [default=<false>, optional, boolean]
@@ -173,17 +85,15 @@ function! DNM_HtmlOutput(...)
     let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
     let l:css_dir = globpath(&rtp, "vim-dn-markdown-css")
     let l:css_filepaths = glob(l:css_dir . "/*", b:dn_false, b:dn_true)
-    let l:css_names = []
+    let l:menu_options = {}
     for l:css_filepath in l:css_filepaths
-        call add(l:css_names, fnamemodify(l:css_filepath, ':t:r'))
+        let l:menu_option = fnamemodify(l:css_filepath, ':t:r')
+        let l:menu_options[l:menu_option] = l:css_filepath
     endfor
     " get style file to use
-    let l:style = s:select_item({
-                \ 'items': l:css_names,
-                \ 'return_values': l:css_filepaths,
-                \ 'prompt': 'Select style:',
-                \ })
-    let l:output = substitute( expand('%'), '\.md$', '.html', '' )
+    let l:style = DNU_MenuSelect(l:menu_options, 'Select style:')
+    echo '' |    " ensure cursor is on new line
+    let l:output = substitute(expand('%'), '\.md$', '.html', '')
     let l:source = expand('%')
     " generate output
     echon 'Generating html... '
@@ -208,8 +118,25 @@ function! DNM_HtmlOutput(...)
             return
         endif
     elseif s:os == 'nix'
-        echo ''
-        call DNU_Error('Not yet implemented for linux/unix')
+        if !executable('pandoc')
+            call DNU_Error('Pandoc is not installed')
+            return
+        endif
+        let l:cmd = 'pandoc' . ' '
+                    \ . '-t html5' . ' '
+                    \ . '--standalone' . ' '
+                    \ . '--smart' . ' '
+                    \ . '--self-contained' . ' '
+        if filereadable(l:style)
+            let l:cmd .= '--css=' . shellescape(l:style)  . ' '
+        endif
+        let l:cmd .= '-o' . ' ' . shellescape(l:output) . ' '
+        let l:cmd .= shellescape(l:source)
+        call system(l:cmd)
+        if v:shell_error
+            call DNU_Error('Error occurred during html generation')
+            return
+        endif
     else
         echo ''
         call DNU_Error('Operating system not supported')
@@ -284,8 +211,24 @@ function! DNM_PdfOutput (...)
             return
         endif
     elseif s:os == 'nix'
-        echo ''
-        echoerr 'Not yet implemented for linux/unix'
+        if !executable('pandoc')
+            call DNU_Error('Pandoc is not installed')
+            return
+        endif
+        if !executable('lualatex')
+            call DNU_Error('Lualatex is not installed')
+            return
+        endif
+        let l:cmd = 'pandoc' . ' '
+                    \ . '--smart' . ' '
+                    \ . '-o' . ' ' . shellescape(l:output) . ' '
+                    \ . '--latex-engine=lualatex' . ' '
+                    \ . shellescape(l:source)
+        call system(l:cmd)
+        if v:shell_error
+            call DNU_Error('Error occurred during pdf generation')
+            return
+        endif
     else
         echo ''
         echoerr 'Operating system not supported'
