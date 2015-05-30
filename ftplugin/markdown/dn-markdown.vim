@@ -25,17 +25,17 @@ endif
 " 2.  VARIABLES                                                       {{{1
 
 " help                                                                {{{2
-if !exists( 'b:dn_help_plugins' )
+if !exists('b:dn_help_plugins')
     let b:dn_help_plugins = []
 endif
-if !exists( 'b:dn_help_topics' )
+if !exists('b:dn_help_topics')
     let b:dn_help_topics = {}
 endif
-if !exists( 'b:dn_help_data' )
+if !exists('b:dn_help_data')
     let b:dn_help_data = {}
 endif
-if count( b:dn_help_plugins, 'dn-markdown' ) == 0
-    call add( b:dn_help_plugins, 'dn-markdown' )
+if count(b:dn_help_plugins, 'dn-markdown') == 0
+    call add(b:dn_help_plugins, 'dn-markdown')
     let b:dn_help_topics['vim']['markdown ftplugin'] 
                 \ = 'vim_markdown_ftplugin'
     let b:dn_help_data['vim_markdown_ftplugin'] = [ 
@@ -82,7 +82,7 @@ endif                                                               " }}}2
 function! DNM_HtmlOutput(...)
 	echo '' | " clear command line
     " variables
-    let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
+    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:css_dir = globpath(&rtp, "vim-dn-markdown-css")
     let l:css_filepaths = glob(l:css_dir . "/*", b:dn_false, b:dn_true)
     let l:menu_options = {}
@@ -153,8 +153,8 @@ endfunction
 function! DNM_ViewHtml(...)
 	echo '' | " clear command line
     " variables
-    let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
-    let l:output = substitute( expand('%'), '\.md$', '.html', '' )
+    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
+    let l:output = substitute(expand('%'), '\.md$', '.html', '')
     " check for file to view
     if !filereadable(l:output)
         call DNU_Error('No html file to view')
@@ -169,8 +169,20 @@ function! DNM_ViewHtml(...)
             return
         endif
     elseif s:os == 'nix'
-        echo ''
-        echoerr 'Not yet implemented for linux/unix'
+        echo '' | " clear command line
+        let l:opener = 'xdg-open'
+        if executable(l:opener) == 1
+            let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
+            call system(l:cmd)
+            if v:shell_error
+                let l:msg = l:opener . ' is not configured for html'
+                call DNU_Error('Unable to display html output')
+                call DNU_Error(l:msg)
+            endif
+        else
+            let l:msg = "Could not find '" . l:opener . "'"
+            call DNU_Error(l:msg)
+        endif
     else
         echo ''
         echoerr 'Operating system not supported'
@@ -186,8 +198,8 @@ endfunction
 function! DNM_PdfOutput (...)
 	echo '' | " clear command line
     " variables
-    let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
-    let l:output = substitute( expand('%'), '\.md$', '.pdf', '' )
+    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
+    let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     let l:source = expand('%')
     " generate output
     echon 'Generating pdf... '
@@ -245,8 +257,8 @@ endfunction
 function! DNM_ViewPdf(...)
 	echo '' | " clear command line
     " variables
-    let l:insert = ( a:0 > 0 && a:1 ) ? b:dn_true : b:dn_false
-    let l:output = substitute( expand('%'), '\.md$', '.pdf', '' )
+    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
+    let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     " check for file to view
     if !filereadable(l:output)
         call DNU_Error('No pdf file to view')
@@ -262,10 +274,22 @@ function! DNM_ViewPdf(...)
             return
         endtry
     elseif s:os == 'nix'
-        echo ''
-        echoerr 'Not yet implemented for linux/unix'
+        echo '' | " clear command line
+        let l:opener = 'xdg-open'
+        if executable(l:opener) == 1
+            let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
+            call system(l:cmd)
+            if v:shell_error
+                let l:msg = l:opener . ' is not configured for pdf'
+                call DNU_Error('Unable to display pdf output')
+                call DNU_Error(l:msg)
+            endif
+        else
+            let l:msg = "Could not find '" . l:opener . "'"
+            call DNU_Error(l:msg)
+        endif
     else
-        echoerr 'Operating system not supported'
+        call DNU_Error('Operating system not supported')
     endif
     " return to calling mode
     if l:insert | call DNU_InsertMode(b:dn_true) | endif
@@ -285,41 +309,41 @@ let &cpo = s:save_cpo
 " Mappings:                                                           {{{2
 
 " \gh : generate html output                                          {{{3
-if !hasmapto( '<Plug>DnGHI' )
+if !hasmapto('<Plug>DnGHI')
 	imap <buffer> <unique> <LocalLeader>gh <Plug>DnGHI
 endif
-imap <buffer> <unique> <Plug>DnGHI <Esc>:call DNM_HtmlOutput( b:dn_true )<CR>
-if !hasmapto( '<Plug>DnGHN' )
+imap <buffer> <unique> <Plug>DnGHI <Esc>:call DNM_HtmlOutput(b:dn_true)<CR>
+if !hasmapto('<Plug>DnGHN')
 	nmap <buffer> <unique> <LocalLeader>gh <Plug>DnGHN
 endif
 nmap <buffer> <unique> <Plug>DnGHN :call DNM_HtmlOutput()<CR>
 
 " \vh : view html output                                              {{{3
-if !hasmapto( '<Plug>DnVHI' )
+if !hasmapto('<Plug>DnVHI')
 	imap <buffer> <unique> <LocalLeader>vh <Plug>DnVHI
 endif
-imap <buffer> <unique> <Plug>DnVHI <Esc>:call DNM_ViewHtml( b:dn_true )<CR>
-if !hasmapto( '<Plug>DnVHN' )
+imap <buffer> <unique> <Plug>DnVHI <Esc>:call DNM_ViewHtml(b:dn_true)<CR>
+if !hasmapto('<Plug>DnVHN')
 	nmap <buffer> <unique> <LocalLeader>vh <Plug>DnVHN
 endif
 nmap <buffer> <unique> <Plug>DnVHN :call DNM_ViewHtml()<CR>
 
 " \gp : generate pdf output                                           {{{3
-if !hasmapto( '<Plug>DnGPI' )
+if !hasmapto('<Plug>DnGPI')
 	imap <buffer> <unique> <LocalLeader>gp <Plug>DnGPI
 endif
-imap <buffer> <unique> <Plug>DnGPI <Esc>:call DNM_PdfOutput( b:dn_true )<CR>
-if !hasmapto( '<Plug>DnGPN' )
+imap <buffer> <unique> <Plug>DnGPI <Esc>:call DNM_PdfOutput(b:dn_true)<CR>
+if !hasmapto('<Plug>DnGPN')
 	nmap <buffer> <unique> <LocalLeader>gp <Plug>DnGPN
 endif
 nmap <buffer> <unique> <Plug>DnGPN :call DNM_PdfOutput()<CR>
 
 " \vp : view pdf output                                               {{{3
-if !hasmapto( '<Plug>DnVPI' )
+if !hasmapto('<Plug>DnVPI')
 	imap <buffer> <unique> <LocalLeader>vp <Plug>DnVPI
 endif
-imap <buffer> <unique> <Plug>DnVPI <Esc>:call DNM_ViewPdf( b:dn_true )<CR>
-if !hasmapto( '<Plug>DnVPN' )
+imap <buffer> <unique> <Plug>DnVPI <Esc>:call DNM_ViewPdf(b:dn_true)<CR>
+if !hasmapto('<Plug>DnVPN')
 	nmap <buffer> <unique> <LocalLeader>vp <Plug>DnVPN
 endif
 nmap <buffer> <unique> <Plug>DnVPN :call DNM_ViewPdf()<CR>
