@@ -52,7 +52,39 @@ for details). In the help system navigate to: vim -> markdown ftplugin.
 6. Output functions
 
 Functions enabling user to generate output. The pandoc utility is used to
-produce the output.
+generate output.
+
+                                                *dn-markdown-generate-html*
+The user can set a stylesheet to be used by using the 'DNM_SetHtmlStyle'
+function, for example, calling the function from their vim configuration
+file. The funcion must be called before generating output.
+
+If the user does not specify a stylesheet a default stylesheet is used.
+The default stylesheet is 'buttondown' by Ryan Gray (see
+https://github.com/ryangray/buttondown).
+
+                                                         *DNM_SetHtmlStyle*
+DNM_SetHtmlStyle(style)
+    purpose: specify the css stylesheet to be used
+    params: 1 - stylesheet filepath
+    insert: nil
+    return: nil
+
+If the user wants to create html output using a custom template, specify
+it with the 'DNM_SetHtmlTemplate' function, for example, calling the
+function from their vim configuration The funcion must be called before
+generating output.
+
+                                                      *DNM_SetHtmlTemplate*
+DNM_SetHtmlTemplate(template)
+    purpose: specify the value to provide to the pandoc --template option
+    params: 1 - template
+    insert: nil
+    return: nil
+
+When producing html output the following pandoc options are used:
+'-t html5', '--standalone', and '--smart'. The function 'DNM_HtmlOutput'
+generates html output.
 
                                                            *DNM_HtmlOutput*
 DNM_HtmlOutput()
@@ -63,13 +95,30 @@ DNM_HtmlOutput()
     note:    output file has same basename as markdown script with
              '.html' extension
     note:    an existing output file will be silently overwritten
+             
 
                                                             *dn-mapping-gh*
-This function is mapped by default to '<LocalLeader>gh', usually '\gh',
-in Insert and Normal modes.
+The 'DNM_HtmlOutput' function is mapped by default to '<LocalLeader>gh',
+usually '\gh', in Insert and Normal modes.
 
-                                                           *GenerateHTML()*
-This function is bound to the command 'GenerateHTML'.
+
+                                                             *GenerateHTML*
+The 'DNM_HtmlOutput' function is bound to the command 'GenerateHTML'.
+
+                                                 *dn-markdown-generate-pdf*
+If the user wants to create pdf output using a custom template, specify
+it with the 'DNM_SetPdfTemplate' function, for example, calling the
+function from their vim configuration The funcion must be called before
+generating output. Pdf output uses the 'latex' template.
+
+                                                       *DNM_SetPdfTemplate*
+DNM_SetPdfTemplate(template)
+    purpose: specify the value to provide to the pandoc --template option
+    params: 1 - template
+    insert: nil
+    return: nil
+
+When producing pdf output the following pandoc option is used: 'smart'.
 
                                                             *DNM_PdfOutput*
 DNM_PdfOutput()
@@ -83,11 +132,11 @@ DNM_PdfOutput()
     note:    an existing output file will be silently overwritten
 
                                                             *dn-mapping-gp*
-This function is mapped by default to '<LocalLeader>gp', usually '\gp',
-in Insert and Normal modes.
+The 'DNM_PdfOutput' function is mapped by default to '<LocalLeader>gp',
+usually '\gp', in Insert and Normal modes.
 
-                                                            *GeneratePDF()*
-This function is bound to the command 'GeneratePDF'.
+                                                              *GeneratePDF*
+The 'DNM_PdfOutput' function is bound to the command 'GeneratePDF'.
 
 -------------------------------------------------------------------------
                                                          *dn-markdown-view*

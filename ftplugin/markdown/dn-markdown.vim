@@ -18,6 +18,7 @@ set cpo&vim
 if !exists('b:do_not_load_dn_utils')
     echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
     echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+    finish
 endif
 
 " ========================================================================
@@ -64,12 +65,9 @@ elseif has('unix')
     let s:os = 'nix'
 endif
 
-" vim home variable                                                   {{{2
-if s:os == 'win'
-    let $VIMHOME = $HOME . '\\vimfiles'
-elseif s:os == 'nix'
-    let $VIMHOME = $HOME . '/.vim'
-endif                                                               " }}}2
+" pandoc parameters                                                   {{{2
+let s:pandoc_html = {'style': '', 'template': ''}
+let s:pandoc_tex = {'template': ''}
 
 " ========================================================================
 
@@ -80,68 +78,65 @@ endif                                                               " }}}2
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_HtmlOutput(...)
-	echo '' | " clear command line
-    " variables
+	echo '' |    " clear command line
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
-    let l:css_dir = globpath(&rtp, "vim-dn-markdown-css")
-    let l:css_filepaths = glob(l:css_dir . "/*", b:dn_false, b:dn_true)
-    let l:menu_options = {}
-    for l:css_filepath in l:css_filepaths
-        let l:menu_option = fnamemodify(l:css_filepath, ':t:r')
-        let l:menu_options[l:menu_option] = l:css_filepath
-    endfor
-    " get style file to use
-    let l:style = DNU_MenuSelect(l:menu_options, 'Select style:')
-    echo '' |    " ensure cursor is on new line
+    let l:succeeded = b:dn_false
+    " can't do this without pandoc
+    if !executable('pandoc')
+        call DNU_Error('Pandoc is not installed')
+        if l:insert | call DNU_InsertMode(b:dn_true) | endif
+        return
+    endif
+    echo 'Generating html with pandoc'
+    call s:ensure_html_style()    " set style file
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
     let l:source = expand('%')
     " generate output
-    echon 'Generating html... '
-    if s:os == 'win'
-        if !executable('pandoc')
-            call DNU_Error('Pandoc is not installed')
-            return
+    if s:os =~# '^win$\|^nix$'
+        let l:opts = ''
+        let l:cmd = 'pandoc'
+        " set to html5                         -t html5
+        let l:cmd .=  ' ' . '-t html5'
+        let l:opts .= ', html5'
+        " add header and footer                --standalone
+        let l:cmd .= ' ' . '--standalone' . ' '
+        let l:opts .= ', standalone'
+        " convert quotes, em|endash, ellipsis  --smart
+        let l:cmd .= ' ' . '--smart' . ' '
+        let l:opts .= ', smart'
+        " incorporate external dependencies    --self-contained
+        let l:cmd .= ' ' . '--self-contained' . ' '
+        let l:opts .= ', self-contained'
+        let l:opts = strpart(l:opts, 2)
+        echo 'Options: ' . l:opts
+        " link to css stylesheet               --css=<stylesheet>
+        if filereadable(s:pandoc_html['style'])
+            let l:cmd .= '--css=' . shellescape(s:pandoc_html['style'])  . ' '
+            echo 'Stylesheet: ' . s:pandoc_html['style']
         endif
-        let l:cmd = 'pandoc' . ' '
-                    \ . '-t html5' . ' '
-                    \ . '--standalone' . ' '
-                    \ . '--smart' . ' '
-                    \ . '--self-contained' . ' '
-        if filereadable(l:style)
-            let l:cmd .= '--css=' . shellescape(l:style)  . ' '
+        " use custom template                  --template=<template>
+        if strlen(s:pandoc_html['template']) > 0
+            let l:cmd .= '--template=' . s:pandoc_html['template'] . ' '
+            echo 'Template: ' . s:pandoc_html['template']
+        else
+            echo 'Template: [default]'
         endif
-        let l:cmd .= '-o' . ' ' . shellescape(l:output) . ' '
+        " output file                          --output=<target_file>
+        let l:cmd .= '--output=' . shellescape(l:output) . ' '
+        echo 'Output file: ' . l:output
+        " input file
+        let l:errmsg = ['Error occurred during html generation']
         let l:cmd .= shellescape(l:source)
-        call system(l:cmd)
-        if v:shell_error
-            call DNU_Error('Error occurred during html generation')
-            return
-        endif
-    elseif s:os == 'nix'
-        if !executable('pandoc')
-            call DNU_Error('Pandoc is not installed')
-            return
-        endif
-        let l:cmd = 'pandoc' . ' '
-                    \ . '-t html5' . ' '
-                    \ . '--standalone' . ' '
-                    \ . '--smart' . ' '
-                    \ . '--self-contained' . ' '
-        if filereadable(l:style)
-            let l:cmd .= '--css=' . shellescape(l:style)  . ' '
-        endif
-        let l:cmd .= '-o' . ' ' . shellescape(l:output) . ' '
-        let l:cmd .= shellescape(l:source)
-        call system(l:cmd)
-        if v:shell_error
-            call DNU_Error('Error occurred during html generation')
-            return
-        endif
+        let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
         echo ''
         call DNU_Error('Operating system not supported')
     endif
-    echon 'Done.' | sleep 1 | redraw!
+    if l:succeeded
+        echo 'Done.'
+    endif
+    call DNU_Prompt()
+    redraw!
     " return to calling mode
     if l:insert | call DNU_InsertMode(b:dn_true) | endif
 endfunction
@@ -151,7 +146,7 @@ endfunction
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_ViewHtml(...)
-	echo '' | " clear command line
+	echo '' |    " clear command line
     " variables
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
@@ -162,30 +157,30 @@ function! DNM_ViewHtml(...)
     endif
     " view html output
     if s:os == 'win'
-        call system(shellescape(l:output))
-        if v:shell_error
-            call DNU_Error('Unable to display html output')
-            call DNU_Error('Windows has no default html viewer')
-            return
-        endif
+        let l:errmsg = [
+                    \   'Unable to display html output',
+                    \   'Windows has no default html viewer',
+                    \   'Shell feedback:',
+                    \ ]
+        let l:cmd = shellescape(l:output)
+        call s:execute_shell_command(l:cmd, l:errmsg)
     elseif s:os == 'nix'
         echo '' | " clear command line
         let l:opener = 'xdg-open'
         if executable(l:opener) == 1
             let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
-            call system(l:cmd)
-            if v:shell_error
-                let l:msg = l:opener . ' is not configured for html'
-                call DNU_Error('Unable to display html output')
-                call DNU_Error(l:msg)
-            endif
+            let l:errmsg = [
+                        \   'Unable to display html output',
+                        \   l:opener . ' is not configured for html',
+                        \   'Shell feedback:',
+                        \ ]
+            call s:execute_shell_command(l:cmd, l:errmsg)
         else
-            let l:msg = "Could not find '" . l:opener . "'"
-            call DNU_Error(l:msg)
+            call DNU_Error("Could not find '" . l:opener . "'")
         endif
     else
         echo ''
-        echoerr 'Operating system not supported'
+        call DNU_Error('Operating system not supported')
     endif
     " return to calling mode
     if l:insert | call DNU_InsertMode(b:dn_true) | endif
@@ -199,53 +194,50 @@ function! DNM_PdfOutput (...)
 	echo '' | " clear command line
     " variables
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
+    let l:succeeded = b:dn_false
+    if !executable('pandoc')
+        call DNU_Error('Install pandoc')
+        return
+    endif
+    if !executable('lualatex')
+        call DNU_Error('Install lualatex')
+        return
+    endif
+    echo 'Generating pdf with pandoc'
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     let l:source = expand('%')
     " generate output
-    echon 'Generating pdf... '
-    if s:os == 'win'
-        if !executable('pandoc')
-            call DNU_Error('Pandoc is not installed')
-            return
+    if s:os =~# '^win$\|^nix$'
+        let l:opts = ''
+        let l:cmd = 'pandoc'
+        " convert quotes, em|endash, ellipsis  --smart
+        let l:cmd .= ' ' . '--smart' . ' '
+        let l:opts .= ', smart'
+        let l:opts = strpart(l:opts, 2)
+        echo 'Options: ' . l:opts
+        " use custom template                  --template=<template>
+        if strlen(s:pandoc_html['template']) > 0
+            let l:cmd .= '--template=' . s:pandoc_html['template'] . ' '
+            echo 'Template: ' . s:pandoc_html['template']
+        else
+            echo 'Template: [default]'
         endif
-        if !executable('lualatex')
-            call DNU_Error('Lualatex is not installed')
-            return
-        endif
-        let l:cmd = 'pandoc' . ' '
-                    \ . '--smart' . ' '
-                    \ . '-o' . ' ' . shellescape(l:output) . ' '
-                    \ . '--latex-engine=lualatex' . ' '
-                    \ . shellescape(l:source)
-        call system(l:cmd)
-        if v:shell_error
-            call DNU_Error('Error occurred during pdf generation')
-            return
-        endif
-    elseif s:os == 'nix'
-        if !executable('pandoc')
-            call DNU_Error('Pandoc is not installed')
-            return
-        endif
-        if !executable('lualatex')
-            call DNU_Error('Lualatex is not installed')
-            return
-        endif
-        let l:cmd = 'pandoc' . ' '
-                    \ . '--smart' . ' '
-                    \ . '-o' . ' ' . shellescape(l:output) . ' '
-                    \ . '--latex-engine=lualatex' . ' '
-                    \ . shellescape(l:source)
-        call system(l:cmd)
-        if v:shell_error
-            call DNU_Error('Error occurred during pdf generation')
-            return
-        endif
+        " output file                          --output=<target_file>
+        let l:cmd .= '--output=' . shellescape(l:output) . ' '
+        echo 'Output file: ' . l:output
+        " input file
+        let l:errmsg = ['Error occurred during pdf generation']
+        let l:cmd .= shellescape(l:source)
+        let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
         echo ''
-        echoerr 'Operating system not supported'
+        call DNU_Error('Operating system not supported')
     endif
-    echon 'Done.' | sleep 1 | redraw!
+    if l:succeeded
+        echo 'Done.'
+    endif
+    call DNU_Prompt()
+    redraw!
     " return to calling mode
     if l:insert | call DNU_InsertMode(b:dn_true) | endif
 endfunction
@@ -278,15 +270,14 @@ function! DNM_ViewPdf(...)
         let l:opener = 'xdg-open'
         if executable(l:opener) == 1
             let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
-            call system(l:cmd)
-            if v:shell_error
-                let l:msg = l:opener . ' is not configured for pdf'
-                call DNU_Error('Unable to display pdf output')
-                call DNU_Error(l:msg)
-            endif
+            let l:errmsg = [
+                        \   l:opener . ' is not configured for pdf',
+                        \   'Unable to display pdf output',
+                        \   'Shell feedback:',
+                        \ ]
+            call s:execute_shell_command(l:cmd, l:errmsg)
         else
-            let l:msg = "Could not find '" . l:opener . "'"
-            call DNU_Error(l:msg)
+            call DNU_Error("Could not find '" . l:opener . "'")
         endif
     else
         call DNU_Error('Operating system not supported')
@@ -297,6 +288,102 @@ endfunction
 
 " ========================================================================
 
+" Function: DNM_SetHtmlTemplate                                       {{{2
+" Purpose:  set s:pandoc_html['template'] to template parameter
+" Params:   1 - template
+" Return:   nil
+" Note:     this value is passed to pandoc's --template parameter
+function! DNM_SetHtmlTemplate(template)
+    let s:pandoc_html['template'] = a:template
+endfunction
+" ------------------------------------------------------------------------
+" Function: DNM_SetLatexTemplate                                      {{{2
+" Purpose:  set s:pandoc_tex['template'] to template parameter
+" Params:   1 - template
+" Return:   nil
+" Note:     this value is passed to pandoc's --template parameter
+function! DNM_SetLatexTemplate(template)
+    let s:pandoc_tex['template'] = a:template
+endfunction
+" ------------------------------------------------------------------------
+" Function: DNM_SetHtmlStyle                                          {{{2
+" Purpose:  set s:pandoc_html['style'] to style file
+" Params:   1 - style file path
+" Return:   nil
+function! DNM_SetHtmlStyle(style)
+    let s:pandoc_html['style'] = a:style
+endfunction
+" ------------------------------------------------------------------------
+" Function: s:ensure_html_style                                       {{{2
+" Purpose:  set s:pandoc_html['style'] to default if no user value
+" Params:   nil
+" Return:   nil
+function! s:ensure_html_style()
+    " set by user
+    if strlen(s:pandoc_html['style']) > 0
+        echo 'User assigned stylesheet'
+        return
+    endif
+    " no user value so set to default
+    let l:style_dir = globpath(&rtp, "vim-dn-markdown-css")
+    let l:style_filepaths = glob(l:style_dir . "/*", b:dn_false, b:dn_true)
+    " - whoah, something bad has happened
+    if len(l:style_filepaths) == 0
+        call DNU_Error('Cannot find default styleheet)
+        return
+    endif
+    " - found expected single match
+    if len(l:style_filepaths) == 1
+        let s:pandoc_html['style'] = l:style_filepaths[0]
+        echo 'Using default stylesheet'
+        return
+    endif
+    " - okay, there are multiple css files (how?); let's pick one
+    let l:menu_options = {}
+    for l:style_filepath in l:style_filepaths
+        let l:menu_option = fnamemodify(l:style_filepath, ':t:r')
+        let l:menu_options[l:menu_option] = l:style_filepath
+    endfor
+    let l:style = DNU_MenuSelect(l:menu_options, 'Select style:')
+    if strlen(l:style) > 0
+        let s:pandoc_html['style'] = l:style
+        echo 'User selected stylesheet'
+        return
+    endif
+    " if here then failed to pick from multiple style files
+    " ignore it as user should konw what happened
+endfunction
+" ------------------------------------------------------------------------
+" Function: s:execute_shell_command                                   {{{2
+" Purpose:  execute shell command
+" Params:   1 - shell command [required, string]
+"           2 - error message [optional, List, default='Error occured:']
+" Prints:   if error display user error message and shell feedback
+" Return:   return status of command as vim boolean
+function! s:execute_shell_command(cmd, ...)
+	echo '' | " clear command line
+    " variables
+    if a:0 > 0
+        let l:errmsg = a:1
+    else
+        let l:errmsg = ['Error occurred:']
+    endif
+    " run command
+    let l:shell_feedback = system(a:cmd)
+    " if failed display error message and shell feedback
+    if v:shell_error
+        for l:line in l:errmsg
+            call DNU_Error(l:line)
+        endfor
+        echo '--------------------------------------'
+        echo l:shell_feedback
+        echo '--------------------------------------'
+        return b:dn_false
+    else
+        return b:dn_true
+    endif
+endfunction
+" ------------------------------------------------------------------------
 " 4.  CONTROL STATEMENTS                                              {{{1
 
 " restore user's cpoptions
