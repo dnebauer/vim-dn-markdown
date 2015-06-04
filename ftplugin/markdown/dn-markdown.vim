@@ -87,7 +87,8 @@ function! DNM_HtmlOutput(...)
         if l:insert | call DNU_InsertMode(b:dn_true) | endif
         return
     endif
-    echo 'Generating html with pandoc'
+    echo 'Target format: html'
+    echo 'Converter:     pandoc'
     call s:ensure_html_style()    " set style file
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
     let l:source = expand('%')
@@ -108,24 +109,25 @@ function! DNM_HtmlOutput(...)
         let l:cmd .= ' ' . '--self-contained' . ' '
         let l:opts .= ', self-contained'
         let l:opts = strpart(l:opts, 2)
-        echo 'Options: ' . l:opts
+        echo 'Options:       ' . l:opts
         " link to css stylesheet               --css=<stylesheet>
         if filereadable(s:pandoc_html['style'])
             let l:cmd .= '--css=' . shellescape(s:pandoc_html['style'])  . ' '
-            echo 'Stylesheet: ' . s:pandoc_html['style']
+            echo 'Stylesheet:    ' . s:pandoc_html['style']
         endif
         " use custom template                  --template=<template>
         if strlen(s:pandoc_html['template']) > 0
             let l:cmd .= '--template=' . s:pandoc_html['template'] . ' '
-            echo 'Template: ' . s:pandoc_html['template']
+            echo 'Template:      ' . s:pandoc_html['template']
         else
-            echo 'Template: [default]'
+            echo 'Template:      [default]'
         endif
         " output file                          --output=<target_file>
         let l:cmd .= '--output=' . shellescape(l:output) . ' '
-        echo 'Output file: ' . l:output
+        echo 'Output file:   ' . l:output
         " input file
         let l:errmsg = ['Error occurred during html generation']
+        echon 'Generating output... '
         let l:cmd .= shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
@@ -133,7 +135,7 @@ function! DNM_HtmlOutput(...)
         call DNU_Error('Operating system not supported')
     endif
     if l:succeeded
-        echo 'Done.'
+        echo 'Done'
     endif
     call DNU_Prompt()
     redraw!
@@ -163,7 +165,10 @@ function! DNM_ViewHtml(...)
                     \   'Shell feedback:',
                     \ ]
         let l:cmd = shellescape(l:output)
-        call s:execute_shell_command(l:cmd, l:errmsg)
+        let l:succeeded = s:execute_shell_command(l:cmd, l:errmsg)
+        if l:succeeded
+            echo 'Done'
+        endif
     elseif s:os == 'nix'
         echo '' | " clear command line
         let l:opener = 'xdg-open'
@@ -203,7 +208,8 @@ function! DNM_PdfOutput (...)
         call DNU_Error('Install lualatex')
         return
     endif
-    echo 'Generating pdf with pandoc'
+    echo 'Target format: pdf'
+    echo 'Converter:     pandoc'
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     let l:source = expand('%')
     " generate output
@@ -214,19 +220,20 @@ function! DNM_PdfOutput (...)
         let l:cmd .= ' ' . '--smart' . ' '
         let l:opts .= ', smart'
         let l:opts = strpart(l:opts, 2)
-        echo 'Options: ' . l:opts
+        echo 'Options:       ' . l:opts
         " use custom template                  --template=<template>
         if strlen(s:pandoc_html['template']) > 0
             let l:cmd .= '--template=' . s:pandoc_html['template'] . ' '
-            echo 'Template: ' . s:pandoc_html['template']
+            echo 'Template:      ' . s:pandoc_html['template']
         else
-            echo 'Template: [default]'
+            echo 'Template:      [default]'
         endif
         " output file                          --output=<target_file>
         let l:cmd .= '--output=' . shellescape(l:output) . ' '
-        echo 'Output file: ' . l:output
+        echo 'Output file:   ' . l:output
         " input file
         let l:errmsg = ['Error occurred during pdf generation']
+        echo 'Generating output... '
         let l:cmd .= shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
@@ -234,7 +241,7 @@ function! DNM_PdfOutput (...)
         call DNU_Error('Operating system not supported')
     endif
     if l:succeeded
-        echo 'Done.'
+        echo 'Done'
     endif
     call DNU_Prompt()
     redraw!
@@ -258,6 +265,7 @@ function! DNM_ViewPdf(...)
     endif
     " view pdf output
     if s:os == 'win'
+        " can't use shell command because starts in foreground
         try
             execute 'silent !start cmd /c "%:r.pdf"'
         catch
@@ -321,7 +329,7 @@ endfunction
 function! s:ensure_html_style()
     " set by user
     if strlen(s:pandoc_html['style']) > 0
-        echo 'User assigned stylesheet'
+        echo 'Stylesheet:    set by user'
         return
     endif
     " no user value so set to default
@@ -335,7 +343,7 @@ function! s:ensure_html_style()
     " - found expected single match
     if len(l:style_filepaths) == 1
         let s:pandoc_html['style'] = l:style_filepaths[0]
-        echo 'Using default stylesheet'
+        echo 'Stylesheet:    using default'
         return
     endif
     " - okay, there are multiple css files (how?); let's pick one
@@ -347,7 +355,7 @@ function! s:ensure_html_style()
     let l:style = DNU_MenuSelect(l:menu_options, 'Select style:')
     if strlen(l:style) > 0
         let s:pandoc_html['style'] = l:style
-        echo 'User selected stylesheet'
+        echo 'Stylesheet:    selected by user'
         return
     endif
     " if here then failed to pick from multiple style files
@@ -372,6 +380,7 @@ function! s:execute_shell_command(cmd, ...)
     let l:shell_feedback = system(a:cmd)
     " if failed display error message and shell feedback
     if v:shell_error
+        echo ' ' |    " previous output was echon
         for l:line in l:errmsg
             call DNU_Error(l:line)
         endfor
