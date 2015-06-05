@@ -333,10 +333,13 @@ function! s:ensure_html_style()
         return
     endif
     " no user value so set to default
-    let l:style_dir = globpath(&rtp, "vim-dn-markdown-css")
-    let l:style_filepaths = glob(l:style_dir . "/*", b:dn_false, b:dn_true)
-    " - whoah, something bad has happened
-    if len(l:style_filepaths) == 0
+    let l:style_dirs = split(globpath(&rtp, "vim-dn-markdown-css"), '\n')
+    let l:style_filepaths = []
+    for l:style_dir in l:style_dirs
+        call extend(l:style_filepaths, 
+                    \ glob(l:style_dir . "/*", b:dn_false, b:dn_true))
+    endfor
+    if len(l:style_filepaths) == 0    " - whoah, something bad has happened
         call DNU_Error('Cannot find default styleheet)
         return
     endif
