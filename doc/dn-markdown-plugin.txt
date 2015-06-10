@@ -72,7 +72,7 @@ DNM_SetHtmlStyle(style)
 
 If the user wants to create html output using a custom template, specify
 it with the 'DNM_SetHtmlTemplate' function, for example, calling the
-function from their vim configuration The funcion must be called before
+function from their vim configuration. The function must be called before
 generating output.
 
                                                       *DNM_SetHtmlTemplate*
@@ -82,9 +82,29 @@ DNM_SetHtmlTemplate(template)
     insert: nil
     return: nil
 
+                                                      *dnm_pandoc_citeproc*
+If the user wants to use the pandoc-citeproc filter to resolve citations,
+set its inclusion in the pandoc command with the 'DNM_PandocCiteproc'
+function. To remove the pandoc-citeproc filter, use the
+'DNM_NoPandocCiteproc' function.
+
+                                                       *DNM_PandocCiteproc*
+DNM_PandocCiteproc()
+    purpose: set flag to add '--filter pandoc-citeproc' to pandoc command
+    params: nil
+    return: nil
+    note:   does not check that the pandoc-citeproc filter is installed
+
+                                                     *DNM_NoPandocCiteproc*
+DNM_NoPandocCiteproc()
+    purpose: set flag to remove '--filter pandoc-citeproc' from pandoc
+             command
+    params: nil
+    return: nil
+
 When producing html output the following pandoc options are used:
-'-t html5', '--standalone', and '--smart'. The function 'DNM_HtmlOutput'
-generates html output.
+'-t html5', '--standalone', and '--smart'. If set, the pandoc-citeproc
+filter is also used. The function 'DNM_HtmlOutput' generates html output.
 
                                                            *DNM_HtmlOutput*
 DNM_HtmlOutput()
@@ -102,7 +122,7 @@ The 'DNM_HtmlOutput' function is mapped by default to '<LocalLeader>gh',
 usually '\gh', in Insert and Normal modes.
 
 
-                                                             *GenerateHTML*
+                                                         *DNM_GenerateHTML*
 The 'DNM_HtmlOutput' function is bound to the command 'GenerateHTML'.
 
                                                  *dn-markdown-generate-pdf*
@@ -119,6 +139,10 @@ DNM_SetPdfTemplate(template)
     return: nil
 
 When producing pdf output the following pandoc option is used: 'smart'.
+
+The pandoc-citeproc filter can be used in generating pdf output in the
+same way it is used in generating html output. See |dnm_pandoc_citeproc|
+for details.
 
                                                             *DNM_PdfOutput*
 DNM_PdfOutput()

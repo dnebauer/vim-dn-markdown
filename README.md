@@ -48,6 +48,14 @@ This filetype plugin automates the following tasks:
 
 *   command: `ViewPDF`
 
+###Customisation of output
+
+Specify stylesheet for html output with the `DNM_SetStyle(stylesheet_filepath)` function.
+
+Specify pandoc output template for html \[`DNM_SetHtmlTemplate(template_filepath)`\] and pdf `\[DNM_SetPdfTemplate(template_filepath)\]`.
+
+Use or remove pandoc-citeproc filter with functions `DNM_PandocCiteproc` and `DNM_NoPandocCiteproc`.
+
 Credit
 ------
 

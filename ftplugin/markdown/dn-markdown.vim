@@ -68,6 +68,7 @@ endif
 " pandoc parameters                                                   {{{2
 let s:pandoc_html = {'style': '', 'template': ''}
 let s:pandoc_tex = {'template': ''}
+let s:pandoc_citeproc = b:dn_false    " default
 
 " ========================================================================
 
@@ -108,6 +109,9 @@ function! DNM_HtmlOutput(...)
         " incorporate external dependencies    --self-contained
         let l:cmd .= ' ' . '--self-contained' . ' '
         let l:opts .= ', self-contained'
+        " use citeproc if selected by user     --filter pandoc-citeproc
+        let l:cmd .= ' ' . '--filter pandoc-citeproc' . ' '
+        let l:opts .= ', pandoc-citeproc'
         let l:opts = strpart(l:opts, 2)
         echo 'Options:       ' . l:opts
         " link to css stylesheet               --css=<stylesheet>
@@ -320,6 +324,16 @@ endfunction
 " Return:   nil
 function! DNM_SetHtmlStyle(style)
     let s:pandoc_html['style'] = a:style
+endfunction
+" ------------------------------------------------------------------------
+" Function: DNM_PandocCiteproc                                        {{{2
+" Purpose:  set flag to include citeproc filter
+" Params:   nil
+" Return:   nil
+" Note:     adds '--filter citeproc' to pandoc command
+" Note:     does not check for installation of filter
+function! DNM_PandocCiteproc()
+    let s:pandoc_citeproc = b:dn_true
 endfunction
 " ------------------------------------------------------------------------
 " Function: s:ensure_html_style                                       {{{2
