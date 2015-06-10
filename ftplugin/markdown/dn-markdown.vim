@@ -101,38 +101,41 @@ function! DNM_HtmlOutput(...)
         let l:cmd .=  ' ' . '-t html5'
         let l:opts .= ', html5'
         " add header and footer                --standalone
-        let l:cmd .= ' ' . '--standalone' . ' '
+        let l:cmd .= ' ' . '--standalone'
         let l:opts .= ', standalone'
         " convert quotes, em|endash, ellipsis  --smart
-        let l:cmd .= ' ' . '--smart' . ' '
+        let l:cmd .= ' ' . '--smart'
         let l:opts .= ', smart'
         " incorporate external dependencies    --self-contained
-        let l:cmd .= ' ' . '--self-contained' . ' '
+        let l:cmd .= ' ' . '--self-contained'
         let l:opts .= ', self-contained'
         " use citeproc if selected by user     --filter pandoc-citeproc
-        let l:cmd .= ' ' . '--filter pandoc-citeproc' . ' '
-        let l:opts .= ', pandoc-citeproc'
+        if s:pandoc_citeproc
+            let l:cmd .= ' ' . '--filter pandoc-citeproc'
+            let l:opts .= ', pandoc-citeproc'
+        endif
+        " display options
         let l:opts = strpart(l:opts, 2)
         echo 'Options:       ' . l:opts
         " link to css stylesheet               --css=<stylesheet>
         if filereadable(s:pandoc_html['style'])
-            let l:cmd .= '--css=' . shellescape(s:pandoc_html['style'])  . ' '
+            let l:cmd .= ' ' . '--css=' . shellescape(s:pandoc_html['style'])
             echo 'Stylesheet:    ' . s:pandoc_html['style']
         endif
         " use custom template                  --template=<template>
         if strlen(s:pandoc_html['template']) > 0
-            let l:cmd .= '--template=' . s:pandoc_html['template'] . ' '
+            let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
             echo 'Template:      ' . s:pandoc_html['template']
         else
             echo 'Template:      [default]'
         endif
         " output file                          --output=<target_file>
-        let l:cmd .= '--output=' . shellescape(l:output) . ' '
+        let l:cmd .= ' ' . '--output=' . shellescape(l:output)
         echo 'Output file:   ' . l:output
         " input file
         let l:errmsg = ['Error occurred during html generation']
         echon 'Generating output... '
-        let l:cmd .= shellescape(l:source)
+        let l:cmd .= ' ' . shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
         echo ''
@@ -221,24 +224,30 @@ function! DNM_PdfOutput (...)
         let l:opts = ''
         let l:cmd = 'pandoc'
         " convert quotes, em|endash, ellipsis  --smart
-        let l:cmd .= ' ' . '--smart' . ' '
+        let l:cmd .= ' ' . '--smart'
         let l:opts .= ', smart'
+        " use citeproc if selected by user     --filter pandoc-citeproc
+        if s:pandoc_citeproc
+            let l:cmd .= ' ' . '--filter pandoc-citeproc'
+            let l:opts .= ', pandoc-citeproc'
+        endif
+        " display options
         let l:opts = strpart(l:opts, 2)
         echo 'Options:       ' . l:opts
         " use custom template                  --template=<template>
         if strlen(s:pandoc_html['template']) > 0
-            let l:cmd .= '--template=' . s:pandoc_html['template'] . ' '
+            let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
             echo 'Template:      ' . s:pandoc_html['template']
         else
             echo 'Template:      [default]'
         endif
         " output file                          --output=<target_file>
-        let l:cmd .= '--output=' . shellescape(l:output) . ' '
+        let l:cmd .= ' ' . '--output=' . shellescape(l:output)
         echo 'Output file:   ' . l:output
         " input file
         let l:errmsg = ['Error occurred during pdf generation']
         echo 'Generating output... '
-        let l:cmd .= shellescape(l:source)
+        let l:cmd .= ' ' . shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
         echo ''
@@ -333,7 +342,27 @@ endfunction
 " Note:     adds '--filter citeproc' to pandoc command
 " Note:     does not check for installation of filter
 function! DNM_PandocCiteproc()
+    echo ''    | " clear command line
+    if exists('s:pandoc_citeproc') && s:pandoc_citeproc
+        echo 'Already set to use pandoc-citeproc filter'
+        return
+    endif
     let s:pandoc_citeproc = b:dn_true
+    echo 'Now set to use pandoc-citeproc filter'
+endfunction
+" ------------------------------------------------------------------------
+" Function: DNM_NoPandocCiteproc                                      {{{2
+" Purpose:  set flag to not include citeproc filter
+" Params:   nil
+" Return:   nil
+function! DNM_NoPandocCiteproc()
+    echo ''    | " clear command line
+    if exists('s:pandoc_citeproc') && !s:pandoc_citeproc
+        echo 'Already NOT using pandoc-citeproc filter'
+        return
+    endif
+    let s:pandoc_citeproc = b:dn_false
+    echo 'Now set to NOT use pandoc-citeproc filter'
 endfunction
 " ------------------------------------------------------------------------
 " Function: s:ensure_html_style                                       {{{2
