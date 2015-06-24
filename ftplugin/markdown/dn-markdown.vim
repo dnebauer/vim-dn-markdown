@@ -30,6 +30,9 @@ if !exists('b:dn_help_data')
 endif
 if count(b:dn_help_plugins, 'dn-markdown') == 0
     call add(b:dn_help_plugins, 'dn-markdown')
+    if !has_key(b:dn_help_topics, 'vim')
+        let b:dn_help_topics['vim'] = {}
+    endif
     let b:dn_help_topics['vim']['markdown ftplugin'] 
                 \ = 'vim_markdown_ftplugin'
     let b:dn_help_data['vim_markdown_ftplugin'] = [ 
@@ -61,7 +64,7 @@ endif
 " pandoc parameters                                                   {{{2
 let s:pandoc_html = {'style': '', 'template': ''}
 let s:pandoc_tex = {'template': ''}
-let s:pandoc_citeproc = b:dn_false    " default
+let s:pandoc_citeproc = 0    " default
 
 " ========================================================================
 
