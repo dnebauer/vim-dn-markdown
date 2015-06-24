@@ -14,13 +14,6 @@ let b:did_markdown_pandoc = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-" Warn if dn-utils plugin is not detected
-if !exists('b:do_not_load_dn_utils')
-    echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
-    echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
-    finish
-endif
-
 " ========================================================================
 
 " 2.  VARIABLES                                                       {{{1
@@ -80,6 +73,12 @@ let s:pandoc_citeproc = b:dn_false    " default
 " Return:   nil
 function! DNM_HtmlOutput(...)
 	echo '' |    " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:succeeded = b:dn_false
     " can't do this without pandoc
@@ -156,6 +155,12 @@ endfunction
 " Return:   nil
 function! DNM_ViewHtml(...)
 	echo '' |    " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     " variables
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
@@ -204,6 +209,12 @@ endfunction
 " Return:   nil
 function! DNM_PdfOutput (...)
 	echo '' | " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     " variables
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:succeeded = b:dn_false
@@ -268,6 +279,12 @@ endfunction
 " Return:   nil
 function! DNM_ViewPdf(...)
 	echo '' | " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     " variables
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
@@ -306,15 +323,19 @@ function! DNM_ViewPdf(...)
     " return to calling mode
     if l:insert | call DNU_InsertMode(b:dn_true) | endif
 endfunction
-
-" ========================================================================
-
+" ------------------------------------------------------------------------
 " Function: DNM_SetHtmlTemplate                                       {{{2
 " Purpose:  set s:pandoc_html['template'] to template parameter
 " Params:   1 - template
 " Return:   nil
 " Note:     this value is passed to pandoc's --template parameter
 function! DNM_SetHtmlTemplate(template)
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     let s:pandoc_html['template'] = a:template
 endfunction
 " ------------------------------------------------------------------------
@@ -324,6 +345,12 @@ endfunction
 " Return:   nil
 " Note:     this value is passed to pandoc's --template parameter
 function! DNM_SetLatexTemplate(template)
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     let s:pandoc_tex['template'] = a:template
 endfunction
 " ------------------------------------------------------------------------
@@ -332,6 +359,12 @@ endfunction
 " Params:   1 - style file path
 " Return:   nil
 function! DNM_SetHtmlStyle(style)
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     let s:pandoc_html['style'] = a:style
 endfunction
 " ------------------------------------------------------------------------
@@ -343,6 +376,12 @@ endfunction
 " Note:     does not check for installation of filter
 function! DNM_PandocCiteproc()
     echo ''    | " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     if exists('s:pandoc_citeproc') && s:pandoc_citeproc
         echo 'Already set to use pandoc-citeproc filter'
         return
@@ -357,6 +396,12 @@ endfunction
 " Return:   nil
 function! DNM_NoPandocCiteproc()
     echo ''    | " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     if exists('s:pandoc_citeproc') && !s:pandoc_citeproc
         echo 'Already NOT using pandoc-citeproc filter'
         return
@@ -370,6 +415,12 @@ endfunction
 " Params:   nil
 " Return:   nil
 function! s:ensure_html_style()
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
     " set by user
     if strlen(s:pandoc_html['style']) > 0
         echo 'Stylesheet:    set by user'
@@ -437,6 +488,16 @@ function! s:execute_shell_command(cmd, ...)
     else
         return b:dn_true
     endif
+endfunction
+" ------------------------------------------------------------------------
+" Function: s:dn_utils_missing                                        {{{2
+" Purpose:  execute shell command
+" Params:   1 - shell command [required, string]
+"           2 - error message [optional, List, default='Error occured:']
+" Prints:   if error display user error message and shell feedback
+" Return:   return status of command as vim boolean
+function! s:dn_utils_missing()
+    return !exists('b:do_not_load_dn_utils')
 endfunction
 " ------------------------------------------------------------------------
 " 4.  CONTROL STATEMENTS                                              {{{1
