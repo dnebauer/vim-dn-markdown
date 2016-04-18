@@ -500,7 +500,7 @@ endfunction
 " Prints:   if error display user error message and shell feedback
 " Return:   return status of command as vim boolean
 function! s:dn_utils_missing()
-    return !exists('b:do_not_load_dn_utils')
+    return !exists('b:loaded_dn_utils')
 endfunction
 " ------------------------------------------------------------------------
 " 4.  CONTROL STATEMENTS                                              {{{1
