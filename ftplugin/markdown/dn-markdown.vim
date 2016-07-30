@@ -33,9 +33,9 @@ if count(b:dn_help_plugins, 'dn-markdown') == 0
     if !has_key(b:dn_help_topics, 'vim')
         let b:dn_help_topics['vim'] = {}
     endif
-    let b:dn_help_topics['vim']['markdown ftplugin'] 
+    let b:dn_help_topics['vim']['markdown ftplugin']
                 \ = 'vim_markdown_ftplugin'
-    let b:dn_help_data['vim_markdown_ftplugin'] = [ 
+    let b:dn_help_data['vim_markdown_ftplugin'] = [
         \ 'This markdown ftplugin automates the following tasks:',
         \ '',
         \ '',
@@ -86,8 +86,8 @@ function! DNM_HtmlOutput(...)
     let l:succeeded = b:dn_false
     " can't do this without pandoc
     if !executable('pandoc')
-        call DNU_Error('Pandoc is not installed')
-        if l:insert | call DNU_InsertMode(b:dn_true) | endif
+        call dn#util#error('Pandoc is not installed')
+        if l:insert | call dn#util#insertMode(b:dn_true) | endif
         return
     endif
     echo 'Target format: html'
@@ -141,15 +141,15 @@ function! DNM_HtmlOutput(...)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
         echo ''
-        call DNU_Error('Operating system not supported')
+        call dn#util#error('Operating system not supported')
     endif
     if l:succeeded
         echo 'Done'
     endif
-    call DNU_Prompt()
+    call dn#util#prompt()
     redraw!
     " return to calling mode
-    if l:insert | call DNU_InsertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(b:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_ViewHtml                                              {{{2
@@ -169,7 +169,7 @@ function! DNM_ViewHtml(...)
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
     " check for file to view
     if !filereadable(l:output)
-        call DNU_Error('No html file to view')
+        call dn#util#error('No html file to view')
         return
     endif
     " view html output
@@ -196,14 +196,14 @@ function! DNM_ViewHtml(...)
                         \ ]
             call s:execute_shell_command(l:cmd, l:errmsg)
         else
-            call DNU_Error("Could not find '" . l:opener . "'")
+            call dn#util#error("Could not find '" . l:opener . "'")
         endif
     else
         echo ''
-        call DNU_Error('Operating system not supported')
+        call dn#util#error('Operating system not supported')
     endif
     " return to calling mode
-    if l:insert | call DNU_InsertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(b:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_PdfOutput                                            {{{2
@@ -222,11 +222,11 @@ function! DNM_PdfOutput (...)
     let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
     let l:succeeded = b:dn_false
     if !executable('pandoc')
-        call DNU_Error('Install pandoc')
+        call dn#util#error('Install pandoc')
         return
     endif
     if !executable('lualatex')
-        call DNU_Error('Install lualatex')
+        call dn#util#error('Install lualatex')
         return
     endif
     echo 'Target format: pdf'
@@ -265,15 +265,15 @@ function! DNM_PdfOutput (...)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
         echo ''
-        call DNU_Error('Operating system not supported')
+        call dn#util#error('Operating system not supported')
     endif
     if l:succeeded
         echo 'Done'
     endif
-    call DNU_Prompt()
+    call dn#util#prompt()
     redraw!
     " return to calling mode
-    if l:insert | call DNU_InsertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(b:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_ViewPdf                                               {{{2
@@ -293,7 +293,7 @@ function! DNM_ViewPdf(...)
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     " check for file to view
     if !filereadable(l:output)
-        call DNU_Error('No pdf file to view')
+        call dn#util#error('No pdf file to view')
         return
     endif
     " view pdf output
@@ -302,8 +302,8 @@ function! DNM_ViewPdf(...)
         try
             execute 'silent !start cmd /c "%:r.pdf"'
         catch
-            call DNU_Error('Unable to display pdf output')
-            call DNU_Error('Windows has no default pdf viewer')
+            call dn#util#error('Unable to display pdf output')
+            call dn#util#error('Windows has no default pdf viewer')
             return
         endtry
     elseif s:os == 'nix'
@@ -318,13 +318,13 @@ function! DNM_ViewPdf(...)
                         \ ]
             call s:execute_shell_command(l:cmd, l:errmsg)
         else
-            call DNU_Error("Could not find '" . l:opener . "'")
+            call dn#util#error("Could not find '" . l:opener . "'")
         endif
     else
-        call DNU_Error('Operating system not supported')
+        call dn#util#error('Operating system not supported')
     endif
     " return to calling mode
-    if l:insert | call DNU_InsertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(b:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_SetHtmlTemplate                                       {{{2
@@ -433,11 +433,11 @@ function! s:ensure_html_style()
     let l:style_dirs = split(globpath(&rtp, "vim-dn-markdown-css"), '\n')
     let l:style_filepaths = []
     for l:style_dir in l:style_dirs
-        call extend(l:style_filepaths, 
+        call extend(l:style_filepaths,
                     \ glob(l:style_dir . "/*", b:dn_false, b:dn_true))
     endfor
     if len(l:style_filepaths) == 0    " - whoah, something bad has happened
-        call DNU_Error('Cannot find default styleheet)
+        call dn#util#error('Cannot find default styleheet)
         return
     endif
     " - found expected single match
@@ -452,7 +452,7 @@ function! s:ensure_html_style()
         let l:menu_option = fnamemodify(l:style_filepath, ':t:r')
         let l:menu_options[l:menu_option] = l:style_filepath
     endfor
-    let l:style = DNU_MenuSelect(l:menu_options, 'Select style:')
+    let l:style = dn#util#menuSelect(l:menu_options, 'Select style:')
     if strlen(l:style) > 0
         let s:pandoc_html['style'] = l:style
         echo 'Stylesheet:    selected by user'
@@ -482,7 +482,7 @@ function! s:execute_shell_command(cmd, ...)
     if v:shell_error
         echo ' ' |    " previous output was echon
         for l:line in l:errmsg
-            call DNU_Error(l:line)
+            call dn#util#error(l:line)
         endfor
         echo '--------------------------------------'
         echo l:shell_feedback

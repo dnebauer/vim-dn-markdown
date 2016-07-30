@@ -45,7 +45,7 @@ This ftplugin uses the |b:dn-true| and |b:dn-false| variables provided by
 |dn-utils-plugin|.
 
                                                          *dn-markdown-help*
-This ftplugin contributes to the |dn-utils-plugin| help system (see |DNU_Help|
+This ftplugin contributes to the |dn-utils-plugin| help system (see |dn#util#help|
 for details). In the help system navigate to: vim -> markdown ftplugin.
 -------------------------------------------------------------------------
                                                        *dn-markdown-output*
@@ -115,7 +115,7 @@ DNM_HtmlOutput()
     note:    output file has same basename as markdown script with
              '.html' extension
     note:    an existing output file will be silently overwritten
-             
+
 
                                                             *dn-mapping-gh*
 The 'DNM_HtmlOutput' function is mapped by default to '<LocalLeader>gh',
