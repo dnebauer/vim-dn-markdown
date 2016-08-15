@@ -1,7 +1,6 @@
 " Function:    Vim ftplugin for markdown
 " Last Change: 2015-04-29
 " Maintainer:  David Nebauer <david@nebauer.org>
-" License:     Public domain
 
 " 1.  CONTROL STATEMENTS                                              {{{1
 
