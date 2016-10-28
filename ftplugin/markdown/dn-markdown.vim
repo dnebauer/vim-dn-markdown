@@ -556,16 +556,16 @@ nmap <buffer> <unique> <Plug>DnVPN :call DNM_ViewPdf()<CR>
 " Commands:                                                           {{{2
 
 " GenerateHTML : generate HTML output                                 {{{3
-command GenerateHTML call DNM_HtmlOutput()
+command! GenerateHTML call DNM_HtmlOutput()
 
 " ViewHTML : view HTML output                                         {{{3
-command ViewHTML call DNM_ViewHtml()
+command! ViewHTML call DNM_ViewHtml()
 
 " GeneratePDF : generate PDF output                                   {{{3
-command GeneratePDF call DNM_PdfOutput()
+command! GeneratePDF call DNM_PdfOutput()
 
 " ViewPDF : view PDF output                                           {{{3
-command ViewPDF call DNM_ViewPdf()
+command! ViewPDF call DNM_ViewPdf()
 
                                                                     " }}}1
 
