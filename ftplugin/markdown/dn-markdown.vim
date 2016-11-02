@@ -493,13 +493,12 @@ function! s:execute_shell_command(cmd, ...)
 endfunction
 " ------------------------------------------------------------------------
 " Function: s:dn_utils_missing                                        {{{2
-" Purpose:  execute shell command
-" Params:   1 - shell command [required, string]
-"           2 - error message [optional, List, default='Error occured:']
-" Prints:   if error display user error message and shell feedback
-" Return:   return status of command as vim boolean
+" Purpose:  determine whether dn-utils plugin is loaded
+" Params:   nil
+" Prints:   nil
+" Return:   whether dn-utils plugin is loaded
 function! s:dn_utils_missing()
-    return !exists('b:loaded_dn_utils')
+    return !exists('g:loaded_dn_utils')
 endfunction
 " ------------------------------------------------------------------------
 " 4.  CONTROL STATEMENTS                                              {{{1
