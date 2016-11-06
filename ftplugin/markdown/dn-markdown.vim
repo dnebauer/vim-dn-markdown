@@ -10,31 +10,31 @@ let b:did_markdown_pandoc = 1
 
 " Use default cpoptions to avoid unpleasantness from customised
 " 'compatible' settings
-let s:save_cpo = &cpo
-set cpo&vim
+let s:save_cpo = &cpoptions
+set cpoptions&vim
 
 " ========================================================================
 
 " 2.  VARIABLES                                                       {{{1
 
 " help                                                                {{{2
-if !exists('b:dn_help_plugins')
-    let b:dn_help_plugins = []
+if !exists('g:dn_help_plugins')
+    let g:dn_help_plugins = []
 endif
-if !exists('b:dn_help_topics')
-    let b:dn_help_topics = {}
+if !exists('g:dn_help_topics')
+    let g:dn_help_topics = {}
 endif
-if !exists('b:dn_help_data')
-    let b:dn_help_data = {}
+if !exists('g:dn_help_data')
+    let g:dn_help_data = {}
 endif
-if count(b:dn_help_plugins, 'dn-markdown') == 0
-    call add(b:dn_help_plugins, 'dn-markdown')
-    if !has_key(b:dn_help_topics, 'vim')
-        let b:dn_help_topics['vim'] = {}
+if count(g:dn_help_plugins, 'dn-markdown') == 0
+    call add(g:dn_help_plugins, 'dn-markdown')
+    if !has_key(g:dn_help_topics, 'vim')
+        let g:dn_help_topics['vim'] = {}
     endif
-    let b:dn_help_topics['vim']['markdown ftplugin']
+    let g:dn_help_topics['vim']['markdown ftplugin']
                 \ = 'vim_markdown_ftplugin'
-    let b:dn_help_data['vim_markdown_ftplugin'] = [
+    let g:dn_help_data['vim_markdown_ftplugin'] = [
         \ 'This markdown ftplugin automates the following tasks:',
         \ '',
         \ '',
@@ -81,12 +81,12 @@ function! DNM_HtmlOutput(...)
         echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
         return
     endif
-    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
-    let l:succeeded = b:dn_false
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:succeeded = g:dn_false
     " can't do this without pandoc
     if !executable('pandoc')
         call dn#util#error('Pandoc is not installed')
-        if l:insert | call dn#util#insertMode(b:dn_true) | endif
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif
         return
     endif
     echo 'Target format: html'
@@ -148,7 +148,7 @@ function! DNM_HtmlOutput(...)
     call dn#util#prompt()
     redraw!
     " return to calling mode
-    if l:insert | call dn#util#insertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_ViewHtml                                              {{{2
@@ -164,7 +164,7 @@ function! DNM_ViewHtml(...)
         return
     endif
     " variables
-    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
     " check for file to view
     if !filereadable(l:output)
@@ -172,7 +172,7 @@ function! DNM_ViewHtml(...)
         return
     endif
     " view html output
-    if s:os == 'win'
+    if s:os ==# 'win'
         let l:errmsg = [
                     \   'Unable to display html output',
                     \   'Windows has no default html viewer',
@@ -183,7 +183,7 @@ function! DNM_ViewHtml(...)
         if l:succeeded
             echo 'Done'
         endif
-    elseif s:os == 'nix'
+    elseif s:os ==# 'nix'
         echo '' | " clear command line
         let l:opener = 'xdg-open'
         if executable(l:opener) == 1
@@ -202,7 +202,7 @@ function! DNM_ViewHtml(...)
         call dn#util#error('Operating system not supported')
     endif
     " return to calling mode
-    if l:insert | call dn#util#insertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_PdfOutput                                            {{{2
@@ -218,8 +218,8 @@ function! DNM_PdfOutput (...)
         return
     endif
     " variables
-    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
-    let l:succeeded = b:dn_false
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:succeeded = g:dn_false
     if !executable('pandoc')
         call dn#util#error('Install pandoc')
         return
@@ -272,7 +272,7 @@ function! DNM_PdfOutput (...)
     call dn#util#prompt()
     redraw!
     " return to calling mode
-    if l:insert | call dn#util#insertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_ViewPdf                                               {{{2
@@ -288,7 +288,7 @@ function! DNM_ViewPdf(...)
         return
     endif
     " variables
-    let l:insert = (a:0 > 0 && a:1) ? b:dn_true : b:dn_false
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     " check for file to view
     if !filereadable(l:output)
@@ -296,7 +296,7 @@ function! DNM_ViewPdf(...)
         return
     endif
     " view pdf output
-    if s:os == 'win'
+    if s:os ==# 'win'
         " can't use shell command because starts in foreground
         try
             execute 'silent !start cmd /c "%:r.pdf"'
@@ -305,7 +305,7 @@ function! DNM_ViewPdf(...)
             call dn#util#error('Windows has no default pdf viewer')
             return
         endtry
-    elseif s:os == 'nix'
+    elseif s:os ==# 'nix'
         echo '' | " clear command line
         let l:opener = 'xdg-open'
         if executable(l:opener) == 1
@@ -323,7 +323,7 @@ function! DNM_ViewPdf(...)
         call dn#util#error('Operating system not supported')
     endif
     " return to calling mode
-    if l:insert | call dn#util#insertMode(b:dn_true) | endif
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_SetHtmlTemplate                                       {{{2
@@ -388,7 +388,7 @@ function! DNM_PandocCiteproc()
         echo 'Already set to use pandoc-citeproc filter'
         return
     endif
-    let s:pandoc_citeproc = b:dn_true
+    let s:pandoc_citeproc = g:dn_true
     echo 'Now set to use pandoc-citeproc filter'
 endfunction
 " ------------------------------------------------------------------------
@@ -408,7 +408,7 @@ function! DNM_NoPandocCiteproc()
         echo 'Already NOT using pandoc-citeproc filter'
         return
     endif
-    let s:pandoc_citeproc = b:dn_false
+    let s:pandoc_citeproc = g:dn_false
     echo 'Now set to NOT use pandoc-citeproc filter'
 endfunction
 " ------------------------------------------------------------------------
@@ -429,14 +429,14 @@ function! s:ensure_html_style()
         return
     endif
     " no user value so set to default
-    let l:style_dirs = split(globpath(&rtp, "vim-dn-markdown-css"), '\n')
+    let l:style_dirs = globpath(&runtimepath, 'vim-dn-markdown-css', 1, 1)
     let l:style_filepaths = []
     for l:style_dir in l:style_dirs
         call extend(l:style_filepaths,
-                    \ glob(l:style_dir . "/*", b:dn_false, b:dn_true))
+                    \ glob(l:style_dir . '/*', g:dn_false, g:dn_true))
     endfor
     if len(l:style_filepaths) == 0    " - whoah, something bad has happened
-        call dn#util#error('Cannot find default styleheet)
+        call dn#util#error('Cannot find default styleheet')
         return
     endif
     " - found expected single match
@@ -486,9 +486,9 @@ function! s:execute_shell_command(cmd, ...)
         echo '--------------------------------------'
         echo l:shell_feedback
         echo '--------------------------------------'
-        return b:dn_false
+        return g:dn_false
     else
-        return b:dn_true
+        return g:dn_true
     endif
 endfunction
 " ------------------------------------------------------------------------
@@ -504,7 +504,7 @@ endfunction
 " 4.  CONTROL STATEMENTS                                              {{{1
 
 " restore user's cpoptions
-let &cpo = s:save_cpo
+let &cpoptions = s:save_cpo
 
 " ========================================================================
 
@@ -516,7 +516,7 @@ let &cpo = s:save_cpo
 if !hasmapto('<Plug>DnGHI')
 	imap <buffer> <unique> <LocalLeader>gh <Plug>DnGHI
 endif
-imap <buffer> <unique> <Plug>DnGHI <Esc>:call DNM_HtmlOutput(b:dn_true)<CR>
+imap <buffer> <unique> <Plug>DnGHI <Esc>:call DNM_HtmlOutput(g:dn_true)<CR>
 if !hasmapto('<Plug>DnGHN')
 	nmap <buffer> <unique> <LocalLeader>gh <Plug>DnGHN
 endif
@@ -526,7 +526,7 @@ nmap <buffer> <unique> <Plug>DnGHN :call DNM_HtmlOutput()<CR>
 if !hasmapto('<Plug>DnVHI')
 	imap <buffer> <unique> <LocalLeader>vh <Plug>DnVHI
 endif
-imap <buffer> <unique> <Plug>DnVHI <Esc>:call DNM_ViewHtml(b:dn_true)<CR>
+imap <buffer> <unique> <Plug>DnVHI <Esc>:call DNM_ViewHtml(g:dn_true)<CR>
 if !hasmapto('<Plug>DnVHN')
 	nmap <buffer> <unique> <LocalLeader>vh <Plug>DnVHN
 endif
@@ -536,7 +536,7 @@ nmap <buffer> <unique> <Plug>DnVHN :call DNM_ViewHtml()<CR>
 if !hasmapto('<Plug>DnGPI')
 	imap <buffer> <unique> <LocalLeader>gp <Plug>DnGPI
 endif
-imap <buffer> <unique> <Plug>DnGPI <Esc>:call DNM_PdfOutput(b:dn_true)<CR>
+imap <buffer> <unique> <Plug>DnGPI <Esc>:call DNM_PdfOutput(g:dn_true)<CR>
 if !hasmapto('<Plug>DnGPN')
 	nmap <buffer> <unique> <LocalLeader>gp <Plug>DnGPN
 endif
@@ -546,7 +546,7 @@ nmap <buffer> <unique> <Plug>DnGPN :call DNM_PdfOutput()<CR>
 if !hasmapto('<Plug>DnVPI')
 	imap <buffer> <unique> <LocalLeader>vp <Plug>DnVPI
 endif
-imap <buffer> <unique> <Plug>DnVPI <Esc>:call DNM_ViewPdf(b:dn_true)<CR>
+imap <buffer> <unique> <Plug>DnVPI <Esc>:call DNM_ViewPdf(g:dn_true)<CR>
 if !hasmapto('<Plug>DnVPN')
 	nmap <buffer> <unique> <LocalLeader>vp <Plug>DnVPN
 endif
