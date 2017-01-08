@@ -97,7 +97,7 @@ function! DNM_HtmlOutput(...)
         return
     endif
     " save file to incorporate any changes
-    update
+    silent update
     echo 'Target format: html'
     echo 'Converter:     pandoc'
     call s:ensure_html_style()    " set style file
@@ -246,7 +246,7 @@ function! DNM_PdfOutput (...)
         return
     endif
     " save file to incorporate any changes
-    update
+    silent update
     echo 'Target format: pdf'
     echo 'Converter:     pandoc'
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
@@ -516,14 +516,6 @@ endfunction
 " Params:   nil
 " Prints:   nil
 " Return:   whether dn-utils plugin is loaded
-function! s:dn_utils_missing()
-    return !exists('g:loaded_dn_utils')
-endfunction
-" Function: s:update_buffer                                           {{{2
-" Purpose:  update current buffer
-" Params:   nil
-" Prints:   nil
-" Return:   nil (catches errors)
 function! s:dn_utils_missing()
     return !exists('g:loaded_dn_utils')
 endfunction
