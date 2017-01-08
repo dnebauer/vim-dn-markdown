@@ -89,6 +89,15 @@ function! DNM_HtmlOutput(...)
         if l:insert | call dn#util#insertMode(g:dn_true) | endif
         return
     endif
+    " need to be editing a file rather than nameless buffer
+    if bufname('%') == ''
+        call dn#util#error('Current buffer has no name')
+        call dn#util#showMsg("Can fix with 'write' or 'file' command")
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif
+        return
+    endif
+    " save file to incorporate any changes
+    update
     echo 'Target format: html'
     echo 'Converter:     pandoc'
     call s:ensure_html_style()    " set style file
@@ -220,6 +229,7 @@ function! DNM_PdfOutput (...)
     " variables
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     let l:succeeded = g:dn_false
+    " need pandoc and lualatex
     if !executable('pandoc')
         call dn#util#error('Install pandoc')
         return
@@ -228,6 +238,15 @@ function! DNM_PdfOutput (...)
         call dn#util#error('Install lualatex')
         return
     endif
+    " need to be editing a file rather than nameless buffer
+    if bufname('%') == ''
+        call dn#util#error('Current buffer has no name')
+        call dn#util#showMsg("Can fix with 'write' or 'file' command")
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif
+        return
+    endif
+    " save file to incorporate any changes
+    update
     echo 'Target format: pdf'
     echo 'Converter:     pandoc'
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
@@ -497,6 +516,14 @@ endfunction
 " Params:   nil
 " Prints:   nil
 " Return:   whether dn-utils plugin is loaded
+function! s:dn_utils_missing()
+    return !exists('g:loaded_dn_utils')
+endfunction
+" Function: s:update_buffer                                           {{{2
+" Purpose:  update current buffer
+" Params:   nil
+" Prints:   nil
+" Return:   nil (catches errors)
 function! s:dn_utils_missing()
     return !exists('g:loaded_dn_utils')
 endfunction
