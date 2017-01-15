@@ -144,7 +144,7 @@ function! DNM_HtmlOutput(...)
         echo 'Output file:   ' . l:output
         " input file
         let l:errmsg = ['Error occurred during html generation']
-        echon 'Generating output... '
+        echo 'Generating output... '
         let l:cmd .= ' ' . shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
