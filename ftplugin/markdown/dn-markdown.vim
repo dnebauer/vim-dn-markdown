@@ -74,7 +74,7 @@ let s:pandoc_citeproc = 0    " default
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_HtmlOutput(...)
-	echo '' |    " clear command line
+    echo '' |    " clear command line
     " requires dn-utils plugin
     if s:dn_utils_missing()
         echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
@@ -90,7 +90,7 @@ function! DNM_HtmlOutput(...)
         return
     endif
     " need to be editing a file rather than nameless buffer
-    if bufname('%') == ''
+    if bufname('%') ==# ''
         call dn#util#error('Current buffer has no name')
         call dn#util#showMsg("Can fix with 'write' or 'file' command")
         if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -165,7 +165,7 @@ endfunction
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_ViewHtml(...)
-	echo '' |    " clear command line
+    echo '' |    " clear command line
     " requires dn-utils plugin
     if s:dn_utils_missing()
         echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
@@ -219,7 +219,7 @@ endfunction
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_PdfOutput (...)
-	echo '' | " clear command line
+    echo '' | " clear command line
     " requires dn-utils plugin
     if s:dn_utils_missing()
         echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
@@ -239,7 +239,7 @@ function! DNM_PdfOutput (...)
         return
     endif
     " need to be editing a file rather than nameless buffer
-    if bufname('%') == ''
+    if bufname('%') ==# ''
         call dn#util#error('Current buffer has no name')
         call dn#util#showMsg("Can fix with 'write' or 'file' command")
         if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -299,7 +299,7 @@ endfunction
 " Params:   1 - insert mode [default=<false>, optional, boolean]
 " Return:   nil
 function! DNM_ViewPdf(...)
-	echo '' | " clear command line
+    echo '' | " clear command line
     " requires dn-utils plugin
     if s:dn_utils_missing()
         echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
@@ -487,7 +487,7 @@ endfunction
 " Prints:   if error display user error message and shell feedback
 " Return:   return status of command as vim boolean
 function! s:execute_shell_command(cmd, ...)
-	echo '' | " clear command line
+    echo '' | " clear command line
     " variables
     if a:0 > 0
         let l:errmsg = a:1
@@ -533,41 +533,41 @@ let &cpoptions = s:save_cpo
 
 " \gh : generate html output                                          {{{3
 if !hasmapto('<Plug>DnGHI')
-	imap <buffer> <unique> <LocalLeader>gh <Plug>DnGHI
+    imap <buffer> <unique> <LocalLeader>gh <Plug>DnGHI
 endif
 imap <buffer> <unique> <Plug>DnGHI <Esc>:call DNM_HtmlOutput(g:dn_true)<CR>
 if !hasmapto('<Plug>DnGHN')
-	nmap <buffer> <unique> <LocalLeader>gh <Plug>DnGHN
+    nmap <buffer> <unique> <LocalLeader>gh <Plug>DnGHN
 endif
 nmap <buffer> <unique> <Plug>DnGHN :call DNM_HtmlOutput()<CR>
 
 " \vh : view html output                                              {{{3
 if !hasmapto('<Plug>DnVHI')
-	imap <buffer> <unique> <LocalLeader>vh <Plug>DnVHI
+    imap <buffer> <unique> <LocalLeader>vh <Plug>DnVHI
 endif
 imap <buffer> <unique> <Plug>DnVHI <Esc>:call DNM_ViewHtml(g:dn_true)<CR>
 if !hasmapto('<Plug>DnVHN')
-	nmap <buffer> <unique> <LocalLeader>vh <Plug>DnVHN
+    nmap <buffer> <unique> <LocalLeader>vh <Plug>DnVHN
 endif
 nmap <buffer> <unique> <Plug>DnVHN :call DNM_ViewHtml()<CR>
 
 " \gp : generate pdf output                                           {{{3
 if !hasmapto('<Plug>DnGPI')
-	imap <buffer> <unique> <LocalLeader>gp <Plug>DnGPI
+    imap <buffer> <unique> <LocalLeader>gp <Plug>DnGPI
 endif
 imap <buffer> <unique> <Plug>DnGPI <Esc>:call DNM_PdfOutput(g:dn_true)<CR>
 if !hasmapto('<Plug>DnGPN')
-	nmap <buffer> <unique> <LocalLeader>gp <Plug>DnGPN
+    nmap <buffer> <unique> <LocalLeader>gp <Plug>DnGPN
 endif
 nmap <buffer> <unique> <Plug>DnGPN :call DNM_PdfOutput()<CR>
 
 " \vp : view pdf output                                               {{{3
 if !hasmapto('<Plug>DnVPI')
-	imap <buffer> <unique> <LocalLeader>vp <Plug>DnVPI
+    imap <buffer> <unique> <LocalLeader>vp <Plug>DnVPI
 endif
 imap <buffer> <unique> <Plug>DnVPI <Esc>:call DNM_ViewPdf(g:dn_true)<CR>
 if !hasmapto('<Plug>DnVPN')
-	nmap <buffer> <unique> <LocalLeader>vp <Plug>DnVPN
+    nmap <buffer> <unique> <LocalLeader>vp <Plug>DnVPN
 endif
 nmap <buffer> <unique> <Plug>DnVPN :call DNM_ViewPdf()<CR>
 
