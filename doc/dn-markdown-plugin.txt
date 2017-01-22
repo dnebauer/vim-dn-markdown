@@ -139,7 +139,7 @@ DNM_SetPdfTemplate(template)
     return: nil
 
 When producing pdf output the following pandoc options are used: "smart",
-"--latex-engine=xelatex", "--variable [url,link,cite,toc]color=cyan". If
+"--latex-engine=xelatex", "--variable [url,link,cite,toc]color=gray". If
 set, the pandoc-citeproc filter is also used. If set, a custom template
 is also used.
 

@@ -266,8 +266,13 @@ function! DNM_PdfOutput (...)
         "                                      --variable linkcolor=<colour>
         "                                      --variable citecolor=<colour>
         "                                      --variable toccolor=<colour>
+        " - available colours are:
+        "   black,     blue, brown,   cyan,  darkgray, gray, green,
+        "   lightgray, lime, magenta, olive, orange,   pink, purple,
+        "   red,       teal, violet,  white, yellow
+        "   [https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors]
         " - if colour is changed here, update documentation
-        let l:link_colour = 'cyan'
+        let l:link_colour = 'gray'
         let l:cmd .= ' ' . '--variable urlcolor=' . l:link_colour
         let l:cmd .= ' ' . '--variable linkcolor=' . l:link_colour
         let l:cmd .= ' ' . '--variable citecolor=' . l:link_colour
