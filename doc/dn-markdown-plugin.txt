@@ -103,7 +103,7 @@ DNM_NoPandocCiteproc()
     return: nil
 
 When producing html output the following pandoc options are used:
-"-t html5", "--standalone", and "--smart". If set, the pandoc-citeproc
+"-t html5", "--standalone" and "--smart". If set, the pandoc-citeproc
 filter is also used. The function "DNM_HtmlOutput" generates html output.
 
                                                            *DNM_HtmlOutput*
@@ -138,7 +138,10 @@ DNM_SetPdfTemplate(template)
     insert: nil
     return: nil
 
-When producing pdf output the following pandoc option is used: "smart".
+When producing pdf output the following pandoc options are used: "smart",
+"--latex-engine=xelatex", "--variable [url,link,cite,toc]color=cyan". If
+set, the pandoc-citeproc filter is also used. If set, a custom template
+is also used.
 
 The pandoc-citeproc filter can be used in generating pdf output in the
 same way it is used in generating html output. See |dnm_pandoc_citeproc|

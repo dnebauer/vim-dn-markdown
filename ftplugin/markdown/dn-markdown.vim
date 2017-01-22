@@ -229,13 +229,17 @@ function! DNM_PdfOutput (...)
     " variables
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     let l:succeeded = g:dn_false
-    " need pandoc and lualatex
+    " latex engine
+    " - can be pdflatex (default), lualatex or xelatex
+    " - xelatex is better at handling exotic unicode
+    let l:engine = 'xelatex'
+    " need pandoc and latex engine
     if !executable('pandoc')
         call dn#util#error('Install pandoc')
         return
     endif
-    if !executable('lualatex')
-        call dn#util#error('Install lualatex')
+    if !executable(l:engine)
+        call dn#util#error('Install ' . l:engine)
         return
     endif
     " need to be editing a file rather than nameless buffer
@@ -255,6 +259,20 @@ function! DNM_PdfOutput (...)
     if s:os =~# '^win$\|^nix$'
         let l:opts = ''
         let l:cmd = 'pandoc'
+        " use xelatex                          --latex-engine=<engine>
+        let l:cmd .= ' ' . '--latex-engine=' . l:engine
+        echo 'Latex engine:  ' . l:engine
+        " make links visible                   --variable urlcolor=<colour>
+        "                                      --variable linkcolor=<colour>
+        "                                      --variable citecolor=<colour>
+        "                                      --variable toccolor=<colour>
+        " - if colour is changed here, update documentation
+        let l:link_colour = 'cyan'
+        let l:cmd .= ' ' . '--variable urlcolor=' . l:link_colour
+        let l:cmd .= ' ' . '--variable linkcolor=' . l:link_colour
+        let l:cmd .= ' ' . '--variable citecolor=' . l:link_colour
+        let l:cmd .= ' ' . '--variable toccolor=' . l:link_colour
+        echo 'Link colour:   ' . l:link_colour
         " convert quotes, em|endash, ellipsis  --smart
         let l:cmd .= ' ' . '--smart'
         let l:opts .= ', smart'
