@@ -78,7 +78,7 @@ generating output.
                                                       *DNM_SetHtmlTemplate*
 DNM_SetHtmlTemplate(template)
     purpose: specify the value to provide to the pandoc --template option
-    params: 1 - template
+    params: 1 - template filepath
     insert: nil
     return: nil
 
@@ -109,7 +109,7 @@ filter is also used. The function "DNM_HtmlOutput" generates html output.
                                                            *DNM_HtmlOutput*
 DNM_HtmlOutput()
     purpose: generate output file with html extension
-    params:  nil
+    params:  1 - whether called from insert mode
     insert:  nil
     return:  nil
     note:    output file has same basename as markdown script with
@@ -134,7 +134,7 @@ generating output. Pdf output uses the "latex" template.
                                                        *DNM_SetPdfTemplate*
 DNM_SetPdfTemplate(template)
     purpose: specify the value to provide to the pandoc --template option
-    params: 1 - template
+    params: 1 - template filepath
     insert: nil
     return: nil
 
@@ -150,7 +150,7 @@ for details.
                                                             *DNM_PdfOutput*
 DNM_PdfOutput()
     purpose: generate output file with pdf extension
-    params:  nil
+    params:  1 - whether called from insert mode
     insert:  nil
     return:  nil
     note:    uses lualatex
@@ -164,6 +164,29 @@ usually "\gp", in Insert and Normal modes.
 
                                                               *GeneratePDF*
 The "DNM_PdfOutput" function is bound to the command "GeneratePDF".
+
+                                                 *dn-markdown-generate-all*
+The user can generate html and pdf ooutput with a single command or
+mapping.
+
+                                                            *DNM_AllOutput*
+DNM_AllOutput()
+    purpose: generate html and pdf output files
+    params:  nil
+    insert:  nil
+    return:  nil
+    note:    output files have same basename as markdown script with
+             ".html" and ".pdf" extensions
+    note:    existing output files will be silently overwritten
+
+
+                                                            *dn-mapping-ga*
+The "DNM_AllOutput" function is mapped by default to "<LocalLeader>ga",
+usually "\ga", in Insert and Normal modes.
+
+
+                                                          *DNM_GenerateAll*
+The "DNM_AllOutput" function is bound to the command "GenerateAll".
 
 -------------------------------------------------------------------------
                                                          *dn-markdown-view*

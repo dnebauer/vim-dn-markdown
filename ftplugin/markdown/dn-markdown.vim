@@ -82,78 +82,8 @@ function! DNM_HtmlOutput(...)
         return
     endif
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    let l:succeeded = g:dn_false
-    " can't do this without pandoc
-    if !executable('pandoc')
-        call dn#util#error('Pandoc is not installed')
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif
-        return
-    endif
-    " need to be editing a file rather than nameless buffer
-    if bufname('%') ==# ''
-        call dn#util#error('Current buffer has no name')
-        call dn#util#showMsg("Can fix with 'write' or 'file' command")
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif
-        return
-    endif
-    " save file to incorporate any changes
-    silent update
-    echo 'Target format: html'
-    echo 'Converter:     pandoc'
-    call s:ensure_html_style()    " set style file
-    let l:output = substitute(expand('%'), '\.md$', '.html', '')
-    let l:source = expand('%')
-    " generate output
-    if s:os =~# '^win$\|^nix$'
-        let l:opts = ''
-        let l:cmd = 'pandoc'
-        " set to html5                         -t html5
-        let l:cmd .=  ' ' . '-t html5'
-        let l:opts .= ', html5'
-        " add header and footer                --standalone
-        let l:cmd .= ' ' . '--standalone'
-        let l:opts .= ', standalone'
-        " convert quotes, em|endash, ellipsis  --smart
-        let l:cmd .= ' ' . '--smart'
-        let l:opts .= ', smart'
-        " incorporate external dependencies    --self-contained
-        let l:cmd .= ' ' . '--self-contained'
-        let l:opts .= ', self-contained'
-        " use citeproc if selected by user     --filter pandoc-citeproc
-        if s:pandoc_citeproc
-            let l:cmd .= ' ' . '--filter pandoc-citeproc'
-            let l:opts .= ', pandoc-citeproc'
-        endif
-        " display options
-        let l:opts = strpart(l:opts, 2)
-        echo 'Options:       ' . l:opts
-        " link to css stylesheet               --css=<stylesheet>
-        if filereadable(s:pandoc_html['style'])
-            let l:cmd .= ' ' . '--css=' . shellescape(s:pandoc_html['style'])
-            echo 'Stylesheet:    ' . s:pandoc_html['style']
-        endif
-        " use custom template                  --template=<template>
-        if strlen(s:pandoc_html['template']) > 0
-            let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
-            echo 'Template:      ' . s:pandoc_html['template']
-        else
-            echo 'Template:      [default]'
-        endif
-        " output file                          --output=<target_file>
-        let l:cmd .= ' ' . '--output=' . shellescape(l:output)
-        echo 'Output file:   ' . l:output
-        " input file
-        let l:errmsg = ['Error occurred during html generation']
-        echo 'Generating output... '
-        let l:cmd .= ' ' . shellescape(l:source)
-        let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
-    else
-        echo ''
-        call dn#util#error('Operating system not supported')
-    endif
-    if l:succeeded
-        echo 'Done'
-    endif
+    let l:succeeded = s:html_output_engine()
+    if l:succeeded | echo 'Done' | endif
     call dn#util#prompt()
     redraw!
     " return to calling mode
@@ -226,91 +156,9 @@ function! DNM_PdfOutput (...)
         echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
         return
     endif
-    " variables
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    let l:succeeded = g:dn_false
-    " latex engine
-    " - can be pdflatex (default), lualatex or xelatex
-    " - xelatex is better at handling exotic unicode
-    let l:engine = 'xelatex'
-    " need pandoc and latex engine
-    if !executable('pandoc')
-        call dn#util#error('Install pandoc')
-        return
-    endif
-    if !executable(l:engine)
-        call dn#util#error('Install ' . l:engine)
-        return
-    endif
-    " need to be editing a file rather than nameless buffer
-    if bufname('%') ==# ''
-        call dn#util#error('Current buffer has no name')
-        call dn#util#showMsg("Can fix with 'write' or 'file' command")
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif
-        return
-    endif
-    " save file to incorporate any changes
-    silent update
-    echo 'Target format: pdf'
-    echo 'Converter:     pandoc'
-    let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
-    let l:source = expand('%')
-    " generate output
-    if s:os =~# '^win$\|^nix$'
-        let l:opts = ''
-        let l:cmd = 'pandoc'
-        " use xelatex                          --latex-engine=<engine>
-        let l:cmd .= ' ' . '--latex-engine=' . l:engine
-        echo 'Latex engine:  ' . l:engine
-        " make links visible                   --variable urlcolor=<colour>
-        "                                      --variable linkcolor=<colour>
-        "                                      --variable citecolor=<colour>
-        "                                      --variable toccolor=<colour>
-        " - available colours are:
-        "   black,     blue, brown,   cyan,  darkgray, gray, green,
-        "   lightgray, lime, magenta, olive, orange,   pink, purple,
-        "   red,       teal, violet,  white, yellow
-        "   [https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors]
-        " - if colour is changed here, update documentation
-        let l:link_colour = 'gray'
-        let l:cmd .= ' ' . '--variable urlcolor=' . l:link_colour
-        let l:cmd .= ' ' . '--variable linkcolor=' . l:link_colour
-        let l:cmd .= ' ' . '--variable citecolor=' . l:link_colour
-        let l:cmd .= ' ' . '--variable toccolor=' . l:link_colour
-        echo 'Link colour:   ' . l:link_colour
-        " convert quotes, em|endash, ellipsis  --smart
-        let l:cmd .= ' ' . '--smart'
-        let l:opts .= ', smart'
-        " use citeproc if selected by user     --filter pandoc-citeproc
-        if s:pandoc_citeproc
-            let l:cmd .= ' ' . '--filter pandoc-citeproc'
-            let l:opts .= ', pandoc-citeproc'
-        endif
-        " display options
-        let l:opts = strpart(l:opts, 2)
-        echo 'Options:       ' . l:opts
-        " use custom template                  --template=<template>
-        if strlen(s:pandoc_html['template']) > 0
-            let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
-            echo 'Template:      ' . s:pandoc_html['template']
-        else
-            echo 'Template:      [default]'
-        endif
-        " output file                          --output=<target_file>
-        let l:cmd .= ' ' . '--output=' . shellescape(l:output)
-        echo 'Output file:   ' . l:output
-        " input file
-        let l:errmsg = ['Error occurred during pdf generation']
-        echo 'Generating output... '
-        let l:cmd .= ' ' . shellescape(l:source)
-        let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
-    else
-        echo ''
-        call dn#util#error('Operating system not supported')
-    endif
-    if l:succeeded
-        echo 'Done'
-    endif
+    let l:succeeded = s:pdf_output_engine()
+    if l:succeeded | echo 'Done' | endif
     call dn#util#prompt()
     redraw!
     " return to calling mode
@@ -368,9 +216,36 @@ function! DNM_ViewPdf(...)
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 " ------------------------------------------------------------------------
+" Function: DNM_AllOutput                                            {{{2
+" Purpose:  generate html and pdf output
+" Params:   1 - insert mode [default=<false>, optional, boolean]
+" Return:   nil
+function! DNM_AllOutput (...)
+    echo '' | " clear command line
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " html output
+    let l:succeeded = s:html_output_engine()
+    if l:succeeded | echo 'Done'
+    else           | call dn#util#prompt()
+    endif
+    " pdf output
+    let l:succeeded = s:pdf_output_engine()
+    if l:succeeded | echo 'Done' | endif
+    call dn#util#prompt()
+    " return to calling mode
+    redraw!
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+" ------------------------------------------------------------------------
 " Function: DNM_SetHtmlTemplate                                       {{{2
 " Purpose:  set s:pandoc_html['template'] to template parameter
-" Params:   1 - template
+" Params:   1 - template filepath
 " Return:   nil
 " Note:     this value is passed to pandoc's --template parameter
 function! DNM_SetHtmlTemplate(template)
@@ -385,7 +260,7 @@ endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_SetLatexTemplate                                      {{{2
 " Purpose:  set s:pandoc_tex['template'] to template parameter
-" Params:   1 - template
+" Params:   1 - template filepath
 " Return:   nil
 " Note:     this value is passed to pandoc's --template parameter
 function! DNM_SetLatexTemplate(template)
@@ -543,6 +418,171 @@ function! s:dn_utils_missing()
     return !exists('g:loaded_dn_utils')
 endfunction
 " ------------------------------------------------------------------------
+" Function: s:html_output_engine                                      {{{2
+" Purpose:  generate html output
+" Params:   nil
+" Return:   whether executed without error
+function! s:html_output_engine()
+    let l:succeeded = g:dn_false
+    " can't do this without pandoc
+    if !executable('pandoc')
+        call dn#util#error('Pandoc is not installed')
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif
+        return g:dn_false
+    endif
+    " need to be editing a file rather than nameless buffer
+    if bufname('%') ==# ''
+        call dn#util#error('Current buffer has no name')
+        call dn#util#showMsg("Can fix with 'write' or 'file' command")
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif
+        return g:dn_false
+    endif
+    " save file to incorporate any changes
+    silent update
+    echo 'Target format: html'
+    echo 'Converter:     pandoc'
+    call s:ensure_html_style()    " set style file
+    let l:output = substitute(expand('%'), '\.md$', '.html', '')
+    let l:source = expand('%')
+    " generate output
+    if s:os =~# '^win$\|^nix$'
+        let l:opts = ''
+        let l:cmd = 'pandoc'
+        " set to html5                         -t html5
+        let l:cmd .=  ' ' . '-t html5'
+        let l:opts .= ', html5'
+        " add header and footer                --standalone
+        let l:cmd .= ' ' . '--standalone'
+        let l:opts .= ', standalone'
+        " convert quotes, em|endash, ellipsis  --smart
+        let l:cmd .= ' ' . '--smart'
+        let l:opts .= ', smart'
+        " incorporate external dependencies    --self-contained
+        let l:cmd .= ' ' . '--self-contained'
+        let l:opts .= ', self-contained'
+        " use citeproc if selected by user     --filter pandoc-citeproc
+        if s:pandoc_citeproc
+            let l:cmd .= ' ' . '--filter pandoc-citeproc'
+            let l:opts .= ', pandoc-citeproc'
+        endif
+        " display options
+        let l:opts = strpart(l:opts, 2)
+        echo 'Options:       ' . l:opts
+        " link to css stylesheet               --css=<stylesheet>
+        if filereadable(s:pandoc_html['style'])
+            let l:cmd .= ' ' . '--css=' . shellescape(s:pandoc_html['style'])
+            echo 'Stylesheet:    ' . s:pandoc_html['style']
+        endif
+        " use custom template                  --template=<template>
+        if strlen(s:pandoc_html['template']) > 0
+            let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
+            echo 'Template:      ' . s:pandoc_html['template']
+        else
+            echo 'Template:      [default]'
+        endif
+        " output file                          --output=<target_file>
+        let l:cmd .= ' ' . '--output=' . shellescape(l:output)
+        echo 'Output file:   ' . l:output
+        " input file
+        let l:errmsg = ['Error occurred during html generation']
+        echo 'Generating output... '
+        let l:cmd .= ' ' . shellescape(l:source)
+        let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
+    else
+        echo ''
+        call dn#util#error('Operating system not supported')
+    endif
+    return l:succeeded
+endfunction
+" ------------------------------------------------------------------------
+" Function: s:pdf_output_engine                                      {{{2
+" Purpose:  generate pdf output
+" Params:   1 - insert mode [default=<false>, optional, boolean]
+" Return:   whether output completed without error
+function! s:pdf_output_engine ()
+    let l:succeeded = g:dn_false
+    " latex engine
+    " - can be pdflatex (default), lualatex or xelatex
+    " - xelatex is better at handling exotic unicode
+    let l:engine = 'xelatex'
+    " need pandoc and latex engine
+    if !executable('pandoc')
+        call dn#util#error('Install pandoc')
+        return g:dn_false
+    endif
+    if !executable(l:engine)
+        call dn#util#error('Install ' . l:engine)
+        return g:dn_false
+    endif
+    " need to be editing a file rather than nameless buffer
+    if bufname('%') ==# ''
+        call dn#util#error('Current buffer has no name')
+        call dn#util#showMsg("Can fix with 'write' or 'file' command")
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif
+        return g:dn_false
+    endif
+    " save file to incorporate any changes
+    silent update
+    echo 'Target format: pdf'
+    echo 'Converter:     pandoc'
+    let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
+    let l:source = expand('%')
+    " generate output
+    if s:os =~# '^win$\|^nix$'
+        let l:opts = ''
+        let l:cmd = 'pandoc'
+        " use xelatex                          --latex-engine=<engine>
+        let l:cmd .= ' ' . '--latex-engine=' . l:engine
+        echo 'Latex engine:  ' . l:engine
+        " make links visible                   --variable urlcolor=<colour>
+        "                                      --variable linkcolor=<colour>
+        "                                      --variable citecolor=<colour>
+        "                                      --variable toccolor=<colour>
+        " - available colours are:
+        "   black,     blue, brown,   cyan,  darkgray, gray, green,
+        "   lightgray, lime, magenta, olive, orange,   pink, purple,
+        "   red,       teal, violet,  white, yellow
+        "   [https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors]
+        " - if colour is changed here, update documentation
+        let l:link_colour = 'gray'
+        let l:cmd .= ' ' . '--variable urlcolor=' . l:link_colour
+        let l:cmd .= ' ' . '--variable linkcolor=' . l:link_colour
+        let l:cmd .= ' ' . '--variable citecolor=' . l:link_colour
+        let l:cmd .= ' ' . '--variable toccolor=' . l:link_colour
+        echo 'Link colour:   ' . l:link_colour
+        " convert quotes, em|endash, ellipsis  --smart
+        let l:cmd .= ' ' . '--smart'
+        let l:opts .= ', smart'
+        " use citeproc if selected by user     --filter pandoc-citeproc
+        if s:pandoc_citeproc
+            let l:cmd .= ' ' . '--filter pandoc-citeproc'
+            let l:opts .= ', pandoc-citeproc'
+        endif
+        " display options
+        let l:opts = strpart(l:opts, 2)
+        echo 'Options:       ' . l:opts
+        " use custom template                  --template=<template>
+        if strlen(s:pandoc_html['template']) > 0
+            let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
+            echo 'Template:      ' . s:pandoc_html['template']
+        else
+            echo 'Template:      [default]'
+        endif
+        " output file                          --output=<target_file>
+        let l:cmd .= ' ' . '--output=' . shellescape(l:output)
+        echo 'Output file:   ' . l:output
+        " input file
+        let l:errmsg = ['Error occurred during pdf generation']
+        echo 'Generating output... '
+        let l:cmd .= ' ' . shellescape(l:source)
+        let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
+    else
+        echo ''
+        call dn#util#error('Operating system not supported')
+    endif
+    return l:succeeded
+endfunction
+" ------------------------------------------------------------------------
 " 4.  CONTROL STATEMENTS                                              {{{1
 
 " restore user's cpoptions
@@ -594,6 +634,16 @@ if !hasmapto('<Plug>DnVPN')
 endif
 nmap <buffer> <unique> <Plug>DnVPN :call DNM_ViewPdf()<CR>
 
+" \ga : generate html and pdf output                                  {{{3
+if !hasmapto('<Plug>DnGAI')
+    imap <buffer> <unique> <LocalLeader>ga <Plug>DnGAI
+endif
+imap <buffer> <unique> <Plug>DnGAI <Esc>:call DNM_AllOutput(g:dn_true)<CR>
+if !hasmapto('<Plug>DnGAN')
+    nmap <buffer> <unique> <LocalLeader>ga <Plug>DnGAN
+endif
+nmap <buffer> <unique> <Plug>DnGAN :call DNM_AllOutput()<CR>
+
 " Commands:                                                           {{{2
 
 " GenerateHTML : generate HTML output                                 {{{3
@@ -607,6 +657,9 @@ command! GeneratePDF call DNM_PdfOutput()
 
 " ViewPDF : view PDF output                                           {{{3
 command! ViewPDF call DNM_ViewPdf()
+
+" GenerateAll : generate HTML and PDF output                          {{{3
+command! GenerateAll call DNM_AllOutput()
 
                                                                     " }}}1
 
