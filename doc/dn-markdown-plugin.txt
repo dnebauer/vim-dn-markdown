@@ -3,7 +3,7 @@
 Filetype plugin for markdown                         *dn-markdown-ftplugin*
                                                              *DNM_ftplugin*
 Dn Markdown Filetype Plugin
--------------------------------------------------------------------------
+=========================================================================
                                                      *dn-markdown-contents*
 1. Contents
 
@@ -12,9 +12,9 @@ Dn Markdown Filetype Plugin
      3. Installation ...................... |dn-markdown-install|
      4. Dependencies ...................... |dn-markdown-dependencies|
      5. Variables ......................... |dn-markdown-variables|
-     6. Output functions .................. |dn-markdown-output|
-     7. Viewing functions ................. |dn-markdown-view|
--------------------------------------------------------------------------
+     6. Output ............................ |dn-markdown-output|
+     7. Viewing ........................... |dn-markdown-view|
+=========================================================================
                                                      *dn-markdown-overview*
 2. Overview
 
@@ -24,7 +24,7 @@ All functions in this library are global. They all have the prefix "DNM_"
 to try and avoid namespace collisions.
 
 Some mappings are also provided.
--------------------------------------------------------------------------
+=========================================================================
                                                       *dn-markdown-install*
 3. Installation
 
@@ -32,12 +32,12 @@ As this filetype plugin does not interfere with the standard markdown
 filetype plugin, the load order of these ftplugins does not matter. To
 account for future development, however, it is recommended that this
 ftplugin is put in an "after" directory.
--------------------------------------------------------------------------
+=========================================================================
                                                  *dn-markdown-dependencies*
 4. Dependencies
 
 This ftplugin requires the |dn-utils-plugin|.
--------------------------------------------------------------------------
+=========================================================================
                                                     *dn-markdown-variables*
 5. Variables
 
@@ -47,182 +47,72 @@ This ftplugin uses the |b:dn-true| and |b:dn-false| variables provided by
                                                          *dn-markdown-help*
 This ftplugin contributes to the |dn-utils-plugin| help system (see |dn#util#help|
 for details). In the help system navigate to: vim -> markdown ftplugin.
--------------------------------------------------------------------------
+=========================================================================
                                                        *dn-markdown-output*
-6. Output functions
+6. Output
 
-Functions enabling user to generate output. The pandoc utility is used to
-generate output.
+Output is generated using pandoc. Pandoc is not provided by this plugin --
+it must be present on the system or output attempts will fail.
 
-                                                *dn-markdown-generate-html*
-The user can set a stylesheet to be used by using the "DNM_SetHtmlStyle"
-function, for example, calling the function from their vim configuration
-file. The funcion must be called before generating output.
+Markdown files can be output as html or pdf. In each case an output file is
+created with the same basename as the markdown file, and a ".html" or ".pdf"
+extension as appropriate. Existing output files are silently overwritten.
 
-If the user does not specify a stylesheet a default stylesheet is used.
-The default stylesheet is "buttondown" by Ryan Gray (see
-https://github.com/ryangray/buttondown).
+This table lists the output functions with corresponding mappings and
+commands:
 
-                                                         *DNM_SetHtmlStyle*
-DNM_SetHtmlStyle(style)
-    purpose: specify the css stylesheet to be used
-    params: 1 - stylesheet filepath
-    insert: nil
-    return: nil
+  Format(s)     Function        Mapping  Command
+  ---------     --------------  -------  -------
+  html          DNM_HtmlOutput  \gh      GenerateHTML
+  pdf           DNM_PdfOutput   \gp      GeneratePDF
+  html and pdf  DNM_AllOutput   \ga      GenerateAll
 
-If the user wants to create html output using a custom template, specify
-it with the "DNM_SetHtmlTemplate" function, for example, calling the
-function from their vim configuration. The function must be called before
-generating output.
+When calling one of these functions from command-line mode no parameters are
+needed. (If a function is called from insert mode, pass a true value as
+parameter for the function to re-enter insert mode when finished).
 
-                                                      *DNM_SetHtmlTemplate*
-DNM_SetHtmlTemplate(template)
-    purpose: specify the value to provide to the pandoc --template option
-    params: 1 - template filepath
-    insert: nil
-    return: nil
+In the mappings replace "\" with the |mapleader|.
 
-                                                      *dnm_pandoc_citeproc*
-If the user wants to use the pandoc-citeproc filter to resolve citations,
-set its inclusion in the pandoc command with the "DNM_PandocCiteproc"
-function. To remove the pandoc-citeproc filter, use the
-"DNM_NoPandocCiteproc" function.
-
-                                                       *DNM_PandocCiteproc*
-DNM_PandocCiteproc()
-    purpose: set flag to add "--filter pandoc-citeproc" to pandoc command
-    params: nil
-    return: nil
-    note:   does not check that the pandoc-citeproc filter is installed
-
-                                                     *DNM_NoPandocCiteproc*
-DNM_NoPandocCiteproc()
-    purpose: set flag to remove "--filter pandoc-citeproc" from pandoc
-             command
-    params: nil
-    return: nil
-
-When producing html output the following pandoc options are used:
-"-t html5", "--standalone" and "--smart". If set, the pandoc-citeproc
-filter is also used. The function "DNM_HtmlOutput" generates html output.
-
-                                                           *DNM_HtmlOutput*
-DNM_HtmlOutput()
-    purpose: generate output file with html extension
-    params:  1 - whether called from insert mode
-    insert:  nil
-    return:  nil
-    note:    output file has same basename as markdown script with
-             ".html" extension
-    note:    an existing output file will be silently overwritten
-
-
-                                                            *dn-mapping-gh*
-The "DNM_HtmlOutput" function is mapped by default to "<LocalLeader>gh",
-usually "\gh", in Insert and Normal modes.
-
-
-                                                         *DNM_GenerateHTML*
-The "DNM_HtmlOutput" function is bound to the command "GenerateHTML".
-
-                                                 *dn-markdown-generate-pdf*
-If the user wants to create pdf output using a custom template, specify
-it with the "DNM_SetPdfTemplate" function, for example, calling the
-function from their vim configuration The funcion must be called before
-generating output. Pdf output uses the "latex" template.
-
-                                                       *DNM_SetPdfTemplate*
-DNM_SetPdfTemplate(template)
-    purpose: specify the value to provide to the pandoc --template option
-    params: 1 - template filepath
-    insert: nil
-    return: nil
+When producing html output the following pandoc options are used: "-t html5",
+"--standalone" and "--smart". If set, the pandoc-citeproc filter is also used. 
 
 When producing pdf output the following pandoc options are used: "smart",
 "--latex-engine=xelatex", "--variable [url,link,cite,toc]color=gray". If
 set, the pandoc-citeproc filter is also used. If set, a custom template
 is also used.
 
-The pandoc-citeproc filter can be used in generating pdf output in the
-same way it is used in generating html output. See |dnm_pandoc_citeproc|
-for details.
+Html output can be customised:
 
-                                                            *DNM_PdfOutput*
-DNM_PdfOutput()
-    purpose: generate output file with pdf extension
-    params:  1 - whether called from insert mode
-    insert:  nil
-    return:  nil
-    note:    uses lualatex
-    note:    output file has same basename as markdown script with
-             ".pdf" extension
-    note:    an existing output file will be silently overwritten
+- Stylesheet: the stylesheet to be used can be set by passing the stylesheet
+              filepath to the function "DNM_SetHtmlStyle". The default
+              stylesheet is "buttondown" by Ryan Gray (see
+              https://github.com/ryangray/buttondown).
+- Template:   to use a custom output template pass the template filepath to
+              the function "DNM_SetHtmlTemplate".
+- Citeproc:   to use the pandoc-citeproc filter to resolve citations, set its
+              inclusion in the pandoc command with the "DNM_PandocCiteproc"
+              function. To remove the pandoc-citeproc filter, use the
+              "DNM_NoPandocCiteproc" function.
 
-                                                            *dn-mapping-gp*
-The "DNM_PdfOutput" function is mapped by default to "<LocalLeader>gp",
-usually "\gp", in Insert and Normal modes.
+Pdf output can be customised:
 
-                                                              *GeneratePDF*
-The "DNM_PdfOutput" function is bound to the command "GeneratePDF".
+- Template:   to use a custom output template pass the template filepath to
+              the function "DNM_SetPdfTemplate".
+- Citeproc:   as for html output
 
-                                                 *dn-markdown-generate-all*
-The user can generate html and pdf ooutput with a single command or
-mapping.
-
-                                                            *DNM_AllOutput*
-DNM_AllOutput()
-    purpose: generate html and pdf output files
-    params:  nil
-    insert:  nil
-    return:  nil
-    note:    output files have same basename as markdown script with
-             ".html" and ".pdf" extensions
-    note:    existing output files will be silently overwritten
-
-
-                                                            *dn-mapping-ga*
-The "DNM_AllOutput" function is mapped by default to "<LocalLeader>ga",
-usually "\ga", in Insert and Normal modes.
-
-
-                                                          *DNM_GenerateAll*
-The "DNM_AllOutput" function is bound to the command "GenerateAll".
-
--------------------------------------------------------------------------
+=========================================================================
                                                          *dn-markdown-view*
-7. Viewing functions
+7. Viewing
 
-Functions enabling user to view output. The system default viewing
-applications are used to display the output.
+The system default viewing applications are used to display the output.
 
-                                                             *DNM_ViewHtml*
-DNM_ViewHtml()
-    purpose: Display html output
-    params:  nil
-    insert:  nil
-    return:  nil
-    note:    uses system default application for html files
+This table lists the viewing functions with corresponding mappings and
+commands:
 
-                                                            *dn-mapping-vh*
-This function is mapped by default to "<LocalLeader>vh", usually "\vh",
-in Insert and Normal modes.
+  Format(s)     Function        Mapping  Command
+  ---------     --------------  -------  -------
+  html          DNM_ViewHtml    \vh      ViewHTML
+  pdf           DNM_ViewPdf     \vp      ViewPDF
 
-                                                               *ViewHTML()*
-This function is bound to command "ViewHTML".
-
-                                                              *DNM_ViewPdf*
-DNM_ViewPdf()
-    purpose: Display pdf output
-    params:  nil
-    insert:  nil
-    return:  nil
-    note:    uses system default application for pdf files
-
-                                                            *dn-mapping-vp*
-This function is mapped by default to "<LocalLeader>vp", usually "\vp",
-in Insert and Normal modes.
-                                                                *ViewPDF()*
-This function is bound to command "ViewPDF".
-
--------------------------------------------------------------------------
+=========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:
