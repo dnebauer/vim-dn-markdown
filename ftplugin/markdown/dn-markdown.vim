@@ -5,8 +5,8 @@
 " 1.  CONTROL STATEMENTS                                              {{{1
 
 " Only do this when not done yet for this buffer
-if exists('b:did_markdown_pandoc') | finish | endif
-let b:did_markdown_pandoc = 1
+if exists('b:did_dnm_markdown_pandoc') | finish | endif
+let b:did_dnm_markdown_pandoc = 1
 
 " Use default cpoptions to avoid unpleasantness from customised
 " 'compatible' settings
