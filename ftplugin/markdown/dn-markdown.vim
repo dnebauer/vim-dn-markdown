@@ -647,19 +647,19 @@ nmap <buffer> <unique> <Plug>DnGAN :call DNM_AllOutput()<CR>
 " Commands:                                                           {{{2
 
 " GenerateHTML : generate HTML output                                 {{{3
-command! GenerateHTML call DNM_HtmlOutput()
+command! -buffer GenerateHTML call DNM_HtmlOutput()
 
-" ViewHTML : view HTML output                                         {{{3
-command! ViewHTML call DNM_ViewHtml()
+" ViewHTML     : view HTML output                                     {{{3
+command! -buffer ViewHTML call DNM_ViewHtml()
 
-" GeneratePDF : generate PDF output                                   {{{3
-command! GeneratePDF call DNM_PdfOutput()
+" GeneratePDF  : generate PDF output                                  {{{3
+command! -buffer GeneratePDF call DNM_PdfOutput()
 
-" ViewPDF : view PDF output                                           {{{3
-command! ViewPDF call DNM_ViewPdf()
+" ViewPDF      : view PDF output                                      {{{3
+command! -buffer ViewPDF call DNM_ViewPdf()
 
-" GenerateAll : generate HTML and PDF output                          {{{3
-command! GenerateAll call DNM_AllOutput()
+" GenerateAll  : generate HTML and PDF output                         {{{3
+command! -buffer GenerateAll call DNM_AllOutput()
 
                                                                     " }}}1
 
