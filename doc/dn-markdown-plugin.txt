@@ -99,6 +99,9 @@ Pdf output can be customised:
 - Template:   to use a custom output template pass the template filepath to
               the function "DNM_SetPdfTemplate".
 - Citeproc:   as for html output
+- Font size:  can set font size in points by passing the number of points to
+              the function "DNM_SetLatexFontsize". Valid font sizes are 10,
+              11, 12, 13 and 14.
 
 =========================================================================
                                                          *dn-markdown-view*

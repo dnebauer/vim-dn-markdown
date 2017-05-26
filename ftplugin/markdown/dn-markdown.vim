@@ -62,7 +62,7 @@ endif
 
 " pandoc parameters                                                   {{{2
 let s:pandoc_html = {'style': '', 'template': ''}
-let s:pandoc_tex = {'template': ''}
+let s:pandoc_tex = {'template': '', 'fontsize': 0}
 let s:pandoc_citeproc = 0    " default
 
 " ========================================================================
@@ -285,6 +285,26 @@ function! DNM_SetHtmlStyle(style)
         return
     endif
     let s:pandoc_html['style'] = a:style
+endfunction
+" ------------------------------------------------------------------------
+" Function: DNM_SetLatexFontsize                                      {{{2
+" Purpose:  set s:pandoc_tex['fontsize'] to font size (in points)
+" Params:   1 - font size in points (must be 10, 11, 12, 13, or 14)
+" Return:   nil
+function! DNM_SetLatexFontsize(size)
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
+    " check value
+    let l:valid_fontsizes = [10, 11, 12, 13, 14]
+    if !count(l:valid_fontsizes, a:size)
+        echoerr 'Font size must be 10, 11, 12, 13 or 14'
+        return
+    endif
+    let s:pandoc_tex['fontsize'] = a:size
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_PandocCiteproc                                        {{{2
@@ -557,6 +577,14 @@ function! s:pdf_output_engine ()
         if s:pandoc_citeproc
             let l:cmd .= ' ' . '--filter pandoc-citeproc'
             let l:opts .= ', pandoc-citeproc'
+        endif
+        " set custom font size if provided
+        if s:pandoc_tex['fontsize']
+            let l:font_size = s:pandoc_tex['fontsize'] . 'pt'
+            echo 'Font size:     ' . l:font_size
+            let l:cmd .= ' ' . '--variable fontsize=' . l:font_size
+        else
+            echo 'Font size:     default'
         endif
         " display options
         let l:opts = strpart(l:opts, 2)
