@@ -680,6 +680,9 @@ command! -buffer GenerateHTML call DNM_HtmlOutput()
 " ViewHTML     : view HTML output                                     {{{3
 command! -buffer ViewHTML call DNM_ViewHtml()
 
+" FontsizePDF  : set font size for PDF output                         {{{3
+command! -buffer -nargs=1 FontsizePDF call DNM_SetLatexFontsize(<args>)
+
 " GeneratePDF  : generate PDF output                                  {{{3
 command! -buffer GeneratePDF call DNM_PdfOutput()
 
