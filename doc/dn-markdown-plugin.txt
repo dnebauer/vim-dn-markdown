@@ -118,5 +118,8 @@ commands:
   html          DNM_ViewHtml    \vh      ViewHTML
   pdf           DNM_ViewPdf     \vp      ViewPDF
 
+If the appropriate output file is not available, it will be created and then
+viewed.
+
 =========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:
