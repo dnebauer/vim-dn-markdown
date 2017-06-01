@@ -107,8 +107,11 @@ function! DNM_ViewHtml(...)
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
     " check for file to view
     if !filereadable(l:output)
-        call dn#util#error('No html file to view')
-        return
+        call s:html_output_engine()
+        if !filereadable(l:output)
+            call dn#util#error('No html file to view')
+            return
+        endif
     endif
     " view html output
     if s:os ==# 'win'
@@ -182,8 +185,11 @@ function! DNM_ViewPdf(...)
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     " check for file to view
     if !filereadable(l:output)
-        call dn#util#error('No pdf file to view')
-        return
+        call s:pdf_output_engine()
+        if !filereadable(l:output)
+            call dn#util#error('No pdf file to view')
+            return
+        endif
     endif
     " view pdf output
     if s:os ==# 'win'
