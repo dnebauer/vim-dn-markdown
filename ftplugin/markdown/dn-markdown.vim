@@ -328,11 +328,11 @@ function! DNM_PandocCiteproc()
         return
     endif
     if exists('s:pandoc_citeproc') && s:pandoc_citeproc
-        echo 'Already set to use pandoc-citeproc filter'
+        call s:say('Already set to use pandoc-citeproc filter')
         return
     endif
     let s:pandoc_citeproc = g:dn_true
-    echo 'Now set to use pandoc-citeproc filter'
+    call s:say('Now set to use pandoc-citeproc filter')
 endfunction
 " ------------------------------------------------------------------------
 " Function: DNM_NoPandocCiteproc                                      {{{2
@@ -348,11 +348,26 @@ function! DNM_NoPandocCiteproc()
         return
     endif
     if exists('s:pandoc_citeproc') && !s:pandoc_citeproc
-        echo 'Already NOT using pandoc-citeproc filter'
+        call s:say('Already NOT using pandoc-citeproc filter')
         return
     endif
     let s:pandoc_citeproc = g:dn_false
-    echo 'Now set to NOT use pandoc-citeproc filter'
+    call s:say('Now set to NOT use pandoc-citeproc filter')
+endfunction
+" ------------------------------------------------------------------------
+" Function: s:say                                                     {{{2
+" Purpose:  echo line of output with wrapping
+" Params:   1 - message to display [string]
+" Return:   nil
+function! s:say(msg)
+    " requires dn-utils plugin
+    if s:dn_utils_missing()
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return
+    endif
+    " print wrapped output
+    call dn#util#wrap(a:msg, 15)
 endfunction
 " ------------------------------------------------------------------------
 " Function: s:ensure_html_style                                       {{{2
@@ -368,7 +383,7 @@ function! s:ensure_html_style()
     endif
     " set by user
     if strlen(s:pandoc_html['style']) > 0
-        echo 'Stylesheet:    set by user'
+        call s:say('Stylesheet:    set by user')
         return
     endif
     " no user value so set to default
@@ -385,7 +400,7 @@ function! s:ensure_html_style()
     " - found expected single match
     if len(l:style_filepaths) == 1
         let s:pandoc_html['style'] = l:style_filepaths[0]
-        echo 'Stylesheet:    using default'
+        call s:say('Stylesheet:    using default')
         return
     endif
     " - okay, there are multiple css files (how?); let's pick one
@@ -397,7 +412,7 @@ function! s:ensure_html_style()
     let l:style = dn#util#menuSelect(l:menu_options, 'Select style:')
     if strlen(l:style) > 0
         let s:pandoc_html['style'] = l:style
-        echo 'Stylesheet:    selected by user'
+        call s:say('Stylesheet:    selected by user')
         return
     endif
     " if here then failed to pick from multiple style files
@@ -427,7 +442,7 @@ function! s:execute_shell_command(cmd, ...)
             call dn#util#error(l:line)
         endfor
         echo '--------------------------------------'
-        echo l:shell_feedback
+        call s:say(l:shell_feedback)
         echo '--------------------------------------'
         return g:dn_false
     else
@@ -465,8 +480,8 @@ function! s:html_output_engine()
     endif
     " save file to incorporate any changes
     silent update
-    echo 'Target format: html'
-    echo 'Converter:     pandoc'
+    call s:say('Target format: html')
+    call s:say('Converter:     pandoc')
     call s:ensure_html_style()    " set style file
     let l:output = substitute(expand('%'), '\.md$', '.html', '')
     let l:source = expand('%')
@@ -493,25 +508,25 @@ function! s:html_output_engine()
         endif
         " display options
         let l:opts = strpart(l:opts, 2)
-        echo 'Options:       ' . l:opts
+        call s:say('Options:       ' . l:opts)
         " link to css stylesheet               --css=<stylesheet>
         if filereadable(s:pandoc_html['style'])
             let l:cmd .= ' ' . '--css=' . shellescape(s:pandoc_html['style'])
-            echo 'Stylesheet:    ' . s:pandoc_html['style']
+            call s:say('Stylesheet:    ' . s:pandoc_html['style'])
         endif
         " use custom template                  --template=<template>
         if strlen(s:pandoc_html['template']) > 0
             let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
-            echo 'Template:      ' . s:pandoc_html['template']
+            call s:say('Template:      ' . s:pandoc_html['template'])
         else
-            echo 'Template:      [default]'
+            call s:say('Template:      [default]')
         endif
         " output file                          --output=<target_file>
         let l:cmd .= ' ' . '--output=' . shellescape(l:output)
-        echo 'Output file:   ' . l:output
+        call s:say('Output file:   ' . l:output)
         " input file
         let l:errmsg = ['Error occurred during html generation']
-        echo 'Generating output... '
+        call s:say('Generating output... ')
         let l:cmd .= ' ' . shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
@@ -549,8 +564,8 @@ function! s:pdf_output_engine ()
     endif
     " save file to incorporate any changes
     silent update
-    echo 'Target format: pdf'
-    echo 'Converter:     pandoc'
+    call s:say('Target format: pdf')
+    call s:say('Converter:     pandoc')
     let l:output = substitute(expand('%'), '\.md$', '.pdf', '')
     let l:source = expand('%')
     " generate output
@@ -559,7 +574,7 @@ function! s:pdf_output_engine ()
         let l:cmd = 'pandoc'
         " use xelatex                          --latex-engine=<engine>
         let l:cmd .= ' ' . '--latex-engine=' . l:engine
-        echo 'Latex engine:  ' . l:engine
+        call s:say('Latex engine:  ' . l:engine)
         " make links visible                   --variable urlcolor=<colour>
         "                                      --variable linkcolor=<colour>
         "                                      --variable citecolor=<colour>
@@ -575,7 +590,7 @@ function! s:pdf_output_engine ()
         let l:cmd .= ' ' . '--variable linkcolor=' . l:link_colour
         let l:cmd .= ' ' . '--variable citecolor=' . l:link_colour
         let l:cmd .= ' ' . '--variable toccolor=' . l:link_colour
-        echo 'Link colour:   ' . l:link_colour
+        call s:say('Link colour:   ' . l:link_colour)
         " convert quotes, em|endash, ellipsis  --smart
         let l:cmd .= ' ' . '--smart'
         let l:opts .= ', smart'
@@ -587,27 +602,27 @@ function! s:pdf_output_engine ()
         " set custom font size if provided
         if s:pandoc_tex['fontsize']
             let l:font_size = s:pandoc_tex['fontsize'] . 'pt'
-            echo 'Font size:     ' . l:font_size
+            call s:say('Font size:     ' . l:font_size)
             let l:cmd .= ' ' . '--variable fontsize=' . l:font_size
         else
-            echo 'Font size:     default'
+            call s:say('Font size:     default')
         endif
         " display options
         let l:opts = strpart(l:opts, 2)
-        echo 'Options:       ' . l:opts
+        call s:say('Options:       ' . l:opts)
         " use custom template                  --template=<template>
         if strlen(s:pandoc_html['template']) > 0
             let l:cmd .= ' ' . '--template=' . s:pandoc_html['template']
-            echo 'Template:      ' . s:pandoc_html['template']
+            call s:say('Template:      ' . s:pandoc_html['template'])
         else
-            echo 'Template:      [default]'
+            call s:say('Template:      [default]')
         endif
         " output file                          --output=<target_file>
         let l:cmd .= ' ' . '--output=' . shellescape(l:output)
-        echo 'Output file:   ' . l:output
+        call s:say('Output file:   ' . l:output)
         " input file
         let l:errmsg = ['Error occurred during pdf generation']
-        echo 'Generating output... '
+        call s:say('Generating output... ')
         let l:cmd .= ' ' . shellescape(l:source)
         let l:succeeded =  s:execute_shell_command(l:cmd, l:errmsg)
     else
