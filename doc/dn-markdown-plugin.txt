@@ -45,36 +45,39 @@ This ftplugin uses the |b:dn-true| and |b:dn-false| variables provided by
 |dn-utils-plugin|.
 
                                                          *dn-markdown-help*
-This ftplugin contributes to the |dn-utils-plugin| help system (see |dn#util#help|
-for details). In the help system navigate to: vim -> markdown ftplugin.
+This ftplugin contributes to the |dn-utils-plugin| help system (see
+|dn#util#help| for details). In the help system navigate to:
+vim -> markdown ftplugin.
 =========================================================================
                                                        *dn-markdown-output*
 6. Output
 
-Output is generated using pandoc. Pandoc is not provided by this plugin --
-it must be present on the system or output attempts will fail.
+Output is generated using pandoc. Pandoc is not provided by this plugin
+-- it must be present on the system or output attempts will fail.
 
-Markdown files can be output as html or pdf. In each case an output file is
-created with the same basename as the markdown file, and a ".html" or ".pdf"
-extension as appropriate. Existing output files are silently overwritten.
+Markdown files can be output as html or pdf. In each case an output file
+is created with the same basename as the markdown file, and a ".html" or
+".pdf" extension as appropriate. Existing output files are silently
+overwritten.
 
 This table lists the output functions with corresponding mappings and
 commands:
 
-  Format(s)     Function        Mapping  Command
-  ---------     --------------  -------  -------
-  html          DNM_HtmlOutput  \gh      GenerateHTML
-  pdf           DNM_PdfOutput   \gp      GeneratePDF
-  html and pdf  DNM_AllOutput   \ga      GenerateAll
+  Format(s)     Function                Mapping  Command
+  ---------     ----------------------  -------  ------------
+  html          dn#markdown#htmlOutput  \gh      GenerateHTML
+  pdf           dn#markdown#pdfOutput   \gp      GeneratePDF
+  html and pdf  dn#markdown#allOutput   \ga      GenerateAll
 
-When calling one of these functions from command-line mode no parameters are
-needed. (If a function is called from insert mode, pass a true value as
-parameter for the function to re-enter insert mode when finished).
+When calling one of these functions from command-line mode no parameters
+are needed. (If a function is called from insert mode, pass a true value
+as parameter for the function to re-enter insert mode when finished).
 
 In the mappings replace "\" with the |mapleader|.
 
-When producing html output the following pandoc options are used: "-t html5",
-"--standalone" and "--smart". If set, the pandoc-citeproc filter is also used. 
+When producing html output the following pandoc options are used:
+"-t html5", "--standalone" and "--smart". If set, the pandoc-citeproc
+filter is also used. 
 
 When producing pdf output the following pandoc options are used: "smart",
 "--latex-engine=xelatex", "--variable [url,link,cite,toc]color=gray". If
@@ -83,26 +86,28 @@ is also used.
 
 Html output can be customised:
 
-- Stylesheet: the stylesheet to be used can be set by passing the stylesheet
-              filepath to the function "DNM_SetHtmlStyle". The default
-              stylesheet is "buttondown" by Ryan Gray (see
+- Stylesheet: the stylesheet to be used can be set by passing the
+              stylesheet filepath to the function
+              "dn#markdown#setHtmlStyle". The default stylesheet is
+              "buttondown" by Ryan Gray (see
               https://github.com/ryangray/buttondown).
-- Template:   to use a custom output template pass the template filepath to
-              the function "DNM_SetHtmlTemplate".
-- Citeproc:   to use the pandoc-citeproc filter to resolve citations, set its
-              inclusion in the pandoc command with the "DNM_PandocCiteproc"
-              function. To remove the pandoc-citeproc filter, use the
-              "DNM_NoPandocCiteproc" function.
+- Template:   to use a custom output template pass the template filepath
+              to the function "dn#markdown#setHtmlTemplate".
+- Citeproc:   to use the pandoc-citeproc filter to resolve citations,
+              set its inclusion in the pandoc command with the
+              "dn#markdown#pandocCiteproc" function. To remove the
+              pandoc-citeproc filter, use the
+              "dn#markdown#noPandocCiteproc" function.
 
 Pdf output can be customised:
 
-- Template:   to use a custom output template pass the template filepath to
-              the function "DNM_SetPdfTemplate".
+- Template:   to use a custom output template pass the template filepath
+              to the function "dn#markdown#setPdfTemplate".
 - Citeproc:   as for html output
-- Font size:  can set font size in points by passing the number of points to
-              the function "DNM_SetLatexFontsize". Valid font sizes are 10,
-              11, 12, 13 and 14. This function is called by the command
-              "FontsizePDF" which takes exactly one argument.
+- Font size:  can set font size in points by passing the number of points
+              to the function "dn#markdown#setLatexFontsize". Valid font
+              sizes are 10, 11, 12, 13 and 14. This function is called by
+              the command "FontsizePDF" which takes exactly one argument.
 
 =========================================================================
                                                          *dn-markdown-view*
@@ -113,13 +118,13 @@ The system default viewing applications are used to display the output.
 This table lists the viewing functions with corresponding mappings and
 commands:
 
-  Format(s)     Function        Mapping  Command
-  ---------     --------------  -------  -------
-  html          DNM_ViewHtml    \vh      ViewHTML
-  pdf           DNM_ViewPdf     \vp      ViewPDF
+  Format(s)     Function                Mapping  Command
+  ---------     --------------------    -------  --------
+  html          dn#markdown#viewHtml    \vh      ViewHTML
+  pdf           dn#markdown#viewPdf     \vp      ViewPDF
 
-If the appropriate output file is not available, it will be created and then
-viewed.
+If the appropriate output file is not available, it will be created and
+then viewed.
 
 =========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:
