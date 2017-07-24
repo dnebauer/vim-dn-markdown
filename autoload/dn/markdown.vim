@@ -625,7 +625,6 @@ function! s:_set_default_html_stylesheet() abort
     " set value
     if empty(l:stylesheet) | return | endif
     let b:dn_md_settings.stylesheet_html.default = l:stylesheet
-    let b:dn_md_settings.stylesheet_html.source  = 'set by plugin'
 endfunction
 
 " s:_execute_shell_command(cmd,[err])                                      {{{2
