@@ -453,8 +453,7 @@ function! s:_initialise() abort
         let l:config  = b:dn_md_settings[l:param]['config']
         let l:allowed = b:dn_md_settings[l:param]['allowed']
         let l:set_from_config = g:dn_false
-        let l:config_name = {l:config}
-        if exists(l:config_name)  " try to set from config variable
+        if exists(l:config)  " try to set from config variable
             let l:value = {l:config}
             if s:_valid_param(l:value, l:allowed)
                 let l:source = 'set from configuration variable ' . l:config
