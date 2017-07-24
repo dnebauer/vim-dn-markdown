@@ -156,7 +156,9 @@ let b:dn_md_settings = {
             \   'prompt'  : 'Enter the path/url to the latex/pdf template:',
             \   },
             \ }
-call s:_set_default_html_stylesheet()  " special case
+" - note: initialisation process will call s:_set_default_html_stylesheet()
+"         to set b:dn_md_settings.stylesheet_html as a special case
+"         (because ftplugin includes a default html stylesheet)
 " pandoc parameters to set (s:pandoc_params)                               {{{2
 let s:pandoc_params = {
             \ 'docx': {
@@ -206,7 +208,7 @@ function! dn#markdown#view(...) abort
     " universal tasks                                                      {{{3
     echo '' |  " clear command line
     if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
-    if !exists(s:initialised) | call s:_initialise() | endif  " initialise
+    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
     " process params                                                       {{{3
     let [l:insert, l:format] = s:_process_dict_params(a:000)
     if empty(l:format) | return | endif
@@ -288,7 +290,7 @@ endfunction
 function! dn#markdown#generate(...) abort
     " universal tasks
     echo '' |  " clear command line
-    if !exists(s:initialised) | call s:_initialise() | endif  " initialise
+    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
     if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
     " process params
     let [l:insert, l:format] = s:_process_dict_params(a:000)
@@ -309,7 +311,7 @@ endfunction
 function! dn#markdown#regenerate(...) abort
     " universal tasks
     echo '' |  " clear command line
-    if !exists(s:initialised) | call s:_initialise() | endif  " initialise
+    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
     if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
     " params
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
@@ -343,7 +345,7 @@ function! dn#markdown#settings() abort
     " universal tasks
     echo '' |  " clear command line
     if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
-    if !exists(s:initialised) | call s:_initialise() | endif
+    if !exists('s:initialised') | call s:_initialise() | endif
     " get setting to edit
     let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
     while count(keys(b:dn_md_settings), l:setting) == 1
@@ -442,6 +444,9 @@ endfunction
 " return: nil
 function! s:_initialise() abort
     let s:initialised = 1  " do only once
+    " set default html stylesheet (because it must be set dynamically,
+    " unlike other settings set statically with b:dn_md_settings variable)
+    call s:_set_default_html_stylesheet()
     " set parameters from configuration variables
     for l:param in keys(s:pandoc_params)
         let l:default = s:pandoc_params[l:param]['default']
@@ -486,7 +491,7 @@ endfunction
 function! s:_process_dict_params(...) abort
     " universal tasks
     echo '' |  " clear command line
-    if !exists(s:initialised) | call s:_initialise() | endif  " initialise
+    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
     if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
     " default params
     let l:insert = g:dn_false | let l:format = '' |  " defaults
