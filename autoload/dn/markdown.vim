@@ -540,6 +540,9 @@ function! s:_valid_param(value, allowed) abort
     elseif a:allowed ==# 'boolean'             " 'boolean'
         return (a:value == 1 || a:value == 0)
     elseif a:allowed ==# 'file_url'            " 'file_url'
+        " allow empty values as that is the usual default value
+        if a:value ==# '' | return g:dn_true | endif
+        " now process non-empty values
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
