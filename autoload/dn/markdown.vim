@@ -575,7 +575,7 @@ function! s:_set_default_html_stylesheet() abort
     echo '' |  " clear command line
     if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
     " requires s:dn_md_settings.stylesheet_html.default
-    if !exists('s:dn_md_settings')
+    if !exists('b:dn_md_settings')
         echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
         echoerr 'dn-markdown ftplugin cannot find b:dn_md_settings'
         return
