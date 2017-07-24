@@ -49,92 +49,74 @@ endif
 
 " Mappings                                                                 {{{1
 
-" \gh : generate html output                                               {{{2
-if !hasmapto('<Plug>DnGHI')
-    imap <buffer> <unique> <LocalLeader>gh <Plug>DnGHI
+" \og : output generation                                                  {{{2
+if !hasmapto('<Plug>DnOGI')
+    imap <buffer> <unique> <LocalLeader>og <Plug>DnOGI
 endif
-imap <buffer> <unique> <Plug>DnGHI
-            \ <Esc>:call dn#markdown#htmlOutput(g:dn_true)<CR>
-if !hasmapto('<Plug>DnGHN')
-    nmap <buffer> <unique> <LocalLeader>gh <Plug>DnGHN
+imap <buffer> <unique> <Plug>DnOGI
+            \ <Esc>:call dn#markdown#generate({'insert': g:dn_true})<CR>
+if !hasmapto('<Plug>DnOGN')
+    nmap <buffer> <unique> <LocalLeader>og <Plug>DnOGN
 endif
-nmap <buffer> <unique> <Plug>DnGHN
-            \ :call dn#markdown#htmlOutput()<CR>
+nmap <buffer> <unique> <Plug>DnOGN
+            \ :call dn#markdown#generate()<CR>
 
-" \vh : view html output                                                   {{{2
-if !hasmapto('<Plug>DnVHI')
-    imap <buffer> <unique> <LocalLeader>vh <Plug>DnVHI
+" \or : output regeneration                                                {{{2
+if !hasmapto('<Plug>DnORI')
+    imap <buffer> <unique> <LocalLeader>or <Plug>DnORI
 endif
-imap <buffer> <unique> <Plug>DnVHI
-            \ <Esc>:call dn#markdown#viewHtml(g:dn_true)<CR>
-if !hasmapto('<Plug>DnVHN')
-    nmap <buffer> <unique> <LocalLeader>vh <Plug>DnVHN
+imap <buffer> <unique> <Plug>DnORI
+            \ <Esc>:call dn#markdown#regenerate(g:dn_true)<CR>
+if !hasmapto('<Plug>DnORN')
+    nmap <buffer> <unique> <LocalLeader>or <Plug>DnORN
 endif
-nmap <buffer> <unique> <Plug>DnVHN
-            \ :call dn#markdown#viewHtml()<CR>
+nmap <buffer> <unique> <Plug>DnORN
+            \ :call dn#markdown#regenerate()<CR>
 
-" \gp : generate pdf output                                                {{{2
-if !hasmapto('<Plug>DnGPI')
-    imap <buffer> <unique> <LocalLeader>gp <Plug>DnGPI
+" \ov : output viewing                                                     {{{2
+if !hasmapto('<Plug>DnOVI')
+    imap <buffer> <unique> <LocalLeader>ov <Plug>DnOVI
 endif
-imap <buffer> <unique> <Plug>DnGPI
-            \ <Esc>:call dn#markdown#pdfOutput(g:dn_true)<CR>
-if !hasmapto('<Plug>DnGPN')
-    nmap <buffer> <unique> <LocalLeader>gp <Plug>DnGPN
+imap <buffer> <unique> <Plug>DnOVI
+            \ <Esc>:call dn#markdown#view({'insert': g:dn_true})<CR>
+if !hasmapto('<Plug>DnOVN')
+    nmap <buffer> <unique> <LocalLeader>ov <Plug>DnOVN
 endif
-nmap <buffer> <unique> <Plug>DnGPN
-            \ :call dn#markdown#pdfOutput()<CR>
+nmap <buffer> <unique> <Plug>DnOVN
+            \ :call dn#markdown#view()<CR>
 
-" \vp : view pdf output                                                    {{{2
-if !hasmapto('<Plug>DnVPI')
-    imap <buffer> <unique> <LocalLeader>vp <Plug>DnVPI
+" \es : edit settings                                                      {{{2
+if !hasmapto('<Plug>DnESI')
+    imap <buffer> <unique> <LocalLeader>es <Plug>DnESI
 endif
-imap <buffer> <unique> <Plug>DnVPI
-            \ <Esc>:call dn#markdown#viewPdf(g:dn_true)<CR>
-if !hasmapto('<Plug>DnVPN')
-    nmap <buffer> <unique> <LocalLeader>vp <Plug>DnVPN
+imap <buffer> <unique> <Plug>DnESI
+            \ <Esc>:call dn#markdown#settings({'insert': g:dn_true})<CR>
+if !hasmapto('<Plug>DnESN')
+    nmap <buffer> <unique> <LocalLeader>es <Plug>DnESN
 endif
-nmap <buffer> <unique> <Plug>DnVPN
-            \ :call dn#markdown#viewPdf()<CR>
-
-" \ga : generate html and pdf output                                       {{{2
-if !hasmapto('<Plug>DnGAI')
-    imap <buffer> <unique> <LocalLeader>ga <Plug>DnGAI
-endif
-imap <buffer> <unique> <Plug>DnGAI
-            \ <Esc>:call dn#markdown#allOutput(g:dn_true)<CR>
-if !hasmapto('<Plug>DnGAN')
-    nmap <buffer> <unique> <LocalLeader>ga <Plug>DnGAN
-endif
-nmap <buffer> <unique> <Plug>DnGAN
-            \ :call dn#markdown#allOutput()<CR>
+nmap <buffer> <unique> <Plug>DnESN
+            \ :call dn#markdown#settings()<CR>
                                                                          " }}}2
 
 " Commands                                                                 {{{1
 
-" GenerateHTML : generate HTML output                                      {{{2
-command! -buffer GenerateHTML
-            \ call dn#markdown#htmlOutput()
+" Generate   : generate output                                             {{{2
+command! -buffer -nargs=? -complete=customlist,dn#markdown#complete
+            \ Generate
+            \ call dn#markdown#generate({'format': '<args>'})
 
-" ViewHTML     : view HTML output                                          {{{2
-command! -buffer ViewHTML
-            \ call dn#markdown#viewHtml()
+" Regenerate : regenerate all previous output                              {{{2
+command! -buffer Regenerate
+            \ call dn#markdown#regenerate()
 
-" FontsizePDF  : set font size for PDF output                              {{{2
-command! -buffer -nargs=1 FontsizePDF
-            \ call dn#markdown#setLatexFontsize(<args>)
+" View       : view output                                                 {{{2
+command! -buffer -nargs=? -complete=customlist,dn#markdown#complete
+            \ View
+            \ call dn#markdown#view({'format': '<args>'})
 
-" GeneratePDF  : generate PDF output                                       {{{2
-command! -buffer GeneratePDF
-            \ call dn#markdown#pdfOutput()
-
-" ViewPDF      : view PDF output                                           {{{2
-command! -buffer ViewPDF
-            \ call dn#markdown#viewPdf()
-
-" GenerateAll  : generate HTML and PDF output                              {{{2
-command! -buffer GenerateAll
-            \ call dn#markdown#allOutput()
+" Settings   : edit settings                                               {{{2
+command! -buffer Settings
+            \ call dn#markdown#settings()
                                                                          " }}}2
 
 " Restore cpoptions                                                        {{{1

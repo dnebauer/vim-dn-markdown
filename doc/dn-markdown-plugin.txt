@@ -1,130 +1,237 @@
-*dn-markdown-ftplugin.txt*    For Vim version 7.4        Last changed: 2015 May 01
+*dn-markdown-ftplugin.txt*	For Vim version 7.4	Last change: 2017 July 24
 
 Filetype plugin for markdown                         *dn-markdown-ftplugin*
-                                                             *DNM_ftplugin*
-Dn Markdown Filetype Plugin
-=========================================================================
                                                      *dn-markdown-contents*
-1. Contents
+1.  Contents          |dn-markdown-contents|
+1.  Overview          |dn-markdown-overview|
+2.  Dependencies      |dn-markdown-dependencies|
+3.  Output            |dn-markdown-output|
+4.  Viewing           |dn-markdown-view|
+5.  Settings          |dn-markdown-settings|
 
-     1. Contents .......................... |dn-markdown-contents|
-     2. Overview .......................... |dn-markdown-overview|
-     3. Installation ...................... |dn-markdown-install|
-     4. Dependencies ...................... |dn-markdown-dependencies|
-     5. Variables ......................... |dn-markdown-variables|
-     6. Output ............................ |dn-markdown-output|
-     7. Viewing ........................... |dn-markdown-view|
 =========================================================================
-                                                     *dn-markdown-overview*
-2. Overview
+1. Overview                                          *dn-markdown-overview*
 
 An auxiliary filetype plugin for the markdown language.
 
-All functions in this library are global. They all have the prefix "DNM_"
-to try and avoid namespace collisions.
+All functions in this library are global. They all begin with
+"dn#markdown#" to try and avoid namespace collisions.
 
-Some mappings are also provided.
+Some commands and mappings are also provided.
+
 =========================================================================
-                                                      *dn-markdown-install*
-3. Installation
+2. Dependencies                                  *dn-markdown-dependencies*
 
-As this filetype plugin does not interfere with the standard markdown
-filetype plugin, the load order of these ftplugins does not matter. To
-account for future development, however, it is recommended that this
-ftplugin is put in an "after" directory.
-=========================================================================
-                                                 *dn-markdown-dependencies*
-4. Dependencies
-
-This ftplugin requires the |dn-utils-plugin|.
-=========================================================================
-                                                    *dn-markdown-variables*
-5. Variables
-
-This ftplugin uses the |b:dn-true| and |b:dn-false| variables provided by
-|dn-utils-plugin|.
+This ftplugin depends on the |dn-utils-plugin|. As well as using several
+of the functions provided by the library, this ftplugin uses the
+|g:dn-true| and |g:dn-false| variables provided by the |dn-utils-plugin|.
 
                                                          *dn-markdown-help*
 This ftplugin contributes to the |dn-utils-plugin| help system (see
-|dn#util#help| for details). In the help system navigate to:
+|dn#util#help()| for details). In the help system navigate to:
 vim -> markdown ftplugin.
-=========================================================================
-                                                       *dn-markdown-output*
-6. Output
+                                     *dn-markdown-pandoc* *dn-markdown-latex*
+Pandoc is used to generate output. PDF output also requires latex.
+Neither is provided by this ftplugin; they must be available on the
+system.
 
-Output is generated using pandoc. Pandoc is not provided by this plugin
--- it must be present on the system or output attempts will fail.
+The default latex engine used can be xelatex (default), lualatex or
+pdflatex.
 
-Markdown files can be output as html or pdf. In each case an output file
-is created with the same basename as the markdown file, and a ".html" or
-".pdf" extension as appropriate. Existing output files are silently
-overwritten.
-
-This table lists the output functions with corresponding mappings and
-commands:
-
-  Format(s)     Function                Mapping  Command
-  ---------     ----------------------  -------  ------------
-  html          dn#markdown#htmlOutput  \gh      GenerateHTML
-  pdf           dn#markdown#pdfOutput   \gp      GeneratePDF
-  html and pdf  dn#markdown#allOutput   \ga      GenerateAll
-
-When calling one of these functions from command-line mode no parameters
-are needed. (If a function is called from insert mode, pass a true value
-as parameter for the function to re-enter insert mode when finished).
-
-In the mappings replace "\" with the |mapleader|.
-
-When producing html output the following pandoc options are used:
-"-t html5", "--standalone" and "--smart". If set, the pandoc-citeproc
-filter is also used. 
-
-When producing pdf output the following pandoc options are used: "smart",
-"--latex-engine=xelatex", "--variable [url,link,cite,toc]color=gray". If
-set, the pandoc-citeproc filter is also used. If set, a custom template
-is also used.
-
-Html output can be customised:
-
-- Stylesheet: the stylesheet to be used can be set by passing the
-              stylesheet filepath to the function
-              "dn#markdown#setHtmlStyle". The default stylesheet is
-              "buttondown" by Ryan Gray (see
-              https://github.com/ryangray/buttondown).
-- Template:   to use a custom output template pass the template filepath
-              to the function "dn#markdown#setHtmlTemplate".
-- Citeproc:   to use the pandoc-citeproc filter to resolve citations,
-              set its inclusion in the pandoc command with the
-              "dn#markdown#pandocCiteproc" function. To remove the
-              pandoc-citeproc filter, use the
-              "dn#markdown#noPandocCiteproc" function.
-
-Pdf output can be customised:
-
-- Template:   to use a custom output template pass the template filepath
-              to the function "dn#markdown#setPdfTemplate".
-- Citeproc:   as for html output
-- Font size:  can set font size in points by passing the number of points
-              to the function "dn#markdown#setLatexFontsize". Valid font
-              sizes are 10, 11, 12, 13 and 14. This function is called by
-              the command "FontsizePDF" which takes exactly one argument.
+                                                   *dn-markdown-buttondown*
+This ftplugin contains a default stylesheet located in the
+"vim-dn-markdown-css" subdirectory of this ftplugin. The stylesheet
+("buttondown.css") is incorporated into html output. This file is a thin
+wrapping of Ryan Gray's buttondown css stylesheet hosted at
+https://github.com/ryangray/buttondown.
 
 =========================================================================
-                                                         *dn-markdown-view*
-7. Viewing
+3. Output                                              *dn-markdown-output*
 
-The system default viewing applications are used to display the output.
+Markdown files can be output as docx, epub, html or pdf. In each case an
+output file is created with the same basename as the markdown file, and
+an appropriate extension. The ftplugin will overwrite existing output
+files without notifying the user, although the operating system may
+refuse to do so under some circumstances.
 
-This table lists the viewing functions with corresponding mappings and
-commands:
+                                                   *dn#markdown#generate()*
+Output is generated by calling the dn#markdown#generate() function. It
+takes a single |Dict| parameter that can have the following entries:
 
-  Format(s)     Function                Mapping  Command
-  ---------     --------------------    -------  --------
-  html          dn#markdown#viewHtml    \vh      ViewHTML
-  pdf           dn#markdown#viewPdf     \vp      ViewPDF
+    key     value    default  use~
+    insert  boolean  false    whether called from insert mode
+    format  string   none     one of "docx", "epub", "html", "pdf"
 
-If the appropriate output file is not available, it will be created and
-then viewed.
+If no format is provided as a parameter Dict entry, the user selects an
+output format from a menu.
+
+                                             *dn-markdown-command-Generate*
+The dn#markdown#generate() function can be called using the :Generate
+command. A format can be provided as an optional command parameter.
+
+                                                   *dn-markdown-mapping-og*
+The dn#markdown#generate() function can be called using the mapping
+"<Leader>og" from either |Insert-mode| or |Normal-mode|. The default
+|mapleader| is a backslash.
+
+                                               *dn-markdown-pandoc-options*
+The pandoc options used in output generation are listed below. Those
+affected by ftplugin settings and user variables are indicated with an
+asterisk (*) -- see |dn-markdown-settings| for more details on these
+options.
+
+    docx: --smart --standalone --filter pandoc-citeproc*
+          --reference-docx=?* --template=?*
+
+    epub: --epub-cover-image=cover.{gif,jpg,png} --smart --standalone
+          --epub-stylesheet=?* --filter pandoc-citeproc* --template=?*
+
+          note: option --epub-cover-image uses the file
+                "cover.{gif,jpg,png}" if present in |getcwd()|; if
+                multiple matches are available, ftplugin prefers png
+                over jpg over gif
+
+    html: --self-contained --smart --standalone --css=?*
+          --filter pandoc-citeproc* --template=?*
+
+    pdf:  --smart --standalone --filter pandoc-citeproc*
+          --latex-engine=?* --template=?* --variable fontsize=?*
+          --variable citecolor=?* --variable linkcolor=?*
+          --variable toccolor=?* --variable urlcolor=?*
+
+                                                 *dn#markdown#regenerate()*
+All output files generated in the current editing session can be
+regenerated by calling the dn#markdown#regenerate() function. It takes a
+single boolean parameter indicating whether the function was called from
+|Insert-mode|.
+
+                                           *dn-markdown-command-Regenerate*
+The dn#markdown#regenerate() function can be called using the :Regenerate
+command.
+
+                                                   *dn-markdown-mapping-or*
+The dn#markdown#regenerate() function can be called using the mapping
+"<Leader>or" from either |Insert-mode| or |Normal-mode|. The default
+|mapleader| is a backslash.
+
+=========================================================================
+4. Viewing                                               *dn-markdown-view*
+                                                       *dn#markdown#view()*
+Output is viewed by calling the dn#markdown#view() function. It takes
+a single |Dict| parameter that can have the following entries:
+
+    key     value    default  use~
+    insert  boolean  false    whether called from insert mode
+    format  string   none     one of "docx", "epub", "html", "pdf"
+
+If no format is provided as a parameter Dict entry, the user selects an
+output format from a menu.
+
+The specified output file is (re)generated before being opened for
+viewing.
+
+                                                 *dn-markdown-command-View*
+The dn#markdown#view() function can be called using the :View
+command. A format can be provided as an optional command parameter.
+
+                                                   *dn-markdown-mapping-ov*
+The dn#markdown#view() function can be called using the mapping
+"<Leader>ov" from either |Insert-mode| or |Normal-mode|. The default
+|mapleader| is a backslash.
+
+=========================================================================
+5. Settings                                          *dn-markdown-settings*
+                                                   *dn#markdown#settings()*
+All pandoc options used in output generation are listed in
+|dn-markdown-pandoc-options|. Those marked with an asterisk are affected by
+a corresponding ftplugin setting. Each ftplugin setting has a default
+value. Each ftplugin has a corresponding global configuration variable
+which can be set by the user, for example, in |vimrc|. These variables
+override the default value. (These user configuration variables are read
+once, when the ftplugin is first used.) All ftplugin settings can be
+altered by calling the dn#markdown#settings() function. This function
+enables the user to select a setting from a series of menus; once
+selected the setting can be altered by selecting from a series of
+alternative values or by directly entering the value.
+
+In summary then, there are three ways to assign an ftplugin a value:
+    - a default value; which can be overridden by...
+    - a user configuration variable; which can be overridden by...
+    - manually setting the variable using dn#markdown#settings()
+
+                                             *dn-markdown-command-Settings*
+The dn#markdown#view() function can be called using the :View
+command. A format can be provided as an optional command parameter.
+
+                                                   *dn-markdown-mapping-es*
+The dn#markdown#view() function can be called using the mapping
+"<Leader>ov" from either |Insert-mode| or |Normal-mode|. The default
+|mapleader| is a backslash.
+
+Here is a list of each pandoc option affected by ftplugin settings, the
+corresponding user configuration variable, allowable values, the default
+value, and the settings menu option that alters the setting.
+
+    --css=?
+        variable: g:DN_markdown_stylesheet_html
+         allowed: valid file path or url
+         default: see |dn-markdown-buttondown|
+            menu: Stylesheet file > Stylesheet (html)
+
+    --epub-stylesheet=?
+        variable: g:DN_markdown_stylesheet_epub
+         allowed: valid file path or url
+         default: none
+            menu: Stylesheet file > Stylesheet (epub)
+
+    --filter pandoc-citeproc
+        variable: g:DN_markdown_stylesheet_epub
+         allowed: boolean (whether this option is used or not)
+         default: false
+            menu: Citeproc (all formats)
+
+    --latex-engine=?
+        variable: g:DN_markdown_stylesheet_epub
+         allowed: xelatex, lualatex, pdflatex
+         default: xelatex
+            menu: PDF only > Latex engine (pdf)
+
+    --reference-docx=?
+        variable: g:DN_markdown_stylesheet_docx
+         allowed: valid file path or url
+         default: none
+            menu: Stylesheet file > Stylesheet (docx)
+
+    --template=?
+        variable: g:DN_markdown_template_{docx,epub,html,pdf}
+         allowed: valid file path or url
+         default: pandoc default template
+            menu: Template file > Template ({docx,epub,html,pdf})
+            note: this can be set for separately for each output format
+            note: the template for pdf is in latex format since pdf
+                  output is generated from an intermediate latex format
+
+    --variable fontsize=?
+        variable: g:DN_markdown_fontsize_pdf
+         allowed: 11, 12, 13, 14
+         default: depends on template in use
+            menu: PDF only > Font size (pdf)
+
+    --variable citecolor=?
+        variable: g:DN_markdown_linkcolor_pdf
+         allowed: black, blue, cyan, darkgray, gray, green,
+                  lightgray, magenta, orange, red, yellow
+         default: gray
+            menu: PDF only > Link colour (pdf)
+
+    --variable linkcolor=?
+        as for "--variable citecolor=?" above
+
+    --variable toccolor=?
+        as for "--variable citecolor=?" above
+
+    --variable urlcolor=?
+        as for "--variable citecolor=?" above
 
 =========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:
