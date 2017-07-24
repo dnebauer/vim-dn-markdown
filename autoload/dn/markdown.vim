@@ -448,16 +448,16 @@ function! s:_initialise() abort
     " unlike other settings set statically with b:dn_md_settings variable)
     call s:_set_default_html_stylesheet()
     " set parameters from configuration variables
-    for l:param in keys(s:pandoc_params)
-        let l:default = s:pandoc_params[l:param]['default']
-        let l:config  = s:pandoc_params[l:param]['config']
-        let l:allowed = s:pandoc_params[l:param]['allowed']
+    for l:param in keys(b:dn_md_settings)
+        let l:default = b:dn_md_settings[l:param]['default']
+        let l:config  = b:dn_md_settings[l:param]['config']
+        let l:allowed = b:dn_md_settings[l:param]['allowed']
         let l:set_from_config = g:dn_false
         if exists({l:config})  " try to set from config variable
             let l:value = {l:config}
             if s:_valid_param(l:value, l:allowed)
                 let l:source = 'set from configuration variable ' . l:config
-                let s:pandoc_params[l:param]['value'] = l:value
+                let b:dn_md_settings[l:param]['value'] = l:value
                 let l:set_from_config = g:dn_true
             else
                 call dn#util#error("Invalid variable '" . l:config . "': '"
@@ -465,10 +465,10 @@ function! s:_initialise() abort
             endif
         endif
         if !l:set_from_config  " try to set from default
-            let l:value = s:pandoc_params[l:param]['default']
+            let l:value = b:dn_md_settings[l:param]['default']
             if s:_valid_param(l:value, l:allowed)
                 let l:source = 'default'
-                let s:pandoc_params[l:param]['value'] = l:value
+                let b:dn_md_settings[l:param]['value'] = l:value
             else
                 call dn#util#error("Invalid default: '" . l:value . "'")
             endif
