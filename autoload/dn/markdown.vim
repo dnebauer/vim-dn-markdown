@@ -528,21 +528,32 @@ function! s:_process_dict_params(...) abort
     return [l:insert, l:format]
 endfunction
 
-" s:_valid_param(value, allowed)                                           {{{2
+" s:_valid_param(value, allowed, [default, source])                        {{{2
 " does:   determine whether a parameter value is valid
 " params: value   - parameter value to test [any, required]
 "         allowed - type of value allowed [List or string, required, one of:
 "                                          List|'boolean'|'file_url']
+"         default - default value [string, optional, no default]
+"         source  - source of value [string, optional, no default]
 " return: whether param value is valid - boolean
-function! s:_valid_param(value, allowed) abort
+" note:   when both default and source values are provided, there is
+"         an extra valid condition: if source == '' (i.e., param not
+"         yet initialised) then a value is valid if it matches the
+"         default, even if it does not match an allowed value
+function! s:_valid_param(value, allowed, ...) abort
+    " first handle special case (see note above)
+    if a:0 == 2
+        let l:default = a:1 | let l:source = a:2
+        if l:source ==# ''  " param is uninitialised
+            if a:value ==# l:default | return g:dn_true | endif
+        endif
+    endif
+    " now handle general case
     if     type(a:allowed) ==# type([])        " List
         return count(a:allowed, a:value)
     elseif a:allowed ==# 'boolean'             " 'boolean'
         return (a:value == 1 || a:value == 0)
     elseif a:allowed ==# 'file_url'            " 'file_url'
-        " allow empty values as that is the usual default value
-        if a:value ==# '' | return g:dn_true | endif
-        " now process non-empty values
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
