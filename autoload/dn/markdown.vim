@@ -904,8 +904,8 @@ endfunction
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
 " return: output format (a key to s:pandoc_params)
-function! s:_select_format (prompt) abort
-    let l:prompt = empty(a:prompt) ? 'Select output format:' : a:prompt
+function! s:_select_format (...) abort
+    let l:prompt = (a:0 > 0 && a:1) ? a:1 : 'Select output format:'
     " create dict with format names as keys, format codes as values
     let l:formats = {}
     for [l:key, l:val] in items(s:pandoc_params)
