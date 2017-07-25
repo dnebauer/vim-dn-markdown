@@ -506,28 +506,44 @@ function! s:_process_dict_params(...) abort
     " default params
     let l:insert = g:dn_false | let l:format = '' |  " defaults
     " expecting a list containing a single dict
-    if a:0 == 1 && type(a:1) == type([])
-                \ && len(a:1) == 1 && type(a:1[0]) == type({})
-        let l:params = deepcopy(a:1[0])
-        for l:param in keys(l:params)
-            if     l:param ==# 'insert'  " param 'insert'
-                if l:param.insert | let l:insert = g:dn_true | endif
-            elseif l:param ==# 'format'  " param 'format'
-                if s:_valid_format(l:param.format)
-                    let l:format = l:param.format
-                else
-                    call dn#util#error("Invalid format '"
-                                \ . l:param.format . "'")
-                endif
-            else  " param invalid
-                call dn#util#error("Invalid param key '" . l:param . "'")
-                if l:insert | call dn#util#insertMode(g:dn_true) | endif
-                return
-            endif
-        endfor
-    else
-        call dn#util#error('Require single dict param')
+    if a:0 == 0 | return [l:insert, l:format] | endif
+    if a:0 > 1  " script error
+        call dn#util#error('Too many params provided')
+        return [l:insert, l:format]
     endif
+    if type(a:1) != type([])  " script error
+        let l:msg = 'Param var is wrong type: ' . dn#util#varType(a:1)
+        call dn#util#error(l:msg)
+        return [l:insert, l:format]
+    endif
+    if len(a:1) != 1  " script error
+        let l:msg = 'Expected 1-element list, got ' . len(a:1)
+        call dn#util#error(l:msg)
+        return [l:insert, l:format]
+    endif
+    if type(a:1[0]) != type({})  " script error
+        let l:msg = 'Expected dict in list, got ' . dn#util#varType(a:1[0])
+        call dn#util#error(l:msg)
+        return [l:insert, l:format]
+    endif
+    " have received param(s) in good order
+    let l:params = deepcopy(a:1[0])
+    for l:param in keys(l:params)
+        if     l:param ==# 'insert'  " param 'insert'
+            if l:param.insert | let l:insert = g:dn_true | endif
+        elseif l:param ==# 'format'  " param 'format'
+            if s:_valid_format(l:param.format)
+                let l:format = l:param.format
+            else
+                call dn#util#error("Invalid format '"
+                            \ . l:param.format . "'")
+            endif
+        else  " param invalid
+            call dn#util#error("Invalid param key '" . l:param . "'")
+            if l:insert | call dn#util#insertMode(g:dn_true) | endif
+            return
+        endif
+    endfor
     " select output format if not set by param
     if empty(l:format)
         let l:format = s:_select_format()
