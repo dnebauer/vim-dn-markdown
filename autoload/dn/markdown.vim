@@ -361,7 +361,10 @@ function! dn#markdown#settings() abort
         " display allowed values and get user input
         if     type(l:allowed) == type([])
             call s:_say('Allowed:', join(l:allowed, ', '))
-            let l:options = map(l:allowed, {string(v:val): v:val})
+            let l:options = {}
+            for l:option in l:allowed
+                let l:options[string(l:option)] = l:option
+            endfor
             let l:input = dn#util#menuSelect(l:options, l:prompt)
         elseif l:allowed ==# 'boolean'
             call s:_say('Allowed:', 'Yes, No')
