@@ -353,7 +353,7 @@ function! dn#markdown#settings() abort
         let l:value   = b:dn_md_settings[l:setting]['value']
         let l:source  = b:dn_md_settings[l:setting]['source']
         let l:allowed = b:dn_md_settings[l:setting]['allowed']
-        let l:prompt  = b:dn_md_settings[l:setting]['prompt']
+        let l:prompt  = b:dn_md_settings[l:setting]['prompt'] . ' '
         " notify user of current setting
         echo l:label
         echo 'Current value: ' . s:_display_value(l:value, l:setting)
