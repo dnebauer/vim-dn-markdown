@@ -410,14 +410,15 @@ endfunction
 " note:   if only msg1 is present, then treat output as a single string
 " note:   if msg2 is present, right-pad msg1 with spaces to the width
 "         of the hanging indent before concatenating msg1 and msg2
-function! s:_say(msg1, msg2) abort
+function! s:_say(msg1, ...) abort
     " hanging indent
     let l:hang = 15
     " if msg2 present, right-pad msg1
     let l:msg = a:msg1
-    if a:0 > 1
+    if a:0 > 0
+        let l:msg2 = a:1
         while len(l:msg) < l:hang | let l:msg .= ' ' | endwhile
-        let l:msg .= a:msg2
+        let l:msg .= l:msg2
     endif
     " print wrapped output
     call dn#util#wrap(l:msg, l:hang)
