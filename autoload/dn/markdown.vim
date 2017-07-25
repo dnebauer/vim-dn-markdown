@@ -356,13 +356,7 @@ function! dn#markdown#settings() abort
         let l:prompt  = b:dn_md_settings[l:setting]['prompt']
         " notify user of current setting
         echo l:label
-        let l:display_value = l:value
-        if l:allowed ==# 'boolean'
-            let l:display_value = l:value ? 'Yes' : 'No'
-        else
-            if empty(l:value) | let l:display_value = '[Not set/null]' | endif
-        endif
-        echo 'Current value: ' . l:display_value
+        echo 'Current value: ' . s:_display_value(l:value, l:setting)
         echo 'Source: ' . l:source
         " display allowed values and get user input
         if     type(l:allowed) == type([])
@@ -384,6 +378,7 @@ function! dn#markdown#settings() abort
         if s:_valid_param(l:input, l:allowed)
             let b:dn_md_settings[l:setting]['value']  = l:input
             let b:dn_md_settings[l:setting]['source'] = 'set by user'
+            echo 'New value: ' . s:_display_value(l:input, l:setting)
         else
             call dn#util#error('Error: Not a valid value')
         endif
@@ -585,6 +580,21 @@ endfunction
 " return: whether setting is valid - boolean
 function! s:_valid_setting(setting) abort
     return has_key(b:dn_md_settings, a:setting)
+endfunction
+
+" s:_display_value(value, setting)                                         {{{2
+" does:   get the display value for a setting value
+" params: value   - setting value to display [any, required]
+"         setting - name of setting [any, required]
+" return: display value [String]
+function! s:_display_value(value, setting) abort
+    let l:allowed = b:dn_md_settings[l:param]['allowed']
+    if type(l:allowed) == type('') && l:allowed ==# 'boolean'
+        let l:display_value = a:value ? 'Yes' : 'No'
+    else
+        let l:display_value = empty(a:value) ? '[Null/empty]'
+                    \                        : dn#util#stringify(a:value)
+    endif
 endfunction
 
 " s:_set_default_html_stylesheet()                                         {{{2
