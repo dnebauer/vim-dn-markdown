@@ -356,19 +356,19 @@ function! dn#markdown#settings() abort
         let l:prompt  = b:dn_md_settings[l:setting]['prompt'] . ' '
         " notify user of current setting
         echo l:label
-        echo 'Current value: ' . s:_display_value(l:value, l:setting)
-        echo 'Source: ' . l:source
+        call s:_say('Current value:', s:_display_value(l:value, l:setting))
+        call s:_say('Source:', l:source)
         " display allowed values and get user input
         if     type(l:allowed) == type([])
-            echo 'Allowed values: ' . join(l:allowed, ', ')
+            call s:_say('Allowed:', join(l:allowed, ', '))
             let l:options = map(l:allowed, {string(v:val): v:val})
             let l:input = dn#util#menuSelect(l:options, l:prompt)
         elseif l:allowed ==# 'boolean'
-            echo 'Allowed values: Yes, No'
+            call s:_say('Allowed:', 'Yes, No')
             let l:options = [{'Yes': g:dn_true}, {'No': g:dn_false}]
             let l:input = dn#util#menuSelect(l:options, l:prompt)
         elseif l:allowed ==# 'file_url'
-            echo 'Allowed values: [valid file or url]'
+            call s:_say('Allowed:', '[valid file or url]')
             let l:input = input(l:prompt, l:value, 'file')
             echo ' '  | " ensure move to a new line
         else  " script error!
@@ -379,7 +379,7 @@ function! dn#markdown#settings() abort
         if s:_valid_param(l:input, l:allowed)
             let b:dn_md_settings[l:setting]['value']  = l:input
             let b:dn_md_settings[l:setting]['source'] = 'set by user'
-            echo 'Now set to: ' . s:_display_value(l:input, l:setting)
+            call s:_say('Now set to:', s:_display_value(l:input, l:setting))
         else
             call dn#util#error('Error: Not a valid value')
         endif
