@@ -294,6 +294,7 @@ function! dn#markdown#generate(...) abort
     if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
     " process params
     let [l:insert, l:format] = s:_process_dict_params(a:000)
+    if empty(l:format) | let l:format = s:_select_format() | endif
     if empty(l:format) | return | endif
     " generate output
     if s:_generator(l:format) | echo 'Done' | endif
