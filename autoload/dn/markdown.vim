@@ -370,6 +370,7 @@ function! dn#markdown#settings() abort
         elseif l:allowed ==# 'file_url'
             echo 'Allowed values: [valid file or url]'
             let l:input = input(l:prompt, l:value, 'file')
+            echo ' '  | " ensure move to a new line
         else  " script error!
             call dn#util#error("Invalid 'allowed' value: '" . l:allowed . "'")
             return
