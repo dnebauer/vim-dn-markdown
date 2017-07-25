@@ -588,7 +588,7 @@ endfunction
 "         setting - name of setting [any, required]
 " return: display value [String]
 function! s:_display_value(value, setting) abort
-    let l:allowed = b:dn_md_settings[l:param]['allowed']
+    let l:allowed = b:dn_md_settings[a:setting]['allowed']
     if type(l:allowed) == type('') && l:allowed ==# 'boolean'
         let l:display_value = a:value ? 'Yes' : 'No'
     else
