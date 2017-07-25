@@ -363,7 +363,9 @@ function! dn#markdown#settings() abort
             call s:_say('Allowed:', join(l:allowed, ', '))
             let l:options = []
             for l:option in sort(l:allowed)
-                call add(l:options, {string(l:option): l:option})
+                let l:item = (type(l:option) == type('')) ? l:item
+                            \                             : string(l:item)
+                call add(l:options, {l:item : l:option})
             endfor
             let l:input = dn#util#menuSelect(l:options, l:prompt)
         elseif l:allowed ==# 'boolean'
