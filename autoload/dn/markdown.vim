@@ -378,7 +378,7 @@ function! dn#markdown#settings() abort
         if s:_valid_param(l:input, l:allowed)
             let b:dn_md_settings[l:setting]['value']  = l:input
             let b:dn_md_settings[l:setting]['source'] = 'set by user'
-            echo 'New value: ' . s:_display_value(l:input, l:setting)
+            echo 'Now set to: ' . s:_display_value(l:input, l:setting)
         else
             call dn#util#error('Error: Not a valid value')
         endif
