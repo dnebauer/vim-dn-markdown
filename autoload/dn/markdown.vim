@@ -506,7 +506,10 @@ function! s:_process_dict_params(...) abort
     " default params
     let l:insert = g:dn_false | let l:format = '' |  " defaults
     " expecting a list containing a single dict
-    if a:0 == 0 | return [l:insert, l:format] | endif
+    if a:0 == 0
+        call dn#util#error('No params provided')
+        return [l:insert, l:format]
+    endif
     if a:0 > 1  " script error
         call dn#util#error('Too many params provided')
         return [l:insert, l:format]
@@ -516,7 +519,10 @@ function! s:_process_dict_params(...) abort
         call dn#util#error(l:msg)
         return [l:insert, l:format]
     endif
-    if len(a:1) != 1  " script error
+    if len(a:1) == 0  " original function called with no params, so okay
+        return [l:insert, l:format]
+    endif
+    if len(a:1) > 1  " script error
         let l:msg = 'Expected 1-element list, got ' . len(a:1)
         call dn#util#error(l:msg)
         return [l:insert, l:format]
