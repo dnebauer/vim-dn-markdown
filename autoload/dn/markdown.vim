@@ -595,6 +595,7 @@ function! s:_display_value(value, setting) abort
         let l:display_value = empty(a:value) ? '[Null/empty]'
                     \                        : dn#util#stringify(a:value)
     endif
+    return l:display_value
 endfunction
 
 " s:_set_default_html_stylesheet()                                         {{{2
