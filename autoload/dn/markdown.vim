@@ -560,7 +560,8 @@ function! s:_valid_param(value, allowed, ...) abort
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
-        return (filereadable(a:value) || a:value =~? l:url_regex)
+        return (filereadable(resolve(expand(a:value)))
+                    \ || a:value =~? l:url_regex)
     else
         return
     endif
