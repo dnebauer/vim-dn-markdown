@@ -740,7 +740,7 @@ function! s:_generator (format) abort
         return
     endif
     " - that operating system is supported
-    if s:os =~# '^win$\|^nix$'  " currently only windows and unix
+    if s:os !~# '^win$\|^nix$'  " currently only windows and unix
         call dn#util#error('Operating system not supported')
         return
     endif
