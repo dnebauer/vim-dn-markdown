@@ -357,7 +357,11 @@ function! dn#markdown#settings() abort
         " notify user of current setting
         echo l:label
         let l:display_value = l:value
-        if empty(l:value) | let l:display_value = '[Not set/null]' | endif
+        if l:allowed ==# 'boolean'
+            let l:display_value = l:value ? 'Yes' : 'No'
+        else
+            if empty(l:value) | let l:display_value = '[Not set/null]' | endif
+        endif
         echo 'Current value: ' . l:display_value
         echo 'Source: ' . l:source
         " display allowed values and get user input
