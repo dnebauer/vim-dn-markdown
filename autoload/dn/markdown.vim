@@ -447,7 +447,8 @@ function! s:_initialise() abort
     " set default html stylesheet (because it must be set dynamically,
     " unlike other settings set statically with b:dn_md_settings variable)
     call s:_set_default_html_stylesheet()
-    " set parameters from configuration variables
+    " set parameters from configuration variables where available,
+    " otherwise set to their default values
     for l:param in keys(b:dn_md_settings)
         let l:default = b:dn_md_settings[l:param]['default']
         let l:config  = b:dn_md_settings[l:param]['config']
@@ -458,7 +459,8 @@ function! s:_initialise() abort
             let l:value = {l:config}
             if s:_valid_param(l:value, l:allowed)
                 let l:source = 'set from configuration variable ' . l:config
-                let b:dn_md_settings[l:param]['value'] = l:value
+                let b:dn_md_settings[l:param]['value']  = l:value
+                let b:dn_md_settings[l:param]['source'] = l:source
                 let l:set_from_config = g:dn_true
             else
                 call dn#util#error("Invalid variable '" . l:config . "': '"
@@ -469,7 +471,8 @@ function! s:_initialise() abort
             let l:value = b:dn_md_settings[l:param]['default']
             if s:_valid_param(l:value, l:allowed, l:default, l:source)
                 let l:source = 'default'
-                let b:dn_md_settings[l:param]['value'] = l:value
+                let b:dn_md_settings[l:param]['value']  = l:value
+                let b:dn_md_settings[l:param]['source'] = l:source
             else
                 call dn#util#error("Invalid default: '" . l:value . "'")
             endif
