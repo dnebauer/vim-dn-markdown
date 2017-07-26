@@ -305,7 +305,7 @@ function! dn#markdown#generate(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#regenerate()                                                 {{{2
+" dn#markdown#regenerate([insert])                                         {{{2
 " does:   regenerate all previously outputted files
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
