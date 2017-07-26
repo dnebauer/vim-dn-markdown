@@ -758,7 +758,7 @@ function! s:_generator (format) abort
     let l:opts   = []
     " output format                                                        {{{3
     let l:to  = s:pandoc_params[a:format]['pandoc_to']     " output format
-    let l:cmd = ['pandoc -t ', l:to]
+    let l:cmd = ['pandoc -t', l:to]
     call add(l:opts, l:to)
     " latex engine                                                         {{{3
     if count(l:params, 'latexengine') > 0                  " latex engine
@@ -784,10 +784,10 @@ function! s:_generator (format) abort
         "   [https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors]
         " if colour is changed here, update documentation
         let l:link_color = b:dn_md_settings.linkcolor_pdf.value
-        call add(l:cmd, '--variable urlcolor='  . l:link_color)
         call add(l:cmd, '--variable linkcolor=' . l:link_color)
         call add(l:cmd, '--variable citecolor=' . l:link_color)
         call add(l:cmd, '--variable toccolor='  . l:link_color)
+        call add(l:cmd, '--variable urlcolor='  . l:link_color)
         call s:_say('Link colour:', l:link_color)
     endif
     " custom font size                                                     {{{3
