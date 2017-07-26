@@ -868,8 +868,8 @@ function! s:_generator (format) abort
     endif
     " use custom template                                                  {{{3
     if count(l:params, 'template') > 0                     " template
-        let l:setting = 'template_' . {a:format}
-        let l:template = b:dn_md_settings[l:setting]['value']
+        let l:var = 'b:dn_md_settings.template_' . a:format . '.value'
+        let l:template = {l:var}
         if !empty(l:template)
             call add(l:cmd, '--template='
                         \ . shellescape(l:template))
