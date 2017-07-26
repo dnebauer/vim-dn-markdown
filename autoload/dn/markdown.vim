@@ -211,6 +211,7 @@ function! dn#markdown#view(...) abort
     if !exists('s:initialised') | call s:_initialise() | endif  " initialise
     " process params                                                       {{{3
     let [l:insert, l:format] = s:_process_dict_params(a:000)
+    if empty(l:format) | let l:format = s:_select_format() | endif
     if empty(l:format) | return | endif
     " (re)generate output                                                  {{{3
     if !s:_generator(l:format)
