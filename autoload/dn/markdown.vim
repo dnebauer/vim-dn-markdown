@@ -540,11 +540,11 @@ function! s:_process_dict_params(...) abort
         if     l:param ==# 'insert'  " param 'insert'
             if l:param.insert | let l:insert = g:dn_true | endif
         elseif l:param ==# 'format'  " param 'format'
-            if s:_valid_format(l:param.format)
-                let l:format = l:param.format
+            if s:_valid_format(l:params.format)
+                let l:format = l:params.format
             else
                 call dn#util#error("Invalid format '"
-                            \ . l:param.format . "'")
+                            \ . l:params.format . "'")
             endif
         else  " param invalid
             call dn#util#error("Invalid param key '" . l:param . "'")
