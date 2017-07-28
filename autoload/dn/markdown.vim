@@ -909,7 +909,7 @@ function! s:_generator (format) abort
     " generate output                                                      {{{3
     call s:_say('Options:', join(l:opts, ', '))
     let l:errmsg = ["Error occurred during '"
-                \ . a:format . "'generation"]
+                \ . a:format . "' generation"]
     call s:_say('Generating output... ')
     let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
     " update outputted formats                                             {{{3
