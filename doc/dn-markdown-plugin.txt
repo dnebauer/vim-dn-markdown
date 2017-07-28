@@ -177,6 +177,8 @@ value, and the settings menu option that alters the setting.
          allowed: valid file path or url
          default: see |dn-markdown-buttondown|
             menu: Stylesheet file > Stylesheet (html)
+            note: although pandoc allows more than one stylesheet to be
+                  specified, this ftplugin only accommodates one
 
     --epub-stylesheet=?
         variable: g:DN_markdown_stylesheet_epub
@@ -204,11 +206,15 @@ value, and the settings menu option that alters the setting.
 
     --template=?
         variable: g:DN_markdown_template_{docx,epub,html,pdf}
-         allowed: valid file path or url
+         allowed: valid file path or url, or
+                  name of file located in pandoc's user data directory, or
+                  base name of file located in pandoc's user data
+                  directory provided it has the right extension
+                  (see pandoc help for more details)
          default: pandoc default template
             menu: Template file > Template ({docx,epub,html,pdf})
             note: this can be set for separately for each output format
-            note: the template for pdf is in latex format since pdf
+            note: the template for pdf is in (la)tex format since pdf
                   output is generated from an intermediate latex format
 
     --variable fontsize=?

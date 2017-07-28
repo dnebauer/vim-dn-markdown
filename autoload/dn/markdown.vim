@@ -97,7 +97,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'path_url',
             \   'config'  : 'g:DN_markdown_stylesheet_docx',
             \   'prompt'  : 'Enter the path/url to the docx stylesheet:',
             \   },
@@ -106,7 +106,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'path_url',
             \   'config'  : 'g:DN_markdown_stylesheet_epub',
             \   'prompt'  : 'Enter the path/url to the epub stylesheet:',
             \   },
@@ -115,7 +115,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'path_url',
             \   'config'  : 'g:DN_markdown_stylesheet_html',
             \   'prompt'  : 'Enter the path/url to the html stylesheet:',
             \   },
@@ -124,7 +124,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_docx',
             \   'prompt'  : 'Enter the path/url to the docx template:',
             \   },
@@ -133,7 +133,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_epub',
             \   'prompt'  : 'Enter the path/url to the epub template:',
             \   },
@@ -142,7 +142,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_html',
             \   'prompt'  : 'Enter the path/url to the html template:',
             \   },
@@ -151,7 +151,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'file_url',
+            \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_pdf',
             \   'prompt'  : 'Enter the path/url to the latex/pdf template:',
             \   },
@@ -374,8 +374,12 @@ function! dn#markdown#settings() abort
             call s:_say('Allowed:', 'Yes, No')
             let l:options = [{'Yes': g:dn_true}, {'No': g:dn_false}]
             let l:input = dn#util#menuSelect(l:options, l:prompt)
-        elseif l:allowed ==# 'file_url'
-            call s:_say('Allowed:', '[valid file or url]')
+        elseif l:allowed ==# 'path_url'
+            call s:_say('Allowed:', '[valid file path or url]')
+            let l:input = input(l:prompt, l:value, 'file')
+            echo ' '  | " ensure move to a new line
+        elseif l:allowed ==# 'base_file_path_url'
+            call s:_say('Allowed:', '[valid base/file name, file path or url]')
             let l:input = input(l:prompt, l:value, 'file')
             echo ' '  | " ensure move to a new line
         else  " script error!
@@ -565,8 +569,9 @@ endfunction
 " s:_valid_param(value, allowed, [default, source])                        {{{2
 " does:   determine whether a parameter value is valid
 " params: value   - parameter value to test [any, required]
-"         allowed - type of value allowed [List or string, required, one of:
-"                                          List|'boolean'|'file_url']
+"         allowed - type of value allowed
+"                   [List or string, required, one of:
+"                    List|'boolean'|'path_url'|'base_file_path_url']
 "         default - default value [string, optional, no default]
 "         source  - source of value [string, optional, no default]
 " return: whether param value is valid - boolean
@@ -587,12 +592,26 @@ function! s:_valid_param(value, allowed, ...) abort
         return count(a:allowed, a:value)
     elseif a:allowed ==# 'boolean'             " 'boolean'
         return (a:value == 1 || a:value == 0)
-    elseif a:allowed ==# 'file_url'            " 'file_url'
+    elseif a:allowed ==# 'path_url'            " 'path_url'
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
         return (filereadable(resolve(expand(a:value)))
                     \ || a:value =~? l:url_regex)
+    elseif a:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
+        if !filereadable(resolve(expand(a:value)))
+            let l:msgs = [
+                        \ 'This is not a valid file path',
+                        \ 'That is okay if this is either:',
+                        \ '- a valid and reachable url, or',
+                        \ '- the basename or filename of a file in the',
+                        \ '  ''templates'' subdirectory of the pandoc',
+                        \ '  user data directory',
+                        \ 'If it is neither, output generation will fail',
+                        \ ]
+            for l:msg in l:msgs | call dn#util#warn(l:msg) | endfor
+        endif
+        return g:dn_true
     else
         return
     endif
