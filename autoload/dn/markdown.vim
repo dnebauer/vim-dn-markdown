@@ -31,21 +31,28 @@ let b:dn_md_outputted_formats = {}
 let s:menu_prompt = 'Select setting to modify:'
 let s:menu_items = {
             \ 'Citeproc (all formats)' : 'citeproc_all',
-            \ 'PDF only' : {
-            \   'Font size (pdf)'    : 'fontsize_pdf',
-            \   'Link colour (pdf)'  : 'linkcolor_pdf',
-            \   'Latex engine (pdf)' : 'latexengine_pdf',
+            \ 'Print only' : {
+            \   'Font size (print)'    : 'fontsize_print',
+            \   'Link colour (print)'  : 'linkcolor_print',
+            \   'Latex engine (print)' : 'latexengine_print',
+            \   'Paper size (print)'   : 'papersize_print',
             \   },
             \ 'Stylesheet file' : {
             \   'Stylesheet (docx)' : 'stylesheet_docx',
             \   'Stylesheet (epub)' : 'stylesheet_epub',
             \   'Stylesheet (html)' : 'stylesheet_html',
+            \   'Stylesheet (odt)'  : 'stylesheet_odt',
             \   },
-            \ 'Template file' : {
-            \   'Template (pdf)'  : 'template_pdf',
-            \   'Template (docx)' : 'template_docx',
-            \   'Template (epub)' : 'template_epub',
-            \   'Template (html)' : 'template_html',
+            \ 'Template file' :         {
+            \   'Template (context)' : 'template_context',
+            \   'Template (docx)'    : 'template_docx',
+            \   'Template (epub)'    : 'template_epub',
+            \   'Template (html)'    : 'template_html',
+            \   'Template (latex)'   : 'template_latex',
+            \   'Template (odt)'     : 'template_odt',
+            \   'Template (pdf via context)' : 'template_pdf_context',
+            \   'Template (pdf via html)'    : 'template_pdf_html',
+            \   'Template (pdf via latex)'   : 'template_pdf_latex',
             \   },
             \ }
 " pandoc settings values (b:dn_md_settings)                                {{{2
@@ -62,35 +69,44 @@ let b:dn_md_settings = {
             \   'config'  : 'g:DN_markdown_citeproc_all',
             \   'prompt'  : 'Use the pandoc-citeproc filter?',
             \   },
-            \ 'fontsize_pdf' : {
-            \   'label'   : 'Output font size (pts) [pdf only]',
+            \ 'fontsize_print' : {
+            \   'label'   : 'Output font size (pts) [print only]',
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
             \   'allowed' : [11, 12, 13, 14],
-            \   'config'  : 'g:DN_markdown_fontsize_pdf',
+            \   'config'  : 'g:DN_markdown_fontsize_print',
             \   'prompt'  : 'Select font size (points):',
             \   },
-            \ 'latexengine_pdf' : {
-            \   'label'   : 'Latex engine for pdf generation [pdf only]',
+            \ 'latexengine_print' : {
+            \   'label'   : 'Latex engine for pdf generation [print only]',
             \   'value'   : '',
             \   'default' : 'xelatex',
             \   'source'  : '',
             \   'allowed' : ['xelatex', 'lualatex', 'pdflatex'],
-            \   'config'  : 'g:DN_markdown_latexengine_pdf',
+            \   'config'  : 'g:DN_markdown_latexengine_print',
             \   'prompt'  : 'Select latex engine:',
             \   },
-            \ 'linkcolor_pdf' : {
-            \   'label'   : 'Select color for hyperlinks [pdf only]',
+            \ 'linkcolor_print' : {
+            \   'label'   : 'Select color for hyperlinks [print only]',
             \   'value'   : '',
             \   'default' : 'gray',
             \   'source'  : '',
             \   'allowed' : ['black',     'blue',    'cyan',
             \                'darkgray',  'gray',    'green',
-            \                'lightgray', 'magenta', 'orange',
-            \                'red',       'yellow'],
-            \   'config'  : 'g:DN_markdown_linkcolor_pdf',
+            \                'lightgray', 'magenta', 'red',
+            \                'yellow'],
+            \   'config'  : 'g:DN_markdown_linkcolor_print',
             \   'prompt'  : 'Select pdf hyperlink colour:',
+            \   },
+            \ 'papersize_print' : {
+            \   'label'   : 'Paper size [print only]',
+            \   'value'   : '',
+            \   'default' : 'a4',
+            \   'source'  : '',
+            \   'allowed' : ['a4', 'letter'],
+            \   'config'  : 'g:DN_markdown_papersize_print',
+            \   'prompt'  : 'Select paper size:',
             \   },
             \ 'stylesheet_docx' : {
             \   'label'   : 'Pandoc stylesheet file [docx]',
@@ -119,6 +135,24 @@ let b:dn_md_settings = {
             \   'config'  : 'g:DN_markdown_stylesheet_html',
             \   'prompt'  : 'Enter the path/url to the html stylesheet:',
             \   },
+            \ 'stylesheet_odt' : {
+            \   'label'   : 'Pandoc stylesheet file [odt]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'path_url',
+            \   'config'  : 'g:DN_markdown_stylesheet_odt',
+            \   'prompt'  : 'Enter the path/url to the odt stylesheet:',
+            \   },
+            \ 'template_context' : {
+            \   'label'   : 'Pandoc template file [context]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_context',
+            \   'prompt'  : 'Specify the context template:',
+            \   },
             \ 'template_docx' : {
             \   'label'   : 'Pandoc template file [docx]',
             \   'value'   : '',
@@ -126,7 +160,7 @@ let b:dn_md_settings = {
             \   'source'  : '',
             \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_docx',
-            \   'prompt'  : 'Enter the path/url to the docx template:',
+            \   'prompt'  : 'Specify the docx template:',
             \   },
             \ 'template_epub' : {
             \   'label'   : 'Pandoc template file [epub]',
@@ -135,7 +169,7 @@ let b:dn_md_settings = {
             \   'source'  : '',
             \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_epub',
-            \   'prompt'  : 'Enter the path/url to the epub template:',
+            \   'prompt'  : 'Specify the epub template:',
             \   },
             \ 'template_html' : {
             \   'label'   : 'Pandoc template file [html]',
@@ -144,16 +178,52 @@ let b:dn_md_settings = {
             \   'source'  : '',
             \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_html',
-            \   'prompt'  : 'Enter the path/url to the html template:',
+            \   'prompt'  : 'Specify the html template:',
             \   },
-            \ 'template_pdf' : {
-            \   'label'   : 'Pandoc template file [latex/pdf]',
+            \ 'template_latex' : {
+            \   'label'   : 'Pandoc template file [latex]',
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
             \   'allowed' : 'base_file_path_url',
-            \   'config'  : 'g:DN_markdown_template_pdf',
-            \   'prompt'  : 'Enter the path/url to the latex/pdf template:',
+            \   'config'  : 'g:DN_markdown_template_latex',
+            \   'prompt'  : 'Specify the latex template:',
+            \   },
+            \ 'template_odt' : {
+            \   'label'   : 'Pandoc template file [odt]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_odt',
+            \   'prompt'  : 'Specify the odt template:',
+            \   },
+            \ 'template_pdf_context' : {
+            \   'label'   : 'Pandoc template file [pdf via context]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_pdf_context',
+            \   'prompt'  : 'Specify the context template for pdf generation:',
+            \   },
+            \ 'template_pdf_html' : {
+            \   'label'   : 'Pandoc template file [pdf via html]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_pdf_html',
+            \   'prompt'  : 'Specify the html template for pdf generation:',
+            \   },
+            \ 'template_pdf_latex' : {
+            \   'label'   : 'Pandoc template file [pdf via latex]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_pdf_latex',
+            \   'prompt'  : 'Specify the latex template for pdf generation:',
             \   },
             \ }
 " - note: initialisation process will call s:_set_default_html_stylesheet()
@@ -161,36 +231,86 @@ let b:dn_md_settings = {
 "         (because ftplugin includes a default html stylesheet)
 " pandoc parameters to set (s:pandoc_params)                               {{{2
 let s:pandoc_params = {
-            \ 'docx': {
+            \ 'azw3' : '*** copy from |epub| with modified format ***',
+            \ 'context' : {
+            \   'format'    : 'ConTeXt (tex)',
+            \   'depend'    : ['pandoc', 'context'],
+            \   'extension' : '.tex',
+            \   'pandoc_to' : 'context',
+            \   'params'    : ['standalone',   'smart',     'citeproc',
+            \                  'contextlinks', 'papersize', 'template',
+            \                  'fontsize'],
+            \   },
+            \ 'docx' : {
             \   'format'    : 'Microsoft Word (docx)',
+            \   'depend'    : ['pandoc'],
             \   'extension' : '.docx',
             \   'pandoc_to' : 'docx',
             \   'params'    : ['standalone', 'smart',   'citeproc',
             \                  'style_docx', 'template'],
             \   },
-            \ 'epub': {
+            \ 'epub' : {
             \   'format'    : 'Electronic publication (ePub)',
+            \   'depend'    : ['pandoc'],
             \   'extension' : '.epub',
             \   'pandoc_to' : 'epub3',
             \   'params'    : ['standalone', 'smart',    'style_epub',
             \                  'cover_epub', 'citeproc', 'template'],
             \   },
-            \ 'html': {
-            \   'format'    : 'HTML',
+            \ 'html' : {
+            \   'format'    : 'HyperText Markup Language (html)',
+            \   'depend'    : ['pandoc'],
             \   'extension' : '.html',
             \   'pandoc_to' : 'html5',
             \   'params'    : ['standalone', 'smart',      'selfcontained',
             \                  'citeproc',   'style_html', 'template'],
             \   },
-            \ 'pdf':  {
-            \   'format'    : 'Portable Document Format (pdf)',
-            \   'extension' : '.pdf',
+            \ 'latex' : {
+            \   'format'    : 'LaTeX (tex)',
+            \   'depend'    : ['pandoc', 'latex'],
+            \   'extension' : '.tex',
             \   'pandoc_to' : 'latex',
             \   'params'    : ['standalone',  'citeproc', 'smart',
-            \                  'latexengine', 'fontsize', 'links',
-            \                  'template'],
+            \                  'latexengine', 'fontsize', 'latexlinks',
+            \                  'papersize',   'template'],
             \   },
-            \ }                                                          " }}}2
+            \ 'mobi' : '*** copy from |epub| with modified format ***',
+            \ 'odt' : {
+            \   'format'    : 'OpenDocument Text (odt)',
+            \   'depend'    : ['pandoc'],
+            \   'extension' : '.odt',
+            \   'pandoc_to' : 'odt',
+            \   'params'    : ['standalone', 'smart',   'citeproc',
+            \                  'style_odt', 'template'],
+            \   },
+            \ 'pdf_context' : '*** copy from |context| with modifications ***',
+            \ 'pdf_html'    : '*** copy from |html| with modifications ***',
+            \ 'pdf_latex'   : '*** copy from |latex| with modifications ***',
+            \ }
+" - azw3 is produced by first creating an epub output file
+let s:pandoc_params.azw3 = deepcopy(s:pandoc_params.epub)
+let s:pandoc_params.azw3.format = 'Kindle Format 8 (azw3) via ePub'
+call add(s:pandoc_params.azw3.depend, 'ebook-convert')
+" - mobi is produced by first creating an epub output file
+let s:pandoc_params.mobi = deepcopy(s:pandoc_params.epub)
+let s:pandoc_params.mobi.format = 'Mobipocket e-book (mobi) via ePub'
+call add(s:pandoc_params.mobi.depend, 'ebook-convert')
+" - pdf-via-context produces pdf output via context
+let s:pandoc_params.pdf_context = deepcopy(s:pandoc_params.context)
+let s:pandoc_params.pdf_context.format
+            \ = 'Portable Document Format (pdf) via ConTeXt'
+let s:pandoc_params.pdf_context.extension = '.pdf'
+" - pdf-via-html produces pdf output via html
+let s:pandoc_params.pdf_html = deepcopy(s:pandoc_params.html)
+let s:pandoc_params.pdf_html.format
+            \ = 'Portable Document Format (pdf) via HTML'
+call add(s:pandoc_params.pdf_html.depend, 'wkhtmltopdf')
+let s:pandoc_params.pdf_html.extension = '.pdf'
+" - pdf-via-latex produces pdf output via latex
+let s:pandoc_params.pdf_latex = deepcopy(s:pandoc_params.latex)
+let s:pandoc_params.pdf_latex.format
+            \ = 'Portable Document Format (pdf) via LaTeX'
+let s:pandoc_params.pdf_latex.extension = '.pdf'
 
 " Public functions                                                         {{{1
 
@@ -744,15 +864,30 @@ endfunction
 
 " s:_generator(format)                                                     {{{2
 " does:   generate output
-" params: fomat - output format [required, must be 'pdf'|'html'|'docx'|'epub']
+" params: format - output format [required, must be s:pandoc_params key]
 " return: whether output completed without error
 function! s:_generator (format) abort
     " requirements                                                         {{{3
-    " - pandoc
-    if !executable('pandoc')
-        call dn#util#error('Pandoc is not installed')
-        return
+    " - apps
+    "   . get list of apps on which conversion depends
+    let l:depends = s:pandoc_params[a:format]['depend']
+    "   . replace 'latex' with specific latex engine
+    let l:index = index(l:depends, 'latex')
+    if l:index >= 0
+        let l:engine = b:dn_md_settings.latexengine_print.value
+        if empty(l:engine)  " script error
+            call dn#util#error('No latex engine defined')
+            return
+        endif
+        let l:depends[l:index] = l:engine
     endif
+    "   . now test for each app in turn
+    for l:depend in l:depends
+        if !executable(l:depend)
+            call dn#util#error(l:depend . ' is not installed')
+            return
+        endif
+    endfor
     " - that buffer is a file, not a nameless buffer
     if bufname('%') ==# ''
         call dn#util#error('Current buffer has no name')
@@ -774,6 +909,9 @@ function! s:_generator (format) abort
     call s:_say('Target format:', a:format)
     call s:_say('Converter:', 'pandoc')
     " generate output
+    " - note: some output options are displayed explicitly,
+    "         one per line, while other are added to l:opts
+    "         and displayed in a single line
     let l:params = s:pandoc_params[a:format]['params']
     let l:opts   = []
     " output format                                                        {{{3
@@ -785,7 +923,7 @@ function! s:_generator (format) abort
         " latex engine
         " - can be pdflatex, lualatex or xelatex (default)
         " - xelatex is better at handling exotic unicode
-        let l:engine = b:dn_md_settings.latexengine_pdf.value
+        let l:engine = b:dn_md_settings.latexengine_print.value
         if !executable(l:engine)
             call dn#util#error('Install ' . l:engine)
             return
@@ -794,7 +932,7 @@ function! s:_generator (format) abort
         call s:_say('Latex engine:', l:engine)
     endif
     " make links visible                                                   {{{3
-    if count(l:params, 'links') > 0                        " links
+    if count(l:params, 'latexlinks') > 0                   " latex links
         " available colours are:
         "   black,    blue,    brown, cyan,
         "   darkgray, gray,    green, lightgray,
@@ -803,22 +941,48 @@ function! s:_generator (format) abort
         "   violet,   white,   yellow
         "   [https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors]
         " if colour is changed here, update documentation
-        let l:link_color = b:dn_md_settings.linkcolor_pdf.value
+        let l:link_color = b:dn_md_settings.linkcolor_print.value
         call add(l:cmd, '--variable linkcolor=' . l:link_color)
         call add(l:cmd, '--variable citecolor=' . l:link_color)
         call add(l:cmd, '--variable toccolor='  . l:link_color)
         call add(l:cmd, '--variable urlcolor='  . l:link_color)
         call s:_say('Link colour:', l:link_color)
     endif
+    if count(l:params, 'contextlinks') > 0                 " context links
+        " available colours are:
+        "   black   white
+        "   gray    {light,middle,dark}gray
+        "   red     {light,middle,dark}red
+        "   green   {light,middle,dark}green
+        "   blue    {light,middle,dark}blue
+        "   cyan    {middle,dark}cyan
+        "   magenta {middle,dark}magenta
+        "   yellow  {middle,dark}yellow
+        "   [http://wiki.contextgarden.net/Color#Pre-defined_colors]
+        " if colour is changed here, update documentation
+        let l:link_color = b:dn_md_settings.linkcolor_print.value
+        call add(l:cmd, '--variable linkcolor=' . l:link_color)
+        call s:_say('Link colour:', l:link_color)
+    endif
     " custom font size                                                     {{{3
     if count(l:params, 'fontsize') > 0                     " font size
-        let l:font_size = b:dn_md_settings.fontsize_pdf.value
+        let l:font_size = b:dn_md_settings.fontsize_print.value
         if empty(l:font_size)
             call s:_say('Font size:', 'default')
         else
             let l:font_size .= 'pt'
             call s:_say('Font size:', l:font_size)
             call add(l:cmd, '--variable fontsize=' . l:font_size)
+        endif
+    endif
+    " custom paper size                                                    {{{3
+    if count(l:params, 'papersize') > 0                    " paper size
+        let l:paper_size = b:dn_md_settings.papersize_print.value
+        if empty(l:paper_size)
+            call s:_say('Paper size:', 'default')
+        else
+            call s:_say('Paper size:', l:paper_size)
+            call add(l:cmd, '--variable papersize=' . l:paper_size)
         endif
     endif
     " add header and footer                                                {{{3
@@ -912,6 +1076,18 @@ function! s:_generator (format) abort
                 \ . a:format . "' generation"]
     call s:_say('Generating output... ')
     let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
+    " perform additional conversion for mobi and azw3 output               {{{3
+    if l:retval && count(['mobi', 'azw3'], a:format) == 1
+        let l:exts   = {'mobi': '.mobi', 'azw3': '.azw3'}
+        let l:ext    = l:exts[a:format]
+        let l:input  = substitute(expand('%'), '\.md$', '.epub', '')
+        let l:output = substitute(expand('%'), '\.md$', l:ext, '')
+        let l:cmd    = ['ebook-convert', shellescape(l:input),
+                    \ shellescape(l:output), '--pretty-print',
+                    \ '--smarten-punctuation', '--insert-blank-line',
+                    \ '--keep-ligatures']
+        let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
+    endif
     " update outputted formats                                             {{{3
     if l:retval
         let b:dn_md_outputted_formats[a:format] = g:dn_true
@@ -931,8 +1107,13 @@ function! s:_select_format (...) abort
     for [l:key, l:val] in items(s:pandoc_params)
         let l:formats[l:val['format']] = l:key
     endfor
+    " put into list sorted bv format names
+    let l:options = []
+    for l:name in keys(l:formats)
+        call add(l:options, {l:name : l:formats[l:name]})
+    endfor
     " select format name
-    let l:format = dn#util#menuSelect(l:formats, l:prompt)
+    let l:format = dn#util#menuSelect(l:options, l:prompt)
     if empty(l:formats)
         call dn#util#error('No valid output format selected')
     endif

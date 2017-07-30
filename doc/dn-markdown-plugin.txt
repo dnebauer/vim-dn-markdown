@@ -12,7 +12,22 @@ Filetype plugin for markdown                         *dn-markdown-ftplugin*
 =========================================================================
 1. Overview                                          *dn-markdown-overview*
 
-An auxiliary filetype plugin for the markdown language.
+An auxiliary filetype plugin for the markdown language focussed on
+generating output in various formats:
+    Kindle Format 8 (azw3)
+    ConTeXt (tex)
+    Microsoft Word (docx)
+    Electronic publication (epub)
+    HyperText Markup Language (html)
+    LaTeX (tex)
+    Mobipocket e-book (mobi)
+    OpenDocument Text (odt)
+    Portable Document Format (pdf)
+
+This ftplugin also provides limited support for viewing output. See
+|dn-markdown-view| for details.
+
+This ftplugin supports only windows and *nix operating systems.
 
 All functions in this library are global. They all begin with
 "dn#markdown#" to try and avoid namespace collisions.
@@ -30,13 +45,21 @@ of the functions provided by the library, this ftplugin uses the
 This ftplugin contributes to the |dn-utils-plugin| help system (see
 |dn#util#help()| for details). In the help system navigate to:
 vim -> markdown ftplugin.
-                                     *dn-markdown-pandoc* *dn-markdown-latex*
-Pandoc is used to generate output. PDF output also requires latex.
-Neither is provided by this ftplugin; they must be available on the
-system.
+                                                       *dn-markdown-pandoc*
+Pandoc is used to generate output. It is not provided by this ftplugin. 
 
-The default latex engine used can be xelatex (default), lualatex or
-pdflatex.
+                                                          *dn-markdown-pdf*
+PDF output can be generated via latex, context or html. Use of the latex
+and context methods requires that latex and context, respectively, be
+installed. The html method requires that wkhtmltopdf be installed. None
+of these programs are provided by this ftplugin. The default latex engine
+used can be xelatex (default), lualatex or pdflatex.
+
+                                        *dn-markdown-azw3* *dn-markdown-mobi*
+Mobipocket (mobi) and Kindle Format 8 (azw3) output is generated from
+ePub output using "ebook-convert". This program is part of the Calibre
+application suite (see https://calibre-ebook.com/). The program
+ebook-convert is not provided by this ftplugin.
 
                                                    *dn-markdown-buttondown*
 This ftplugin contains a default stylesheet located in the
@@ -80,6 +103,11 @@ affected by ftplugin settings and user variables are indicated with an
 asterisk (*) -- see |dn-markdown-settings| for more details on these
 options.
 
+    context:
+          --smart --standalone --filter pandoc-citeproc*
+          --template=?* --variable fontsize=?*
+          --variable linkcolor=?* --variable papersize=?*
+
     docx: --smart --standalone --filter pandoc-citeproc*
           --reference-docx=?* --template=?*
 
@@ -94,10 +122,18 @@ options.
     html: --self-contained --smart --standalone --css=?*
           --filter pandoc-citeproc* --template=?*
 
-    pdf:  --smart --standalone --filter pandoc-citeproc*
+    latex:
+          --smart --standalone --filter pandoc-citeproc*
           --latex-engine=?* --template=?* --variable fontsize=?*
           --variable citecolor=?* --variable linkcolor=?*
           --variable toccolor=?* --variable urlcolor=?*
+          --variable papersize=?*
+
+    pdf (via context): as per context
+
+    pdf (via html): as per html
+
+    pdf (via latex): as per latex
 
                                                  *dn#markdown#regenerate()*
 All output files generated in the current editing session can be
@@ -117,6 +153,19 @@ The dn#markdown#regenerate() function can be called using the mapping
 =========================================================================
 4. Viewing                                               *dn-markdown-view*
                                                        *dn#markdown#view()*
+Output files can be opened for viewing in the default application defined
+for that file type. On windows systems the operating system handles file
+associations. On *nix systems it the ftplugin uses the freedesktop.org
+utility "xdg-open" to open output files. What happens when output files
+are regenerated, or the ftplugin attempts to open for viewing an output
+file that is already open in the associated viewing application, depends
+on the viewing application and operating system. There are a number of
+vim markdown plugins available that provide near-realtime preview html
+output in a web browser. Some examples are:
+    https://github.com/suan/vim-instant-markdown
+    https://github.com/kannokanno/previm
+    https://github.com/iamcco/markdown-preview.vim
+
 Output is viewed by calling the dn#markdown#view() function. It takes
 a single |Dict| parameter that can have the following entries:
 
@@ -187,16 +236,16 @@ value, and the settings menu option that alters the setting.
             menu: Stylesheet file > Stylesheet (epub)
 
     --filter pandoc-citeproc
-        variable: g:DN_markdown_stylesheet_epub
+        variable: g:DN_markdown_citeproc_all
          allowed: boolean (whether this option is used or not)
          default: false
             menu: Citeproc (all formats)
 
     --latex-engine=?
-        variable: g:DN_markdown_stylesheet_epub
+        variable: g:DN_markdown_latexengine_print
          allowed: xelatex, lualatex, pdflatex
          default: xelatex
-            menu: PDF only > Latex engine (pdf)
+            menu: Print only > Latex engine (pdf)
 
     --reference-docx=?
         variable: g:DN_markdown_stylesheet_docx
@@ -218,17 +267,17 @@ value, and the settings menu option that alters the setting.
                   output is generated from an intermediate latex format
 
     --variable fontsize=?
-        variable: g:DN_markdown_fontsize_pdf
+        variable: g:DN_markdown_fontsize_print
          allowed: 11, 12, 13, 14
          default: depends on template in use
-            menu: PDF only > Font size (pdf)
+            menu: Print only > Font size (paper)
 
     --variable citecolor=?
-        variable: g:DN_markdown_linkcolor_pdf
+        variable: g:DN_markdown_linkcolor_print
          allowed: black, blue, cyan, darkgray, gray, green,
-                  lightgray, magenta, orange, red, yellow
+                  lightgray, magenta, red, yellow
          default: gray
-            menu: PDF only > Link colour (pdf)
+            menu: Print only > Link colour (paper)
 
     --variable linkcolor=?
         as for "--variable citecolor=?" above
@@ -238,6 +287,12 @@ value, and the settings menu option that alters the setting.
 
     --variable urlcolor=?
         as for "--variable citecolor=?" above
+
+    --variable papersize=?
+        variable: g:DN_markdown_papersize_print
+         allowed: a4, letter
+         default: a4
+            menu: Print only > Paper size (print)
 
 =========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:
