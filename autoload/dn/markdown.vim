@@ -1119,6 +1119,10 @@ function! s:_generator (format) abort
                     \ '--smarten-punctuation', '--insert-blank-line',
                     \ '--keep-ligatures']
         let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
+        if delete(l:input) == 0
+            let l:msg = "Unable to delete intermediary file '" . l:input . "'"
+            call dn#util#error(l:msg)
+        endif
     endif
     " update outputted formats                                             {{{3
     if l:retval
