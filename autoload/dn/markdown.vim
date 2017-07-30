@@ -1109,7 +1109,7 @@ function! s:_select_format (...) abort
     endfor
     " put into list sorted bv format names
     let l:options = []
-    for l:name in keys(l:formats)
+    for l:name in sort(keys(l:formats))
         call add(l:options, {l:name : l:formats[l:name]})
     endfor
     " select format name
