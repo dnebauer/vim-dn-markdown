@@ -254,17 +254,44 @@ value, and the settings menu option that alters the setting.
             menu: Stylesheet file > Stylesheet (docx)
 
     --template=?
-        variable: g:DN_markdown_template_{docx,epub,html,pdf}
-         allowed: valid file path or url, or
-                  name of file located in pandoc's user data directory, or
+        variable: g:DN_markdown_template_FORMAT
+                  where FORMAT is one of: azw3, context, docx, epub,
+                                          html, latex, mobi, odt,
+                                          pdf_context, pdf_html,
+                                          pdf_latex
+         allowed: valid file path or url,
+                  or
+                  name of file located in pandoc's user data directory,
+                  or
                   base name of file located in pandoc's user data
                   directory provided it has the right extension
                   (see notes below and pandoc help for more details)
          default: pandoc default template
-            menu: Template file > Template ({docx,epub,html,pdf})
+            menu: Template file > Template (FORMAT)
+                  where FORMAT is one of: azw3 via epub, context, docx,
+                                          epub, html, latex,
+                                          mobi via epub, odt,
+                                          pdf via context, pdf via html,
+                                          pdf via latex
             note: this can be set for separately for each output format
-            note: the template for pdf is in (la)tex format since pdf
-                  output is generated from an intermediate latex format
+            note: three possible templates can be defined for pdf
+                  generation; in context, html or latex formats, each
+                  corresponding to a method of pdf generation
+            note: the custom context, html and latex formatted templates
+                  for pdf generation are specified separately to the
+                  custom templates for context, html and latex output;
+                  this means that if a custom template is specified for
+                  latex output it will not be used for pdf generation via
+                  latex unless the same template is separately specified
+                  for pdf generation via latex
+            note: the templates for azw3 and mobi format output are each
+                  used for generating an intermediate epub output file
+                  from which the final output file is generated, but
+                  neither of these templates is used when generating epub
+                  output; the epub template is specified separately,
+                  meaning, for example, that if you specify a custom epub
+                  template it will have no effect on azw3 or mobi output
+                  files  
             note: when looking in the user data directory for a template
                   matching the file type extension and provided base
                   name, pandoc does not always make sensible deductions

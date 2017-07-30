@@ -44,15 +44,17 @@ let s:menu_items = {
             \   {'Stylesheet (odt)'  : 'stylesheet_odt'},
             \   ],
             \ 'Template file' : [
-            \   {'Template (context)' : 'template_context'},
-            \   {'Template (docx)'    : 'template_docx'},
-            \   {'Template (epub)'    : 'template_epub'},
-            \   {'Template (html)'    : 'template_html'},
-            \   {'Template (latex)'   : 'template_latex'},
-            \   {'Template (odt)'     : 'template_odt'},
-            \   {'Template (pdf via context)' : 'template_pdf_context'},
-            \   {'Template (pdf via html)'    : 'template_pdf_html'},
-            \   {'Template (pdf via latex)'   : 'template_pdf_latex'},
+            \   {'Template (azw3 via epub)'    : 'template_azw3'},
+            \   {'Template (context)'          : 'template_context'},
+            \   {'Template (docx)'             : 'template_docx'},
+            \   {'Template (epub)'             : 'template_epub'},
+            \   {'Template (html)'             : 'template_html'},
+            \   {'Template (latex)'            : 'template_latex'},
+            \   {'Template (mobi via epub)'    : 'template_mobi'},
+            \   {'Template (odt)'              : 'template_odt'},
+            \   {'Template (pdf via context)'  : 'template_pdf_context'},
+            \   {'Template (pdf via html)'     : 'template_pdf_html'},
+            \   {'Template (pdf via latex)'    : 'template_pdf_latex'},
             \   ],
             \ }
 " pandoc settings values (b:dn_md_settings)                                {{{2
@@ -144,6 +146,15 @@ let b:dn_md_settings = {
             \   'config'  : 'g:DN_markdown_stylesheet_odt',
             \   'prompt'  : 'Enter the path/url to the odt stylesheet:',
             \   },
+            \ 'template_azw3' : {
+            \   'label'   : 'Pandoc template file [azw3]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_azw3',
+            \   'prompt'  : 'Specify the azw3 (epub) template:',
+            \   },
             \ 'template_context' : {
             \   'label'   : 'Pandoc template file [context]',
             \   'value'   : '',
@@ -188,6 +199,15 @@ let b:dn_md_settings = {
             \   'allowed' : 'base_file_path_url',
             \   'config'  : 'g:DN_markdown_template_latex',
             \   'prompt'  : 'Specify the latex template:',
+            \   },
+            \ 'template_mobi' : {
+            \   'label'   : 'Pandoc template file [mobi]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_mobi',
+            \   'prompt'  : 'Specify the mobi (epub) template:',
             \   },
             \ 'template_odt' : {
             \   'label'   : 'Pandoc template file [odt]',
@@ -1065,8 +1085,20 @@ function! s:_generator (format) abort
     " output file                                                          {{{3
     let l:ext    = s:pandoc_params[a:format]['extension']  " output file
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
-    call add(l:cmd, '--output=' . shellescape(l:output))
     call s:_say('Output file:', l:output)
+    " - special case for mobi and azw3 output
+    "   . need to output a temporary epub file that
+    "     won't overwrite any existing epub output
+    if count(['mobi', 'azw3'], a:format) == 1
+        let l:epub_output = l:output
+        let l:prefix = 1
+        let l:output = l:prefix . '_' . l:epub_output
+        while filereadable(l:output)
+            let l:prefix += 1
+            let l:output = l:prefix . '_' . l:epub_output
+        endwhile
+    endif
+    call add(l:cmd, '--output=' . shellescape(l:output))
     " input file                                                           {{{3
     let l:source = expand('%')                             " input file
     call add(l:cmd, shellescape(l:source))
@@ -1078,9 +1110,9 @@ function! s:_generator (format) abort
     let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
     " perform additional conversion for mobi and azw3 output               {{{3
     if l:retval && count(['mobi', 'azw3'], a:format) == 1
+        let l:input  = l:output
         let l:exts   = {'mobi': '.mobi', 'azw3': '.azw3'}
         let l:ext    = l:exts[a:format]
-        let l:input  = substitute(expand('%'), '\.md$', '.epub', '')
         let l:output = substitute(expand('%'), '\.md$', l:ext, '')
         let l:cmd    = ['ebook-convert', shellescape(l:input),
                     \ shellescape(l:output), '--pretty-print',
