@@ -259,12 +259,20 @@ value, and the settings menu option that alters the setting.
                   name of file located in pandoc's user data directory, or
                   base name of file located in pandoc's user data
                   directory provided it has the right extension
-                  (see pandoc help for more details)
+                  (see notes below and pandoc help for more details)
          default: pandoc default template
             menu: Template file > Template ({docx,epub,html,pdf})
             note: this can be set for separately for each output format
             note: the template for pdf is in (la)tex format since pdf
                   output is generated from an intermediate latex format
+            note: when looking in the user data directory for a template
+                  matching the file type extension and provided base
+                  name, pandoc does not always make sensible deductions
+                  about the file extension -- for latex (and pdf via
+                  latex) and context (and pdf via context) output, for
+                  example, it searches for files with '.latex' and
+                  '.context' extensions rather than the '.tex'
+                  extension many users would assume
 
     --variable fontsize=?
         variable: g:DN_markdown_fontsize_print
