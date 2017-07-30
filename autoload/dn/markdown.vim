@@ -361,6 +361,11 @@ function! dn#markdown#view(...) abort
     endif
     " check for output file to view                                        {{{3
     let l:ext    = s:pandoc_params[l:format]['extension']
+    if count(['mobi', 'azw3'], l:format) == 1
+        " special case for mobi and azw3 output
+        let l:exts = {'mobi': '.mobi', 'azw3': '.azw3'}
+        let l:ext  = l:exts[l:format]
+    endif
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     if !filereadable(l:output)
         call dn#util#error('No ' . l:format . ' file to view')
