@@ -31,29 +31,29 @@ let b:dn_md_outputted_formats = {}
 let s:menu_prompt = 'Select setting to modify:'
 let s:menu_items = {
             \ 'Citeproc (all formats)' : 'citeproc_all',
-            \ 'Print only' : {
-            \   'Font size (print)'    : 'fontsize_print',
-            \   'Link colour (print)'  : 'linkcolor_print',
-            \   'Latex engine (print)' : 'latexengine_print',
-            \   'Paper size (print)'   : 'papersize_print',
-            \   },
-            \ 'Stylesheet file' : {
-            \   'Stylesheet (docx)' : 'stylesheet_docx',
-            \   'Stylesheet (epub)' : 'stylesheet_epub',
-            \   'Stylesheet (html)' : 'stylesheet_html',
-            \   'Stylesheet (odt)'  : 'stylesheet_odt',
-            \   },
-            \ 'Template file' :         {
-            \   'Template (context)' : 'template_context',
-            \   'Template (docx)'    : 'template_docx',
-            \   'Template (epub)'    : 'template_epub',
-            \   'Template (html)'    : 'template_html',
-            \   'Template (latex)'   : 'template_latex',
-            \   'Template (odt)'     : 'template_odt',
-            \   'Template (pdf via context)' : 'template_pdf_context',
-            \   'Template (pdf via html)'    : 'template_pdf_html',
-            \   'Template (pdf via latex)'   : 'template_pdf_latex',
-            \   },
+            \ 'Print only' : [
+            \   {'Font size (print)'    : 'fontsize_print'},
+            \   {'Link colour (print)'  : 'linkcolor_print'},
+            \   {'Latex engine (print)' : 'latexengine_print'},
+            \   {'Paper size (print)'   : 'papersize_print'},
+            \   ],
+            \ 'Stylesheet file' : [
+            \   {'Stylesheet (docx)' : 'stylesheet_docx'},
+            \   {'Stylesheet (epub)' : 'stylesheet_epub'},
+            \   {'Stylesheet (html)' : 'stylesheet_html'},
+            \   {'Stylesheet (odt)'  : 'stylesheet_odt'},
+            \   ],
+            \ 'Template file' : [
+            \   {'Template (context)' : 'template_context'},
+            \   {'Template (docx)'    : 'template_docx'},
+            \   {'Template (epub)'    : 'template_epub'},
+            \   {'Template (html)'    : 'template_html'},
+            \   {'Template (latex)'   : 'template_latex'},
+            \   {'Template (odt)'     : 'template_odt'},
+            \   {'Template (pdf via context)' : 'template_pdf_context'},
+            \   {'Template (pdf via html)'    : 'template_pdf_html'},
+            \   {'Template (pdf via latex)'   : 'template_pdf_latex'},
+            \   ],
             \ }
 " pandoc settings values (b:dn_md_settings)                                {{{2
 " - keep b:dn_md_settings.stylesheet_html.default = '' as it is set by
