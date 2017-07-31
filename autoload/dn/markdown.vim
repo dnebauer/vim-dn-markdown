@@ -30,7 +30,11 @@ let b:dn_md_outputted_formats = {}
 "   . '' (if no item selected)
 let s:menu_prompt = 'Select setting to modify:'
 let s:menu_items = {
-            \ 'Citeproc (all formats)' : 'citeproc_all',
+            \ 'Citeproc (all formats)'   : 'citeproc_all',
+            \ 'Converters (all formats)' : [
+            \   {'pandoc'        : 'exe_pandoc'},
+            \   {'ebook-convert' : 'exe_ebook_convert'},
+            \   ],
             \ 'Print only' : [
             \   {'Font size (print)'    : 'fontsize_print'},
             \   {'Link colour (print)'  : 'linkcolor_print'},
@@ -71,6 +75,24 @@ let b:dn_md_settings = {
             \   'allowed' : 'boolean',
             \   'config'  : 'g:DN_markdown_citeproc_all',
             \   'prompt'  : 'Use the pandoc-citeproc filter?',
+            \   },
+            \ 'exe_pandoc' : {
+            \   'label'   : 'Name of pandoc executable',
+            \   'value'   : '',
+            \   'default' : 'pandoc',
+            \   'source'  : '',
+            \   'allowed' : 'executable',
+            \   'config'  : 'g:DN_markdown_exe_pandoc',
+            \   'prompt'  : 'Enter name of pandoc executable:',
+            \   },
+            \ 'exe_ebook_convert' : {
+            \   'label'   : 'Name of ebook-convert executable',
+            \   'value'   : '',
+            \   'default' : 'ebook-convert',
+            \   'source'  : '',
+            \   'allowed' : 'executable',
+            \   'config'  : 'g:DN_markdown_exe_ebook_convert',
+            \   'prompt'  : 'Enter name of ebook-convert executable:',
             \   },
             \ 'fontsize_print' : {
             \   'label'   : 'Output font size (pts) [print only]',
@@ -579,6 +601,10 @@ function! dn#markdown#settings() abort
             call s:_say('Allowed:', 'Yes, No')
             let l:options = [{'Yes': g:dn_true}, {'No': g:dn_false}]
             let l:input = dn#util#menuSelect(l:options, l:prompt)
+        elseif l:allowed ==# 'executable'
+            call s:_say('Allowed:', '[valid executable file name]')
+            let l:input = input(l:prompt, l:value, 'file_in_path')
+            echo ' '  | " ensure move to a new line
         elseif l:allowed ==# 'path_url'
             call s:_say('Allowed:', '[valid file path or url]')
             let l:input = input(l:prompt, l:value, 'file')
@@ -797,6 +823,8 @@ function! s:_valid_param(value, allowed, ...) abort
         return count(a:allowed, a:value)
     elseif a:allowed ==# 'boolean'             " 'boolean'
         return (a:value == 1 || a:value == 0)
+    elseif a:allowed ==# 'executable'          " 'executable'
+        return executable(a:value)
     elseif a:allowed ==# 'path_url'            " 'path_url'
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
@@ -960,16 +988,21 @@ function! s:_generator (format) abort
     let l:index = index(l:depends, 'latex')
     if l:index >= 0
         let l:engine = b:dn_md_settings.latexengine_print.value
-        if empty(l:engine)  " script error
-            call dn#util#error('No latex engine defined')
-            return
-        endif
         let l:depends[l:index] = l:engine
+    endif
+    "   . replace 'pandoc' and 'ebook-convert' with executable names
+    let l:index = index(l:depends, 'pandoc')
+    if l:index >= 0
+        let l:depends[l:index] = b:dn_md_settings.exe_pandoc.value
+    endif
+    let l:index = index(l:depends, 'ebook-convert')
+    if l:index >= 0
+        let l:depends[l:index] = b:dn_md_settings.exe_ebook_convert.value
     endif
     "   . now test for each app in turn
     for l:depend in l:depends
         if !executable(l:depend)
-            call dn#util#error(l:depend . ' is not installed')
+            call dn#util#error("Cannot find '" . l:depend . "'")
             return
         endif
     endfor
@@ -992,7 +1025,8 @@ function! s:_generator (format) abort
     " save file to incorporate any changes                                 {{{3
     silent update
     call s:_say('Target format:', a:format)
-    call s:_say('Converter:', 'pandoc')
+    let l:pandoc_exe = b:dn_md_settings.exe_pandoc.value
+    call s:_say('Converter:', l:pandoc_exe)
     " generate output
     " - note: some output options are displayed explicitly,
     "         one per line, while other are added to l:opts
@@ -1001,7 +1035,7 @@ function! s:_generator (format) abort
     let l:opts   = []
     " output format                                                        {{{3
     let l:to  = s:pandoc_params[a:format]['pandoc_to']     " output format
-    let l:cmd = ['pandoc -t', l:to]
+    let l:cmd = [l:pandoc_exe, '-t', l:to]
     call add(l:opts, l:to)
     " latex engine                                                         {{{3
     if count(l:params, 'latexengine') > 0                  " latex engine
@@ -1183,7 +1217,8 @@ function! s:_generator (format) abort
             let l:input  = l:output
             let l:ext    = s:pandoc_params[a:format]['final_ext']
             let l:output = substitute(expand('%'), '\.md$', l:ext, '')
-            let l:cmd    = ['ebook-convert', shellescape(l:input),
+            let l:exe    = b:dn_md_settings.exe_ebook_convert.value
+            let l:cmd    = [l:exe, shellescape(l:input),
                         \ shellescape(l:output), '--pretty-print',
                         \ '--smarten-punctuation', '--insert-blank-line',
                         \ '--keep-ligatures']

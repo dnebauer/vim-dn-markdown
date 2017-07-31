@@ -61,11 +61,14 @@ lualatex and pdflatex) produces an output file with the same name, so use
 of any pdf generation method will overwrite earlier pdf output generate
 d by any method.
 
-                                        *dn-markdown-azw3* *dn-markdown-mobi*
+                      *dn-markdown-ebook* *dn-markdown-azw3* *dn-markdown-mobi*
 Mobipocket (mobi) and Kindle Format 8 (azw3) output is generated from
-ePub output using "ebook-convert". This program is part of the Calibre
-application suite (see https://calibre-ebook.com/). The program
-ebook-convert is not provided by this ftplugin.
+ePub output using "ebook-convert". This program is the command-line
+executable provided as part of the Calibre application suite (see
+https://calibre-ebook.com/) in debian linux and other linux
+distributions. It may have different names in other operating systems and
+linux distributions. The program ebook-convert (or its equivalent) is not
+provided by this ftplugin.
 
                                                    *dn-markdown-buttondown*
 This ftplugin contains a default stylesheet located in the
@@ -215,6 +218,12 @@ The dn#markdown#view() function can be called using the mapping
 =========================================================================
 5. Settings                                          *dn-markdown-settings*
                                                    *dn#markdown#settings()*
+Two plugin settings are used to specify the names of the pandoc and
+ebook-convert (see |dn-markdown-ebook|) executables. This is because they
+may have different names in different operating systems and/or
+distributions. All other settings affect pandoc options used in output
+generation.
+
 All pandoc options used in output generation are listed in
 |dn-markdown-pandoc-options|. Those marked with an asterisk are affected by
 a corresponding ftplugin setting. Each ftplugin setting has a default
@@ -227,7 +236,7 @@ enables the user to select a setting from a series of menus; once
 selected the setting can be altered by selecting from a series of
 alternative values or by directly entering the value.
 
-In summary then, there are three ways to assign an ftplugin a value:
+In summary then, there are three ways to assign a value to a setting:
     - a default value; which can be overridden by...
     - a user configuration variable; which can be overridden by...
     - manually setting the variable using dn#markdown#settings()
@@ -240,6 +249,23 @@ command. A format can be provided as an optional command parameter.
 The dn#markdown#view() function can be called using the mapping
 "<Leader>ov" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
+
+The two executables that can be affected by ftplugin settings are listed
+here, with the corresponding user configuration variable, allowable
+values, the default value, and the settings menu option that alters the
+setting.
+
+    pandoc
+        variable: g:DN_markdown_exe_pandoc
+         allowed: valid executable file
+         default: pandoc
+            menu: Converters > pandoc
+
+    ebook-convert
+        variable: g:DN_markdown_exe_ebook_convert
+         allowed: valid executable file
+         default: ebook-convert
+            menu: Converters > ebook-convert
 
 Here is a list of each pandoc option affected by ftplugin settings, the
 corresponding user configuration variable, allowable values, the default
