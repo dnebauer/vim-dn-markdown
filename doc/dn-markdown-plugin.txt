@@ -49,11 +49,16 @@ vim -> markdown ftplugin.
 Pandoc is used to generate output. It is not provided by this ftplugin. 
 
                                                           *dn-markdown-pdf*
-PDF output can be generated via latex, context or html. Use of the latex
-and context methods requires that latex and context, respectively, be
-installed. The html method requires that wkhtmltopdf be installed. None
-of these programs are provided by this ftplugin. The default latex engine
-used can be xelatex (default), lualatex or pdflatex.
+PDF output can be generated via context, html or latex. The html method
+requires that wkhtmltopdf be installed. Use of the context and latex
+methods requires that context and latex, respectively, be installed. None
+of these programs are provided by this ftplugin. The latex engine used
+can be xelatex (default), lualatex or pdflatex.
+
+Each pdf generation method (context, html and latex, and xelatex,
+lualatex and pdflatex) produces an output file with the same name, so use
+of any pdf generation method will overwrite earlier pdf output generate
+d by any method.
 
                                         *dn-markdown-azw3* *dn-markdown-mobi*
 Mobipocket (mobi) and Kindle Format 8 (azw3) output is generated from
