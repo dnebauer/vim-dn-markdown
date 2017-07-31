@@ -46,6 +46,7 @@ let s:menu_items = {
             \ 'Template file' : [
             \   {'Template (azw3 via epub)'    : 'template_azw3'},
             \   {'Template (context)'          : 'template_context'},
+            \   {'Template (docbook)'          : 'template_docbook'},
             \   {'Template (docx)'             : 'template_docx'},
             \   {'Template (epub)'             : 'template_epub'},
             \   {'Template (html)'             : 'template_html'},
@@ -164,6 +165,15 @@ let b:dn_md_settings = {
             \   'config'  : 'g:DN_markdown_template_context',
             \   'prompt'  : 'Specify the context template:',
             \   },
+            \ 'template_docbook' : {
+            \   'label'   : 'Pandoc template file [docbook]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'base_file_path_url',
+            \   'config'  : 'g:DN_markdown_template_docbook',
+            \   'prompt'  : 'Specify the docbook template:',
+            \   },
             \ 'template_docx' : {
             \   'label'   : 'Pandoc template file [docx]',
             \   'value'   : '',
@@ -281,6 +291,15 @@ let s:pandoc_params = {
             \   'params'    : ['standalone',   'smart',     'citeproc',
             \                  'contextlinks', 'papersize', 'template',
             \                  'fontsize'],
+            \   },
+            \ 'docbook' : {
+            \   'format'    : 'DocBook (xml)',
+            \   'depend'    : ['pandoc'],
+            \   'pandoc_to' : 'docbook5',
+            \   'after_ext' : '.xml',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.xml',
+            \   'params'    : ['standalone',  'template', 'citeproc'],
             \   },
             \ 'docx' : {
             \   'format'    : 'Microsoft Word (docx)',
