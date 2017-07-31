@@ -250,13 +250,34 @@ let b:dn_md_settings = {
 "         to set b:dn_md_settings.stylesheet_html as a special case
 "         (because ftplugin includes a default html stylesheet)
 " pandoc parameters to set (s:pandoc_params)                               {{{2
+"
+" ---- format: human-readable description of format
+" ---- depend: executables required for conversion
+" - pandoc_to: value to provide to pandoc's '--to' option
+" - after_ext: extension of pandoc's output file
+" -- postproc: whether there is further conversion after pandoc
+" - final_ext: extension given to final output file, i.e., after
+"              post-pandoc processing when that occurs; where there
+"              is no post-pandoc processing is the same as 'after_ext'
+" ---- params: refers to keywords that each signify a parameter/option
+"              to add to pandoc command
 let s:pandoc_params = {
-            \ 'azw3' : '*** copy from |epub| with modified format ***',
+            \ 'azw3' : {
+            \   'format'    : 'Kindle Format 8 (azw3) via ePub',
+            \   'depend'    : ['pandoc', 'ebook-convert'],
+            \   'pandoc_to' : 'epub3',
+            \   'after_ext' : '.epub',
+            \   'postproc'  : g:dn_true,
+            \   'final_ext' : '.azw3',
+            \   'params'    : '*** copy from |epub| format ***',
+            \   },
             \ 'context' : {
             \   'format'    : 'ConTeXt (tex)',
             \   'depend'    : ['pandoc', 'context'],
-            \   'extension' : '.tex',
             \   'pandoc_to' : 'context',
+            \   'after_ext' : '.tex',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.tex',
             \   'params'    : ['standalone',   'smart',     'citeproc',
             \                  'contextlinks', 'papersize', 'template',
             \                  'fontsize'],
@@ -264,73 +285,99 @@ let s:pandoc_params = {
             \ 'docx' : {
             \   'format'    : 'Microsoft Word (docx)',
             \   'depend'    : ['pandoc'],
-            \   'extension' : '.docx',
             \   'pandoc_to' : 'docx',
+            \   'after_ext' : '.docx',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.docx',
             \   'params'    : ['standalone', 'smart',   'citeproc',
             \                  'style_docx', 'template'],
             \   },
             \ 'epub' : {
             \   'format'    : 'Electronic publication (ePub)',
             \   'depend'    : ['pandoc'],
-            \   'extension' : '.epub',
             \   'pandoc_to' : 'epub3',
+            \   'after_ext' : '.epub',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.epub',
             \   'params'    : ['standalone', 'smart',    'style_epub',
             \                  'cover_epub', 'citeproc', 'template'],
             \   },
             \ 'html' : {
             \   'format'    : 'HyperText Markup Language (html)',
             \   'depend'    : ['pandoc'],
-            \   'extension' : '.html',
             \   'pandoc_to' : 'html5',
+            \   'after_ext' : '.html',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.html',
             \   'params'    : ['standalone', 'smart',      'selfcontained',
             \                  'citeproc',   'style_html', 'template'],
             \   },
             \ 'latex' : {
             \   'format'    : 'LaTeX (tex)',
             \   'depend'    : ['pandoc', 'latex'],
-            \   'extension' : '.tex',
             \   'pandoc_to' : 'latex',
+            \   'after_ext' : '.tex',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.tex',
             \   'params'    : ['standalone',  'citeproc', 'smart',
             \                  'latexengine', 'fontsize', 'latexlinks',
             \                  'papersize',   'template'],
             \   },
-            \ 'mobi' : '*** copy from |epub| with modified format ***',
+            \ 'mobi' : {
+            \   'format'    : 'Mobipocket e-book (mobi) via ePub',
+            \   'depend'    : ['pandoc'],
+            \   'pandoc_to' : 'epub3',
+            \   'after_ext' : '.epub',
+            \   'postproc'  : g:dn_false,
+            \   'postproc'  : g:dn_true,
+            \   'final_ext' : '.mobi',
+            \   'params'    : '*** copy from |epub| format ***',
+            \   },
             \ 'odt' : {
             \   'format'    : 'OpenDocument Text (odt)',
             \   'depend'    : ['pandoc'],
-            \   'extension' : '.odt',
             \   'pandoc_to' : 'odt',
+            \   'after_ext' : '.odt',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.odt',
             \   'params'    : ['standalone', 'smart',   'citeproc',
             \                  'style_odt', 'template'],
             \   },
-            \ 'pdf_context' : '*** copy from |context| with modifications ***',
-            \ 'pdf_html'    : '*** copy from |html| with modifications ***',
-            \ 'pdf_latex'   : '*** copy from |latex| with modifications ***',
+            \ 'pdf_context' : {
+            \   'format'    : 'Portable Document Format (pdf) via ConTeXt',
+            \   'depend'    : ['pandoc', 'context'],
+            \   'pandoc_to' : 'context',
+            \   'after_ext' : '.pdf',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.pdf',
+            \   'params'    : '***copy from |context| format ***',
+            \   },
+            \ 'pdf_html' : {
+            \   'format'    : 'HyperText Markup Language (html)',
+            \   'depend'    : ['pandoc', 'wkhtmltopdf'],
+            \   'pandoc_to' : 'html5',
+            \   'after_ext' : '.pdf',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.pdf',
+            \   'params'    : '*** copy from |html| format ***',
+            \   },
+            \ 'pdf_latex' : {
+            \   'format'    : 'Portable Document Format (pdf) via LaTeX',
+            \   'depend'    : ['pandoc', 'latex'],
+            \   'pandoc_to' : 'latex',
+            \   'after_ext' : '.pdf',
+            \   'postproc'  : g:dn_false,
+            \   'final_ext' : '.pdf',
+            \   'params'    : '*** copy from |latex| format ***',
+            \   },
             \ }
-" - azw3 is produced by first creating an epub output file
-let s:pandoc_params.azw3 = deepcopy(s:pandoc_params.epub)
-let s:pandoc_params.azw3.format = 'Kindle Format 8 (azw3) via ePub'
-call add(s:pandoc_params.azw3.depend, 'ebook-convert')
-" - mobi is produced by first creating an epub output file
-let s:pandoc_params.mobi = deepcopy(s:pandoc_params.epub)
-let s:pandoc_params.mobi.format = 'Mobipocket e-book (mobi) via ePub'
-call add(s:pandoc_params.mobi.depend, 'ebook-convert')
-" - pdf-via-context produces pdf output via context
-let s:pandoc_params.pdf_context = deepcopy(s:pandoc_params.context)
-let s:pandoc_params.pdf_context.format
-            \ = 'Portable Document Format (pdf) via ConTeXt'
-let s:pandoc_params.pdf_context.extension = '.pdf'
-" - pdf-via-html produces pdf output via html
-let s:pandoc_params.pdf_html = deepcopy(s:pandoc_params.html)
-let s:pandoc_params.pdf_html.format
-            \ = 'Portable Document Format (pdf) via HTML'
-call add(s:pandoc_params.pdf_html.depend, 'wkhtmltopdf')
-let s:pandoc_params.pdf_html.extension = '.pdf'
-" - pdf-via-latex produces pdf output via latex
-let s:pandoc_params.pdf_latex = deepcopy(s:pandoc_params.latex)
-let s:pandoc_params.pdf_latex.format
-            \ = 'Portable Document Format (pdf) via LaTeX'
-let s:pandoc_params.pdf_latex.extension = '.pdf'
+" - azw3 and mobi are produced by first creating an epub output file
+let s:pandoc_params.azw3.params = s:pandoc_params.epub.params
+let s:pandoc_params.mobi.params = s:pandoc_params.epub.params
+" - pdf creation is based on context, html or latex
+let s:pandoc_params.pdf_context.params = s:pandoc_params.context.params
+let s:pandoc_params.pdf_html.params    = s:pandoc_params.html.params
+let s:pandoc_params.pdf_latex.params   = s:pandoc_params.latex.params
 
 " Public functions                                                         {{{1
 
@@ -360,12 +407,7 @@ function! dn#markdown#view(...) abort
         return
     endif
     " check for output file to view                                        {{{3
-    let l:ext    = s:pandoc_params[l:format]['extension']
-    if count(['mobi', 'azw3'], l:format) == 1
-        " special case for mobi and azw3 output
-        let l:exts = {'mobi': '.mobi', 'azw3': '.azw3'}
-        let l:ext  = l:exts[l:format]
-    endif
+    let l:ext = s:pandoc_params[l:format]['final_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     if !filereadable(l:output)
         call dn#util#error('No ' . l:format . ' file to view')
@@ -1088,45 +1130,51 @@ function! s:_generator (format) abort
         endif
     endif
     " output file                                                          {{{3
-    let l:ext    = s:pandoc_params[a:format]['extension']  " output file
+    let l:ext    = s:pandoc_params[a:format]['after_ext']  " output file
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     call s:_say('Output file:', l:output)
-    " - special case for mobi and azw3 output
-    "   . need to output a temporary epub file that
-    "     won't overwrite any existing epub output
-    if count(['mobi', 'azw3'], a:format) == 1
-        let l:epub_output = l:output
-        let l:prefix = 1
-        let l:output = l:prefix . '_' . l:epub_output
-        while filereadable(l:output)
-            let l:prefix += 1
+    " - if postprocessing this output, i.e., it is an intermediate file,
+    "   may want to munge output file name to prevent overwriting of a
+    "   final output file of the same format -- in cases where
+    "   different templates are used for each case
+    let l:post_processing = s:pandoc_params[a:format]['postproc']
+    if l:post_processing
+        if s:_ebook_post_processing(a:format)  " azw3, mobi
+            let l:epub_output = l:output
+            let l:prefix = 1
             let l:output = l:prefix . '_' . l:epub_output
-        endwhile
+            while filereadable(l:output)
+                let l:prefix += 1
+                let l:output = l:prefix . '_' . l:epub_output
+            endwhile
+        endif
     endif
     call add(l:cmd, '--output=' . shellescape(l:output))
     " input file                                                           {{{3
     let l:source = expand('%')                             " input file
     call add(l:cmd, shellescape(l:source))
-    " generate output                                                      {{{3
+    " generate pandoc output                                               {{{3
     call s:_say('Options:', join(l:opts, ', '))
     let l:errmsg = ["Error occurred during '"
                 \ . a:format . "' generation"]
     call s:_say('Generating output... ')
     let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
-    " perform additional conversion for mobi and azw3 output               {{{3
-    if l:retval && count(['mobi', 'azw3'], a:format) == 1
-        let l:input  = l:output
-        let l:exts   = {'mobi': '.mobi', 'azw3': '.azw3'}
-        let l:ext    = l:exts[a:format]
-        let l:output = substitute(expand('%'), '\.md$', l:ext, '')
-        let l:cmd    = ['ebook-convert', shellescape(l:input),
-                    \ shellescape(l:output), '--pretty-print',
-                    \ '--smarten-punctuation', '--insert-blank-line',
-                    \ '--keep-ligatures']
-        let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
-        if delete(l:input) == -1
-            let l:msg = "Unable to delete intermediary file '" . l:input . "'"
-            call dn#util#error(l:msg)
+    " do post-pandoc conversion where required                             {{{3
+    if l:post_processing && l:retval
+        if s:_ebook_post_processing(a:format)  " azw3, mobi
+            let l:input  = l:output
+            let l:ext    = s:pandoc_params[a:format]['final_ext']
+            let l:output = substitute(expand('%'), '\.md$', l:ext, '')
+            let l:cmd    = ['ebook-convert', shellescape(l:input),
+                        \ shellescape(l:output), '--pretty-print',
+                        \ '--smarten-punctuation', '--insert-blank-line',
+                        \ '--keep-ligatures']
+            let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
+            if delete(l:input) == -1  " delete intermediary file
+                let l:msg = "Unable to delete intermediary file '"
+                            \ . l:input . "'"
+                call dn#util#error(l:msg)
+            endif
         endif
     endif
     " update outputted formats                                             {{{3
@@ -1159,6 +1207,15 @@ function! s:_select_format (...) abort
         call dn#util#error('No valid output format selected')
     endif
     return l:format
+endfunction
+
+" s:_ebook_post_processing(format)                                         {{{2
+" does:   determine whether this format requires ebook post-processing
+"         e.g., is it azw3 or mobi format?
+" params: format - output format [string, required]
+" return: boolean
+function! s:_ebook_post_processing (format) abort
+    return count(['mobi', 'azw3'], a:format) == 1
 endfunction                                                              " }}}2
 
 " Restore cpoptions                                                        {{{1

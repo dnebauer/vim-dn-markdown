@@ -1,14 +1,25 @@
 # vim-dn-markdown #
 
 A vim markdown ftplugin providing some output (re)generation and viewing
-options. Can generate and view docx, epub, html and pdf output.
+options. Can generate and view the following formats:
+
+* Kindle Format 8 (azw3)
+* ConTeXt (tex)
+* Microsoft Word (docx)
+* Electronic publication (epub)
+* HyperText Markup Language (html)
+* LaTeX (tex)
+* Mobipocket e-book (mobi)
+* OpenDocument Text (odt)
+* Portable Document Format (pdf)
 
 ## Requires ##
 
 Pandoc: To generate output files.
 
-Latex: To generate pdf output files. Can use xelatex (default), lualatex or
-pdflatex engines.
+LaTeX, ConTeXt or wkhtmltopdf: To generate pdf output files. If using LaTeX can use XeLaTeX (default), LuaLaTeX or pdfLaTeX engines.
+
+Ebook-convert: To generate azw3 or mobi output.
 
 Vim plugin: [dn-utils](https://github.com/dnebauer/dn-vim-utils).
 
