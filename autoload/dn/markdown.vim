@@ -328,7 +328,6 @@ let s:pandoc_params = {
             \   'depend'    : ['pandoc'],
             \   'pandoc_to' : 'epub3',
             \   'after_ext' : '.epub',
-            \   'postproc'  : g:dn_false,
             \   'postproc'  : g:dn_true,
             \   'final_ext' : '.mobi',
             \   'params'    : '*** copy from |epub| format ***',
