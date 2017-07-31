@@ -638,7 +638,8 @@ endfunction
 "         CursorPos - see help for |command-completion-custom|
 " return: List of output formats
 function! dn#markdown#complete(A, L, P) abort
-    return keys(s:pandoc_params)
+    let l:formats = sort(keys(s:pandoc_params))
+    return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
 
