@@ -707,9 +707,9 @@ function! s:_initialise() abort
                 let b:dn_md_settings[l:param]['source'] = l:source
                 let l:set_from_config = g:dn_true
             else
-                let l:msgs = ["Attempted to set param '" . l:param . "'",
-                            \ "from variable '" . l:config . "'",
-                            \ "but it had invalid value '" . l:value . "'",
+                let l:msgs = ["Attempted to set '" . l:param . "'",
+                            \ "from variable '" . l:config . "', but it",
+                            \ "had the invalid value '" . l:value . "'",
                             \ ]
                 for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
             endif
@@ -721,7 +721,7 @@ function! s:_initialise() abort
                 let b:dn_md_settings[l:param]['value']  = l:value
                 let b:dn_md_settings[l:param]['source'] = l:source
             else
-                let l:msgs = ["Attempted to set param '" . l:param . "' from",
+                let l:msgs = ["Attempted to set '" . l:param . "' from",
                             \ "invalid default value '" . l:value . "'",
                             \ ]
                 for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
@@ -818,8 +818,8 @@ endfunction
 function! s:_valid_setting_value(value, setting, ...) abort
     " check args
     let l:init = (a:0 > 0) ? a:1 : g:dn_false
-    if !has_key(s:pandoc_params, a:setting)
-        call dn#util#error('Invalid params ' . a:setting)  " script error
+    if !has_key(b:dn_md_settings, a:setting)
+        call dn#util#error('Invalid setting ' . a:setting)  " script error
         return
     endif
     " get needed param attributes
