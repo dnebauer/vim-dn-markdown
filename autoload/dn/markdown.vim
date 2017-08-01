@@ -174,7 +174,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_azw3',
             \   'prompt'  : 'Specify the azw3 (epub) template:',
             \   },
@@ -183,7 +183,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_context',
             \   'prompt'  : 'Specify the context template:',
             \   },
@@ -192,7 +192,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_docbook',
             \   'prompt'  : 'Specify the docbook template:',
             \   },
@@ -201,7 +201,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_docx',
             \   'prompt'  : 'Specify the docx template:',
             \   },
@@ -210,7 +210,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_epub',
             \   'prompt'  : 'Specify the epub template:',
             \   },
@@ -219,7 +219,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_html',
             \   'prompt'  : 'Specify the html template:',
             \   },
@@ -228,7 +228,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_latex',
             \   'prompt'  : 'Specify the latex template:',
             \   },
@@ -237,7 +237,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_mobi',
             \   'prompt'  : 'Specify the mobi (epub) template:',
             \   },
@@ -246,7 +246,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_odt',
             \   'prompt'  : 'Specify the odt template:',
             \   },
@@ -255,7 +255,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_pdf_context',
             \   'prompt'  : 'Specify the context template for pdf generation:',
             \   },
@@ -264,7 +264,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_pdf_html',
             \   'prompt'  : 'Specify the html template for pdf generation:',
             \   },
@@ -273,7 +273,7 @@ let b:dn_md_settings = {
             \   'value'   : '',
             \   'default' : '',
             \   'source'  : '',
-            \   'allowed' : 'base_file_path_url',
+            \   'allowed' : 'template_file',
             \   'config'  : 'g:DN_markdown_template_pdf_latex',
             \   'prompt'  : 'Specify the latex template for pdf generation:',
             \   },
@@ -609,7 +609,7 @@ function! dn#markdown#settings() abort
             call s:_say('Allowed:', '[valid file path or url]')
             let l:input = input(l:prompt, l:value, 'file')
             echo ' '  | " ensure move to a new line
-        elseif l:allowed ==# 'base_file_path_url'
+        elseif l:allowed ==# 'template_file'
             call s:_say('Allowed:', '[valid base/file name, file path or url]')
             let l:input = input(l:prompt, l:value, 'file')
             echo ' '  | " ensure move to a new line
@@ -1264,11 +1264,16 @@ function! s:_valid_setting_value(value, setting, ...) abort
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
         return (filereadable(resolve(expand(a:value)))
                     \ || a:value =~? l:url_regex)
-    elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
+    elseif l:allowed ==# 'template_file'       " 'template_file'
+        " template files can be a filepath or url,
+        " or they can be the base name or file name
+        " of a file in one of pandoc's template
+        " directories;
+        " also, the name of each template setting
+        " has the form 'template_FORMAT', where
+        " 'FORMAT' is the output format, i.e.,
+        " a key of s:pandoc_params
         if !filereadable(resolve(expand(a:value)))
-            " error message assumes these cases are template files,
-            " and that all template setting names are of the form
-            " 'template_FORMAT'
             let l:format = strpart(a:setting, len('template_'))
             let l:msgs = [
                         \ 'This is not a valid file path',
