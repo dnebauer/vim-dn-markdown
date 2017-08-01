@@ -707,7 +707,7 @@ function! s:_initialise() abort
                 let b:dn_md_settings[l:param]['source'] = l:source
                 let l:set_from_config = g:dn_true
             else
-                let l:msgs = ["Attempted to set param'" . l:param . "'",
+                let l:msgs = ["Attempted to set param '" . l:param . "'",
                             \ "from variable '" . l:config . "'",
                             \ "but it had invalid value '" . l:value . "'",
                             \ ]
@@ -721,8 +721,8 @@ function! s:_initialise() abort
                 let b:dn_md_settings[l:param]['value']  = l:value
                 let b:dn_md_settings[l:param]['source'] = l:source
             else
-                let l:msgs = ["Attempted to set param'" . l:param . "' from",
-                            \ "invalid default value '" . l:config . "'",
+                let l:msgs = ["Attempted to set param '" . l:param . "' from",
+                            \ "invalid default value '" . l:value . "'",
                             \ ]
                 for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
             endif
