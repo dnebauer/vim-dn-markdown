@@ -1270,10 +1270,9 @@ function! s:_valid_setting_value(value, setting, ...) abort
                         \ 'This is not a valid file path',
                         \ 'That is okay if this is either:',
                         \ '- a valid and reachable url, or',
-                        \ '- the basename or filename of a file in the',
-                        \ '  ''templates'' subdirectory of the pandoc',
-                        \ '  user data directory',
-                        \ 'If it is neither, output generation will fail',
+                        \ '- the base or name of a file in a',
+                        \ '  pandoc templates directory,',
+                        \ 'otherwise output generation will fail',
                         \ ]
             if l:init  " give verbose warning
                 let l:msg = 'Setting ' . a:setting . " to '" . a:value . "'"
