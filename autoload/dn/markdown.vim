@@ -645,26 +645,20 @@ endfunction
 
 " Private functions                                                        {{{1
 
-" s:_say(msg1, [msg2])                                                     {{{2
-" does:   echo line of output with wrapping and hanging indent
-" params: msg1 - message to display [string, required]
-"         msg2 - message to display [string, optional]
-" return: nil
-" note:   if only msg1 is present, then treat output as a single string
-" note:   if msg2 is present, right-pad msg1 with spaces to the width
-"         of the hanging indent before concatenating msg1 and msg2
-function! s:_say(msg1, ...) abort
-    " hanging indent
-    let l:hang = 15
-    " if msg2 present, right-pad msg1
-    let l:msg = a:msg1
-    if a:0 > 0
-        let l:msg2 = a:1
-        while len(l:msg) < l:hang | let l:msg .= ' ' | endwhile
-        let l:msg .= l:msg2
+" s:_display_value(value, setting)                                         {{{2
+" does:   get the display value for a setting value
+" params: value   - setting value to display [any, required]
+"         setting - name of setting [any, required]
+" return: display value [String]
+function! s:_display_value(value, setting) abort
+    let l:allowed = b:dn_md_settings[a:setting]['allowed']
+    if type(l:allowed) == type('') && l:allowed ==# 'boolean'
+        let l:display_value = a:value ? 'Yes' : 'No'
+    else
+        let l:display_value = empty(a:value) ? '[Null/empty]'
+                    \                        : dn#util#stringify(a:value)
     endif
-    " print wrapped output
-    call dn#util#wrap(l:msg, l:hang)
+    return l:display_value
 endfunction
 
 " s:_dn_utils_missing()                                                    {{{2
@@ -682,281 +676,13 @@ function! s:_dn_utils_missing() abort
     endif
 endfunction
 
-" s:_initialise()                                                          {{{2
-" does:   initialise plugin
-" params: nil
-" return: nil
-function! s:_initialise() abort
-    let s:initialised = 1  " do only once
-    " set default html stylesheet (because it must be set dynamically,
-    " unlike other settings set statically with b:dn_md_settings variable)
-    call s:_set_default_html_stylesheet()
-    " set parameters from configuration variables where available,
-    " otherwise set to their default values
-    for l:setting in keys(b:dn_md_settings)
-        let l:default = b:dn_md_settings[l:setting]['default']
-        let l:config  = b:dn_md_settings[l:setting]['config']
-        let l:allowed = b:dn_md_settings[l:setting]['allowed']
-        let l:source  = b:dn_md_settings[l:setting]['source']
-        let l:set_from_config = g:dn_false
-        if exists(l:config)  " try to set from config variable
-            let l:value = {l:config}
-            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
-                let l:source = 'set from configuration variable ' . l:config
-                let b:dn_md_settings[l:setting]['value']  = l:value
-                let b:dn_md_settings[l:setting]['source'] = l:source
-                let l:set_from_config = g:dn_true
-            else
-                let l:msgs = ["Attempted to set '" . l:setting . "'",
-                            \ "from variable '" . l:config . "', but it",
-                            \ "had the invalid value '" . l:value . "'",
-                            \ ]
-                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
-            endif
-        endif
-        if !l:set_from_config  " try to set from default
-            let l:value = b:dn_md_settings[l:setting]['default']
-            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
-                let l:source = 'default'
-                let b:dn_md_settings[l:setting]['value']  = l:value
-                let b:dn_md_settings[l:setting]['source'] = l:source
-            else
-                let l:msgs = ["Attempted to set '" . l:setting . "' from",
-                            \ "invalid default value '" . l:value . "'",
-                            \ ]
-                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
-            endif
-        endif
-    endfor
-    " reset outputted formats
-    let l:dn_md_outputted_formats = {}
-endfunction
-
-" s:_process_dict_params(params)                                           {{{2
-" does:   process dict param used by dn#markdown#{view,output}
-" params: params - List that may contain a parameters dictionary
-"                  with the following keys:
-"                  'insert' - whether entered from insert mode
-"                             [optional, default=<false>, boolean]
-"                  'format' - output format
-"                             [optional, no default,
-"                              must be a key of s:pandoc_params]
-" return: List [insert, format]
-function! s:_process_dict_params(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
-    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
-    " default params
-    let l:insert = g:dn_false | let l:format = '' |  " defaults
-    " expecting a list containing a single dict
-    if a:0 == 0
-        call dn#util#error('No params provided')
-        return [l:insert, l:format]
-    endif
-    if a:0 > 1  " script error
-        call dn#util#error('Too many params provided')
-        return [l:insert, l:format]
-    endif
-    if type(a:1) != type([])  " script error
-        let l:msg = 'Param var is wrong type: ' . dn#util#varType(a:1)
-        call dn#util#error(l:msg)
-        return [l:insert, l:format]
-    endif
-    if len(a:1) == 0  " original function called with no params, so okay
-        return [l:insert, l:format]
-    endif
-    if len(a:1) > 1  " script error
-        let l:msg = 'Expected 1-element list, got ' . len(a:1)
-        call dn#util#error(l:msg)
-        return [l:insert, l:format]
-    endif
-    if type(a:1[0]) != type({})  " script error
-        let l:msg = 'Expected dict in list, got ' . dn#util#varType(a:1[0])
-        call dn#util#error(l:msg)
-        return [l:insert, l:format]
-    endif
-    " have received param(s) in good order
-    let l:params = deepcopy(a:1[0])
-    for l:param in keys(l:params)
-        if     l:param ==# 'insert'  " param 'insert'
-            if l:param.insert | let l:insert = g:dn_true | endif
-        elseif l:param ==# 'format'  " param 'format'
-            if s:_valid_format(l:params.format)
-                let l:format = l:params.format
-            else
-                call dn#util#error("Invalid format '"
-                            \ . l:params.format . "'")
-            endif
-        else  " param invalid
-            call dn#util#error("Invalid param key '" . l:param . "'")
-            if l:insert | call dn#util#insertMode(g:dn_true) | endif
-            return
-        endif
-    endfor
-    " select output format if not set by param
-    if empty(l:format)
-        let l:format = s:_select_format()
-    endif
-    if empty(l:format)
-        echo 'No output format selected'
-    endif
-    return [l:insert, l:format]
-endfunction
-
-" s:_valid_setting_value(value, setting, [init])                           {{{2
-" does:   determine whether a setting value is valid
-" params: value   - value to test [any, required]
-"         setting - setting being set [string, required]
-"         init    - value is being initialised
-"                   [boolean, optional, default=false]
-" return: whether setting value is valid - boolean
-" note:   during initialisation:
-"         - give verbose warning messages
-"         - accept value if setting is unitialised, e.g., source == '',
-"           and value == default, even if it does match an allowed value
-function! s:_valid_setting_value(value, setting, ...) abort
-    " check args
-    let l:init = (a:0 > 0) ? a:1 : g:dn_false
-    if !has_key(b:dn_md_settings, a:setting)
-        call dn#util#error('Invalid setting ' . a:setting)  " script error
-        return
-    endif
-    " get needed param attributes
-    let l:allowed = b:dn_md_settings[a:setting]['allowed']
-    let l:source  = b:dn_md_settings[a:setting]['source']
-    let l:default = b:dn_md_settings[a:setting]['default']
-    " handle special initialisation case (see function notes)
-    if l:init && l:source ==# '' && a:value ==# l:default
-        return g:dn_true
-    endif
-    " now handle general case
-    if     type(l:allowed) ==# type([])        " List
-        return count(l:allowed, a:value)
-    elseif l:allowed ==# 'boolean'             " 'boolean'
-        return (a:value == 1 || a:value == 0)
-    elseif l:allowed ==# 'executable'          " 'executable'
-        return executable(a:value)
-    elseif l:allowed ==# 'path_url'            " 'path_url'
-        let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
-                    \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
-                    \   . '\(:[0-9]\{1,5}\)\?\S*$'
-        return (filereadable(resolve(expand(a:value)))
-                    \ || a:value =~? l:url_regex)
-    elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
-        if !filereadable(resolve(expand(a:value)))
-            let l:msgs = [
-                        \ 'This is not a valid file path',
-                        \ 'That is okay if this is either:',
-                        \ '- a valid and reachable url, or',
-                        \ '- the basename or filename of a file in the',
-                        \ '  ''templates'' subdirectory of the pandoc',
-                        \ '  user data directory',
-                        \ 'If it is neither, output generation will fail',
-                        \ ]
-            if l:init  " give verbose warning
-                call insert(l:msgs, 'Setting ' . a:setting . ' to ' . a:value)
-            endif
-            for l:msg in l:msgs | call dn#util#warn(l:msg) | endfor
-        endif
-        return g:dn_true
-    else
-        return
-    endif
-endfunction
-
-" s:_valid_format(format)                                                  {{{2
-" does:   determine whether a format value is valid
-" params: format - format code to test [any, required]
-" return: whether format code is valid - boolean
-function! s:_valid_format(format) abort
-    return has_key(s:pandoc_params, a:format)
-endfunction
-
-" s:_valid_setting_name(setting)                                           {{{2
-" does:   determine whether a setting name is valid
-" params: setting - setting value to test [any, required]
-" return: whether setting name is valid - boolean
-function! s:_valid_setting_name(setting) abort
-    return has_key(b:dn_md_settings, a:setting)
-endfunction
-
-" s:_display_value(value, setting)                                         {{{2
-" does:   get the display value for a setting value
-" params: value   - setting value to display [any, required]
-"         setting - name of setting [any, required]
-" return: display value [String]
-function! s:_display_value(value, setting) abort
-    let l:allowed = b:dn_md_settings[a:setting]['allowed']
-    if type(l:allowed) == type('') && l:allowed ==# 'boolean'
-        let l:display_value = a:value ? 'Yes' : 'No'
-    else
-        let l:display_value = empty(a:value) ? '[Null/empty]'
-                    \                        : dn#util#stringify(a:value)
-    endif
-    return l:display_value
-endfunction
-
-" s:_set_default_html_stylesheet()                                         {{{2
-" does:   set s:dn_md_settings.stylesheet_html.default
-"         to the stylesheet provided by this plugin
-" params: nil
-" return: nil, sets variable in place
-function! s:_set_default_html_stylesheet() abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
-    " requires s:dn_md_settings.stylesheet_html.default
-    if !exists('b:dn_md_settings')
-        echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
-        echoerr 'dn-markdown ftplugin cannot find b:dn_md_settings'
-        return
-    endif
-    if !(s:_valid_setting_name('stylesheet_html')
-                \ && has_key(b:dn_md_settings.stylesheet_html, 'default'))
-        echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
-        echoerr '-- cannot find b:dn_md_settings.stylesheet_html.default'
-    endif
-    " default stylesheet is located in 'vim-dn-markdown-css'
-    " subdirectory of this plugin
-    let l:style_dirs = globpath(&runtimepath, 'vim-dn-markdown-css', 1, 1)
-    let l:style_filepaths = []
-    " - find all files in this subdirectory
-    " - should be only one subdir containing one file, but who knows?
-    for l:style_dir in l:style_dirs
-        call extend(l:style_filepaths,
-                    \ glob(l:style_dir . '/*', g:dn_false, g:dn_true))
-    endfor
-    " examine found file(s)
-    let l:stylesheet = ''
-    if     len(l:style_filepaths) == 0
-        " whoah, who deleted the ftplugin stylesheet?
-        echoerr 'dn-markdown ftplugin cannot find default stylesheet'
-        return
-    elseif len(l:style_filepaths) == 1
-        " found expected single match
-        let l:stylesheet = l:style_filepaths[0]
-    else
-        " okay, there are multiple css files (and possibly from multiple
-        " matching subdirectories) (how?) -- anyway, let's pick one of them
-        let l:menu_options = {}
-        for l:style_filepath in l:style_filepaths
-            let l:menu_option = fnamemodify(l:style_filepath, ':t:r')
-            let l:menu_options[l:menu_option] = l:style_filepath
-        endfor
-        let l:msg = 'dn-markdown ftplugin found '
-                    \. 'multiple default html stylesheets'
-        call dn#util#warn(l:msg)
-        call dn#util#warn('-- that should not happen with this plugin')
-        let l:prompt = 'Select default html stylesheet:'
-        let l:selection = dn#util#menuSelect(l:menu_options, l:prompt)
-        if !empty(l:selection)
-            let l:stylesheet = l:selection
-        endif
-    endif
-    " set value
-    if empty(l:stylesheet) | return | endif
-    let b:dn_md_settings.stylesheet_html.default = l:stylesheet
+" s:_ebook_post_processing(format)                                         {{{2
+" does:   determine whether this format requires ebook post-processing
+"         e.g., is it azw3 or mobi format?
+" params: format - output format [string, required]
+" return: boolean
+function! s:_ebook_post_processing (format) abort
+    return count(['mobi', 'azw3'], a:format) == 1
 endfunction
 
 " s:_execute_shell_command(cmd,[err])                                      {{{2
@@ -1253,6 +979,150 @@ function! s:_generator (format) abort
     return l:retval                                                      " }}}3
 endfunction
 
+" s:_initialise()                                                          {{{2
+" does:   initialise plugin
+" params: nil
+" return: nil
+function! s:_initialise() abort
+    let s:initialised = 1  " do only once
+    " set default html stylesheet (because it must be set dynamically,
+    " unlike other settings set statically with b:dn_md_settings variable)
+    call s:_set_default_html_stylesheet()
+    " set parameters from configuration variables where available,
+    " otherwise set to their default values
+    for l:setting in keys(b:dn_md_settings)
+        let l:default = b:dn_md_settings[l:setting]['default']
+        let l:config  = b:dn_md_settings[l:setting]['config']
+        let l:allowed = b:dn_md_settings[l:setting]['allowed']
+        let l:source  = b:dn_md_settings[l:setting]['source']
+        let l:set_from_config = g:dn_false
+        if exists(l:config)  " try to set from config variable
+            let l:value = {l:config}
+            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
+                let l:source = 'set from configuration variable ' . l:config
+                let b:dn_md_settings[l:setting]['value']  = l:value
+                let b:dn_md_settings[l:setting]['source'] = l:source
+                let l:set_from_config = g:dn_true
+            else
+                let l:msgs = ["Attempted to set '" . l:setting . "'",
+                            \ "from variable '" . l:config . "', but it",
+                            \ "had the invalid value '" . l:value . "'",
+                            \ ]
+                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
+            endif
+        endif
+        if !l:set_from_config  " try to set from default
+            let l:value = b:dn_md_settings[l:setting]['default']
+            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
+                let l:source = 'default'
+                let b:dn_md_settings[l:setting]['value']  = l:value
+                let b:dn_md_settings[l:setting]['source'] = l:source
+            else
+                let l:msgs = ["Attempted to set '" . l:setting . "' from",
+                            \ "invalid default value '" . l:value . "'",
+                            \ ]
+                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
+            endif
+        endif
+    endfor
+    " reset outputted formats
+    let l:dn_md_outputted_formats = {}
+endfunction
+
+" s:_process_dict_params(params)                                           {{{2
+" does:   process dict param used by dn#markdown#{view,output}
+" params: params - List that may contain a parameters dictionary
+"                  with the following keys:
+"                  'insert' - whether entered from insert mode
+"                             [optional, default=<false>, boolean]
+"                  'format' - output format
+"                             [optional, no default,
+"                              must be a key of s:pandoc_params]
+" return: List [insert, format]
+function! s:_process_dict_params(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
+    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
+    " default params
+    let l:insert = g:dn_false | let l:format = '' |  " defaults
+    " expecting a list containing a single dict
+    if a:0 == 0
+        call dn#util#error('No params provided')
+        return [l:insert, l:format]
+    endif
+    if a:0 > 1  " script error
+        call dn#util#error('Too many params provided')
+        return [l:insert, l:format]
+    endif
+    if type(a:1) != type([])  " script error
+        let l:msg = 'Param var is wrong type: ' . dn#util#varType(a:1)
+        call dn#util#error(l:msg)
+        return [l:insert, l:format]
+    endif
+    if len(a:1) == 0  " original function called with no params, so okay
+        return [l:insert, l:format]
+    endif
+    if len(a:1) > 1  " script error
+        let l:msg = 'Expected 1-element list, got ' . len(a:1)
+        call dn#util#error(l:msg)
+        return [l:insert, l:format]
+    endif
+    if type(a:1[0]) != type({})  " script error
+        let l:msg = 'Expected dict in list, got ' . dn#util#varType(a:1[0])
+        call dn#util#error(l:msg)
+        return [l:insert, l:format]
+    endif
+    " have received param(s) in good order
+    let l:params = deepcopy(a:1[0])
+    for l:param in keys(l:params)
+        if     l:param ==# 'insert'  " param 'insert'
+            if l:param.insert | let l:insert = g:dn_true | endif
+        elseif l:param ==# 'format'  " param 'format'
+            if s:_valid_format(l:params.format)
+                let l:format = l:params.format
+            else
+                call dn#util#error("Invalid format '"
+                            \ . l:params.format . "'")
+            endif
+        else  " param invalid
+            call dn#util#error("Invalid param key '" . l:param . "'")
+            if l:insert | call dn#util#insertMode(g:dn_true) | endif
+            return
+        endif
+    endfor
+    " select output format if not set by param
+    if empty(l:format)
+        let l:format = s:_select_format()
+    endif
+    if empty(l:format)
+        echo 'No output format selected'
+    endif
+    return [l:insert, l:format]
+endfunction
+
+" s:_say(msg1, [msg2])                                                     {{{2
+" does:   echo line of output with wrapping and hanging indent
+" params: msg1 - message to display [string, required]
+"         msg2 - message to display [string, optional]
+" return: nil
+" note:   if only msg1 is present, then treat output as a single string
+" note:   if msg2 is present, right-pad msg1 with spaces to the width
+"         of the hanging indent before concatenating msg1 and msg2
+function! s:_say(msg1, ...) abort
+    " hanging indent
+    let l:hang = 15
+    " if msg2 present, right-pad msg1
+    let l:msg = a:msg1
+    if a:0 > 0
+        let l:msg2 = a:1
+        while len(l:msg) < l:hang | let l:msg .= ' ' | endwhile
+        let l:msg .= l:msg2
+    endif
+    " print wrapped output
+    call dn#util#wrap(l:msg, l:hang)
+endfunction
+
 " s:_select_format(prompt)                                                 {{{2
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
@@ -1277,13 +1147,144 @@ function! s:_select_format (...) abort
     return l:format
 endfunction
 
-" s:_ebook_post_processing(format)                                         {{{2
-" does:   determine whether this format requires ebook post-processing
-"         e.g., is it azw3 or mobi format?
-" params: format - output format [string, required]
-" return: boolean
-function! s:_ebook_post_processing (format) abort
-    return count(['mobi', 'azw3'], a:format) == 1
+" s:_set_default_html_stylesheet()                                         {{{2
+" does:   set s:dn_md_settings.stylesheet_html.default
+"         to the stylesheet provided by this plugin
+" params: nil
+" return: nil, sets variable in place
+function! s:_set_default_html_stylesheet() abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
+    " requires s:dn_md_settings.stylesheet_html.default
+    if !exists('b:dn_md_settings')
+        echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
+        echoerr 'dn-markdown ftplugin cannot find b:dn_md_settings'
+        return
+    endif
+    if !(s:_valid_setting_name('stylesheet_html')
+                \ && has_key(b:dn_md_settings.stylesheet_html, 'default'))
+        echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
+        echoerr '-- cannot find b:dn_md_settings.stylesheet_html.default'
+    endif
+    " default stylesheet is located in 'vim-dn-markdown-css'
+    " subdirectory of this plugin
+    let l:style_dirs = globpath(&runtimepath, 'vim-dn-markdown-css', 1, 1)
+    let l:style_filepaths = []
+    " - find all files in this subdirectory
+    " - should be only one subdir containing one file, but who knows?
+    for l:style_dir in l:style_dirs
+        call extend(l:style_filepaths,
+                    \ glob(l:style_dir . '/*', g:dn_false, g:dn_true))
+    endfor
+    " examine found file(s)
+    let l:stylesheet = ''
+    if     len(l:style_filepaths) == 0
+        " whoah, who deleted the ftplugin stylesheet?
+        echoerr 'dn-markdown ftplugin cannot find default stylesheet'
+        return
+    elseif len(l:style_filepaths) == 1
+        " found expected single match
+        let l:stylesheet = l:style_filepaths[0]
+    else
+        " okay, there are multiple css files (and possibly from multiple
+        " matching subdirectories) (how?) -- anyway, let's pick one of them
+        let l:menu_options = {}
+        for l:style_filepath in l:style_filepaths
+            let l:menu_option = fnamemodify(l:style_filepath, ':t:r')
+            let l:menu_options[l:menu_option] = l:style_filepath
+        endfor
+        let l:msg = 'dn-markdown ftplugin found '
+                    \. 'multiple default html stylesheets'
+        call dn#util#warn(l:msg)
+        call dn#util#warn('-- that should not happen with this plugin')
+        let l:prompt = 'Select default html stylesheet:'
+        let l:selection = dn#util#menuSelect(l:menu_options, l:prompt)
+        if !empty(l:selection)
+            let l:stylesheet = l:selection
+        endif
+    endif
+    " set value
+    if empty(l:stylesheet) | return | endif
+    let b:dn_md_settings.stylesheet_html.default = l:stylesheet
+endfunction
+
+" s:_valid_format(format)                                                  {{{2
+" does:   determine whether a format value is valid
+" params: format - format code to test [any, required]
+" return: whether format code is valid - boolean
+function! s:_valid_format(format) abort
+    return has_key(s:pandoc_params, a:format)
+endfunction
+
+" s:_valid_setting_name(setting)                                           {{{2
+" does:   determine whether a setting name is valid
+" params: setting - setting value to test [any, required]
+" return: whether setting name is valid - boolean
+function! s:_valid_setting_name(setting) abort
+    return has_key(b:dn_md_settings, a:setting)
+endfunction
+
+" s:_valid_setting_value(value, setting, [init])                           {{{2
+" does:   determine whether a setting value is valid
+" params: value   - value to test [any, required]
+"         setting - setting being set [string, required]
+"         init    - value is being initialised
+"                   [boolean, optional, default=false]
+" return: whether setting value is valid - boolean
+" note:   during initialisation:
+"         - give verbose warning messages
+"         - accept value if setting is unitialised, e.g., source == '',
+"           and value == default, even if it does match an allowed value
+function! s:_valid_setting_value(value, setting, ...) abort
+    " check args
+    let l:init = (a:0 > 0) ? a:1 : g:dn_false
+    if !has_key(b:dn_md_settings, a:setting)
+        call dn#util#error('Invalid setting ' . a:setting)  " script error
+        return
+    endif
+    " get needed param attributes
+    let l:allowed = b:dn_md_settings[a:setting]['allowed']
+    let l:source  = b:dn_md_settings[a:setting]['source']
+    let l:default = b:dn_md_settings[a:setting]['default']
+    " handle special initialisation case (see function notes)
+    if l:init && l:source ==# '' && a:value ==# l:default
+        return g:dn_true
+    endif
+    " now handle general case
+    if     type(l:allowed) ==# type([])        " List
+        return count(l:allowed, a:value)
+    elseif l:allowed ==# 'boolean'             " 'boolean'
+        return (a:value == 1 || a:value == 0)
+    elseif l:allowed ==# 'executable'          " 'executable'
+        return executable(a:value)
+    elseif l:allowed ==# 'path_url'            " 'path_url'
+        let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
+                    \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
+                    \   . '\(:[0-9]\{1,5}\)\?\S*$'
+        return (filereadable(resolve(expand(a:value)))
+                    \ || a:value =~? l:url_regex)
+    elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
+        if !filereadable(resolve(expand(a:value)))
+            let l:msgs = [
+                        \ 'This is not a valid file path',
+                        \ 'That is okay if this is either:',
+                        \ '- a valid and reachable url, or',
+                        \ '- the basename or filename of a file in the',
+                        \ '  ''templates'' subdirectory of the pandoc',
+                        \ '  user data directory',
+                        \ 'If it is neither, output generation will fail',
+                        \ ]
+            if l:init  " give verbose warning
+                let l:msg = 'Setting ' . a:setting . " to '" . a:value . "'"
+                call insert(l:msgs, l:msg)
+            endif
+            for l:msg in l:msgs | call dn#util#warn(l:msg) | endfor
+        endif
+        return g:dn_true
+    else
+        return
+    endif
 endfunction                                                              " }}}2
 
 " Restore cpoptions                                                        {{{1
