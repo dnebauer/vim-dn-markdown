@@ -824,28 +824,27 @@ function! s:_valid_setting_value(value, setting, ...) abort
     endif
     " get needed param attributes
     let l:allowed = b:dn_md_settings[a:setting]['allowed']
-    let l:value   = b:dn_md_settings[a:setting]['value']
     let l:source  = b:dn_md_settings[a:setting]['source']
     let l:default = b:dn_md_settings[a:setting]['default']
     " handle special initialisation case (see function notes)
-    if l:init && l:source ==# '' && l:value ==# l:default
+    if l:init && l:source ==# '' && a:value ==# l:default
         return g:dn_true
     endif
     " now handle general case
     if     type(l:allowed) ==# type([])        " List
-        return count(l:allowed, l:value)
+        return count(l:allowed, a:value)
     elseif l:allowed ==# 'boolean'             " 'boolean'
-        return (l:value == 1 || l:value == 0)
+        return (a:value == 1 || a:value == 0)
     elseif l:allowed ==# 'executable'          " 'executable'
-        return executable(l:value)
+        return executable(a:value)
     elseif l:allowed ==# 'path_url'            " 'path_url'
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
-        return (filereadable(resolve(expand(l:value)))
-                    \ || l:value =~? l:url_regex)
+        return (filereadable(resolve(expand(a:value)))
+                    \ || a:value =~? l:url_regex)
     elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
-        if !filereadable(resolve(expand(l:value)))
+        if !filereadable(resolve(expand(a:value)))
             let l:msgs = [
                         \ 'This is not a valid file path',
                         \ 'That is okay if this is either:',
@@ -856,7 +855,7 @@ function! s:_valid_setting_value(value, setting, ...) abort
                         \ 'If it is neither, output generation will fail',
                         \ ]
             if l:init  " give verbose warning
-                call insert(l:msgs, 'Setting ' . a:setting . ' to ' . l:value)
+                call insert(l:msgs, 'Setting ' . a:setting . ' to ' . a:value)
             endif
             for l:msg in l:msgs | call dn#util#warn(l:msg) | endfor
         endif
