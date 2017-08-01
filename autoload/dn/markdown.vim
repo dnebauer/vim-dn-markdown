@@ -618,7 +618,7 @@ function! dn#markdown#settings() abort
             return
         endif
         " validate input
-        if s:_valid_param(l:input, l:allowed)
+        if s:_valid_param(l:input, l:setting)
             let b:dn_md_settings[l:setting]['value']  = l:input
             let b:dn_md_settings[l:setting]['source'] = 'set by user'
             call s:_say('Now set to:', s:_display_value(l:input, l:setting))
@@ -701,24 +701,30 @@ function! s:_initialise() abort
         let l:set_from_config = g:dn_false
         if exists(l:config)  " try to set from config variable
             let l:value = {l:config}
-            if s:_valid_param(l:value, l:allowed)
+            if s:_valid_param(l:value, l:param, g:dn_true)
                 let l:source = 'set from configuration variable ' . l:config
                 let b:dn_md_settings[l:param]['value']  = l:value
                 let b:dn_md_settings[l:param]['source'] = l:source
                 let l:set_from_config = g:dn_true
             else
-                call dn#util#error("Invalid variable '" . l:config . "': '"
-                            \ . l:value . "'")
+                let l:msgs = ["Attempted to set param'" . l:param . "'",
+                            \ "from variable '" . l:config . "'",
+                            \ "but it had invalid value '" . l:value . "'",
+                            \ ]
+                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
             endif
         endif
         if !l:set_from_config  " try to set from default
             let l:value = b:dn_md_settings[l:param]['default']
-            if s:_valid_param(l:value, l:allowed, l:default, l:source)
+            if s:_valid_param(l:value, l:param, g:dn_true)
                 let l:source = 'default'
                 let b:dn_md_settings[l:param]['value']  = l:value
                 let b:dn_md_settings[l:param]['source'] = l:source
             else
-                call dn#util#error("Invalid default: '" . l:value . "'")
+                let l:msgs = ["Attempted to set param'" . l:param . "' from",
+                            \ "invalid default value '" . l:config . "'",
+                            \ ]
+                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
             endif
         endif
     endfor
@@ -798,42 +804,48 @@ function! s:_process_dict_params(...) abort
     return [l:insert, l:format]
 endfunction
 
-" s:_valid_param(value, allowed, [default, source])                        {{{2
+" s:_valid_param(value, param, [init])                                     {{{2
 " does:   determine whether a parameter value is valid
-" params: value   - parameter value to test [any, required]
-"         allowed - type of value allowed
-"                   [List or string, required, one of:
-"                    List|'boolean'|'path_url'|'base_file_path_url']
-"         default - default value [string, optional, no default]
-"         source  - source of value [string, optional, no default]
+" params: value - parameter value to test [any, required]
+"         param - parameter for provided value [string, required]
+"         init  - value is being initialised
+"                 [boolean, optional, default=false]
 " return: whether param value is valid - boolean
-" note:   when both default and source values are provided, there is
-"         an extra valid condition: if source == '' (i.e., param not
-"         yet initialised) then a value is valid if it matches the
-"         default, even if it does not match an allowed value
-function! s:_valid_param(value, allowed, ...) abort
-    " first handle special case (see note above)
-    if a:0 == 2
-        let l:default = a:1 | let l:source = a:2
-        if l:source ==# ''  " param is uninitialised
-            if a:value ==# l:default | return g:dn_true | endif
-        endif
+" note:   during initialisation:
+"         - give verbose warning messages
+"         - accept value if param is unitialised, e.g., source == '',
+"           and value == default, even if it does match an allowed value
+function! s:_valid_param(value, param, ...) abort
+    " check args
+    let l:init = (a:0 > 0) ? a:1 : g:dn_false
+    if !has_key(s:pandoc_params, a:param)
+        call dn#util#error('Invalid params' . a:param)  " script error
+        return
+    endif
+    " get needed param attributes
+    let l:allowed = s:pandoc_params[a:param]['allowed']
+    let l:value   = s:pandoc_params[a:param]['value']
+    let l:source  = s:pandoc_params[a:param]['source']
+    let l:default = s:pandoc_params[a:param]['default']
+    " handle special initialisation case (see function notes)
+    if l:init && l:source ==# '' && l:value ==# l:default
+        return g:dn_true
     endif
     " now handle general case
-    if     type(a:allowed) ==# type([])        " List
-        return count(a:allowed, a:value)
-    elseif a:allowed ==# 'boolean'             " 'boolean'
-        return (a:value == 1 || a:value == 0)
-    elseif a:allowed ==# 'executable'          " 'executable'
-        return executable(a:value)
-    elseif a:allowed ==# 'path_url'            " 'path_url'
+    if     type(l:allowed) ==# type([])        " List
+        return count(l:allowed, l:value)
+    elseif l:allowed ==# 'boolean'             " 'boolean'
+        return (l:value == 1 || l:value == 0)
+    elseif l:allowed ==# 'executable'          " 'executable'
+        return executable(l:value)
+    elseif l:allowed ==# 'path_url'            " 'path_url'
         let l:url_regex = '^https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z]'
                     \   . '[-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}'
                     \   . '\(:[0-9]\{1,5}\)\?\S*$'
-        return (filereadable(resolve(expand(a:value)))
-                    \ || a:value =~? l:url_regex)
-    elseif a:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
-        if !filereadable(resolve(expand(a:value)))
+        return (filereadable(resolve(expand(l:value)))
+                    \ || l:value =~? l:url_regex)
+    elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
+        if !filereadable(resolve(expand(l:value)))
             let l:msgs = [
                         \ 'This is not a valid file path',
                         \ 'That is okay if this is either:',
@@ -843,6 +855,9 @@ function! s:_valid_param(value, allowed, ...) abort
                         \ '  user data directory',
                         \ 'If it is neither, output generation will fail',
                         \ ]
+            if l:init  " give verbose warning
+                call insert(l:msgs, 'Setting ' . a:param . ' to ' . l:value)
+            endif
             for l:msg in l:msgs | call dn#util#warn(l:msg) | endfor
         endif
         return g:dn_true
