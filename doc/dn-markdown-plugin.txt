@@ -343,13 +343,32 @@ value, and the settings menu option that alters the setting.
                   template it will have no effect on azw3 or mobi output
                   files  
             note: when looking in the user data directory for a template
-                  matching the file type extension and provided base
-                  name, pandoc does not always make sensible deductions
-                  about the file extension -- for latex (and pdf via
-                  latex) and context (and pdf via context) output, for
-                  example, it searches for files with '.latex' and
-                  '.context' extensions rather than the '.tex'
-                  extension many users would assume
+                  matching a provided base name (i.e., no extension),
+                  these are the extensions pandoc looks for in each format:
+
+                      format      extension~
+                      azw3        epub3 (because epub is intermediate format)
+                      context     context
+                      docbook     docbook5
+                      docx        docx
+                      epub        epub3
+                      html        html5
+                      latex       latex
+                      mobi        epub3 (because epub is intermediate format)
+                      odt         odt
+                      pdf_context context
+                      pdf_html    html5
+                      pdf_latex   latex
+
+                  There are some extensions used by multiple formats
+                  (e.g., "epub3" used by azw3, epub and mobi; "context"
+                  used by context and pdf_context; "html5" used by html
+                  and pdf_html; and "latex" used by latex and pdf_latex).
+                  In these cases it may be convenient to use a single
+                  template file for multiple formats and specify it using
+                  the same base name. To specify different template files
+                  for the same formats it would be necessary to refer to
+                  them by their unique file names or paths.
 
     --variable fontsize=?
         variable: g:DN_markdown_fontsize_print

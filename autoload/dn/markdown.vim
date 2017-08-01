@@ -1266,7 +1266,9 @@ function! s:_valid_setting_value(value, setting, ...) abort
                     \ || a:value =~? l:url_regex)
     elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
         if !filereadable(resolve(expand(a:value)))
-            " error message assumes these cases are template files
+            " error message assumes these cases are template files,
+            " and that all template setting names are of the form
+            " 'template_FORMAT'
             let l:format = strpart(a:setting, len('template_'))
             let l:msgs = [
                         \ 'This is not a valid file path',
