@@ -1266,13 +1266,15 @@ function! s:_valid_setting_value(value, setting, ...) abort
                     \ || a:value =~? l:url_regex)
     elseif l:allowed ==# 'base_file_path_url'  " 'base_file_path_url'
         if !filereadable(resolve(expand(a:value)))
+            " error message assumes these cases are template files
             let l:msgs = [
                         \ 'This is not a valid file path',
                         \ 'That is okay if this is either:',
                         \ '- a valid and reachable url, or',
                         \ '- the base or name of a file in a',
                         \ '  pandoc templates directory,',
-                        \ 'otherwise output generation will fail',
+                        \ 'otherwise ' . a:setting
+                        \ . ' output generation will fail',
                         \ ]
             if l:init  " give verbose warning
                 let l:msg = 'Setting ' . a:setting . " to '" . a:value . "'"
