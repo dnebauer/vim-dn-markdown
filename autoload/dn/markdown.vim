@@ -618,7 +618,7 @@ function! dn#markdown#settings() abort
             return
         endif
         " validate input
-        if s:_valid_param(l:input, l:setting)
+        if s:_valid_setting_value(l:input, l:setting)
             let b:dn_md_settings[l:setting]['value']  = l:input
             let b:dn_md_settings[l:setting]['source'] = 'set by user'
             call s:_say('Now set to:', s:_display_value(l:input, l:setting))
@@ -701,7 +701,7 @@ function! s:_initialise() abort
         let l:set_from_config = g:dn_false
         if exists(l:config)  " try to set from config variable
             let l:value = {l:config}
-            if s:_valid_param(l:value, l:param, g:dn_true)
+            if s:_valid_setting_value(l:value, l:param, g:dn_true)
                 let l:source = 'set from configuration variable ' . l:config
                 let b:dn_md_settings[l:param]['value']  = l:value
                 let b:dn_md_settings[l:param]['source'] = l:source
@@ -716,7 +716,7 @@ function! s:_initialise() abort
         endif
         if !l:set_from_config  " try to set from default
             let l:value = b:dn_md_settings[l:param]['default']
-            if s:_valid_param(l:value, l:param, g:dn_true)
+            if s:_valid_setting_value(l:value, l:param, g:dn_true)
                 let l:source = 'default'
                 let b:dn_md_settings[l:param]['value']  = l:value
                 let b:dn_md_settings[l:param]['source'] = l:source
@@ -804,29 +804,29 @@ function! s:_process_dict_params(...) abort
     return [l:insert, l:format]
 endfunction
 
-" s:_valid_param(value, param, [init])                                     {{{2
-" does:   determine whether a parameter value is valid
-" params: value - parameter value to test [any, required]
-"         param - parameter for provided value [string, required]
-"         init  - value is being initialised
-"                 [boolean, optional, default=false]
-" return: whether param value is valid - boolean
+" s:_valid_setting_value(value, setting, [init])                           {{{2
+" does:   determine whether a setting value is valid
+" params: value   - value to test [any, required]
+"         setting - setting being set [string, required]
+"         init    - value is being initialised
+"                   [boolean, optional, default=false]
+" return: whether setting value is valid - boolean
 " note:   during initialisation:
 "         - give verbose warning messages
-"         - accept value if param is unitialised, e.g., source == '',
+"         - accept value if setting is unitialised, e.g., source == '',
 "           and value == default, even if it does match an allowed value
-function! s:_valid_param(value, param, ...) abort
+function! s:_valid_setting_value(value, setting, ...) abort
     " check args
     let l:init = (a:0 > 0) ? a:1 : g:dn_false
-    if !has_key(s:pandoc_params, a:param)
-        call dn#util#error('Invalid params' . a:param)  " script error
+    if !has_key(s:pandoc_params, a:setting)
+        call dn#util#error('Invalid params ' . a:setting)  " script error
         return
     endif
     " get needed param attributes
-    let l:allowed = s:pandoc_params[a:param]['allowed']
-    let l:value   = s:pandoc_params[a:param]['value']
-    let l:source  = s:pandoc_params[a:param]['source']
-    let l:default = s:pandoc_params[a:param]['default']
+    let l:allowed = b:dn_md_settings[a:setting]['allowed']
+    let l:value   = b:dn_md_settings[a:setting]['value']
+    let l:source  = b:dn_md_settings[a:setting]['source']
+    let l:default = b:dn_md_settings[a:setting]['default']
     " handle special initialisation case (see function notes)
     if l:init && l:source ==# '' && l:value ==# l:default
         return g:dn_true
@@ -856,7 +856,7 @@ function! s:_valid_param(value, param, ...) abort
                         \ 'If it is neither, output generation will fail',
                         \ ]
             if l:init  " give verbose warning
-                call insert(l:msgs, 'Setting ' . a:param . ' to ' . l:value)
+                call insert(l:msgs, 'Setting ' . a:setting . ' to ' . l:value)
             endif
             for l:msg in l:msgs | call dn#util#warn(l:msg) | endfor
         endif
@@ -874,11 +874,11 @@ function! s:_valid_format(format) abort
     return has_key(s:pandoc_params, a:format)
 endfunction
 
-" s:_valid_setting(setting)                                                {{{2
-" does:   determine whether a setting is valid
+" s:_valid_setting_name(setting)                                           {{{2
+" does:   determine whether a setting name is valid
 " params: setting - setting value to test [any, required]
-" return: whether setting is valid - boolean
-function! s:_valid_setting(setting) abort
+" return: whether setting name is valid - boolean
+function! s:_valid_setting_name(setting) abort
     return has_key(b:dn_md_settings, a:setting)
 endfunction
 
@@ -913,7 +913,7 @@ function! s:_set_default_html_stylesheet() abort
         echoerr 'dn-markdown ftplugin cannot find b:dn_md_settings'
         return
     endif
-    if !(s:_valid_setting('stylesheet_html')
+    if !(s:_valid_setting_name('stylesheet_html')
                 \ && has_key(b:dn_md_settings.stylesheet_html, 'default'))
         echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
         echoerr '-- cannot find b:dn_md_settings.stylesheet_html.default'
