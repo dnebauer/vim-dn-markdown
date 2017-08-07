@@ -127,9 +127,9 @@ let b:dn_md_settings = {
             \ 'papersize_print' : {
             \   'label'   : 'Paper size [print only]',
             \   'value'   : '',
-            \   'default' : 'a4',
+            \   'default' : 'A4',
             \   'source'  : '',
-            \   'allowed' : ['a4', 'letter'],
+            \   'allowed' : ['A4', 'letter'],
             \   'config'  : 'g:DN_markdown_papersize_print',
             \   'prompt'  : 'Select paper size:',
             \   },
