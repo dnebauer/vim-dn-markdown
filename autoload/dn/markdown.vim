@@ -360,7 +360,7 @@ let s:pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['standalone',  'citeproc', 'smart',
+            \   'params'    : ['standalone',  'citeproc',
             \                  'latexengine', 'fontsize', 'latexlinks',
             \                  'papersize',   'template'],
             \   },
