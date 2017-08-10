@@ -360,7 +360,7 @@ let s:pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['standalone',  'citeproc',
+            \   'params'    : ['standalone',  'citeproc', 'smart',
             \                  'latexengine', 'fontsize', 'latexlinks',
             \                  'papersize',   'template'],
             \   },
@@ -774,10 +774,9 @@ function! s:_generator (format) abort
     "         and displayed in a single line
     let l:params = s:pandoc_params[a:format]['params']
     let l:opts   = []
-    " output format                                                        {{{3
-    let l:to  = s:pandoc_params[a:format]['pandoc_to']     " output format
-    let l:cmd = [l:pandoc_exe, '-t', l:to]
-    call add(l:opts, l:to)
+    " variables                                                            {{{3
+    let l:cmd = [l:pandoc_exe]
+    let l:pandoc_extensions = {'reader': [], 'writer': []}
     " latex engine                                                         {{{3
     if count(l:params, 'latexengine') > 0                  " latex engine
         " latex engine
@@ -852,7 +851,7 @@ function! s:_generator (format) abort
     endif
     " convert quotes, em|endash, ellipsis                                  {{{3
     if count(l:params, 'smart') > 0                        " smart
-        call add(l:cmd, '--smart')
+        call add(l:pandoc_extensions.reader, 'smart')
         call add(l:opts, 'smart')
     endif
     " incorporate external dependencies                                    {{{3
@@ -922,6 +921,15 @@ function! s:_generator (format) abort
             call s:_say('Template:', '[default]')
         endif
     endif
+    " input option                                                         {{{3
+    let l:from = ['markdown']                              " input format
+    call extend(l:from, l:pandoc_extensions.reader)        " + extensions
+    call extend(l:cmd, ['-f', join(l:from, '+')])
+    " output format                                                        {{{3
+    let l:to = [s:pandoc_params[a:format]['pandoc_to']]    " output format
+    call extend(l:to, l:pandoc_extensions.writer)          " + extensions
+    call extend(l:cmd, ['-t', join(l:to, '+')])
+    call add(l:opts, l:to)
     " output file                                                          {{{3
     let l:ext    = s:pandoc_params[a:format]['after_ext']  " output file
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')

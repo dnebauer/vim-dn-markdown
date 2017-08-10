@@ -109,24 +109,25 @@ The dn#markdown#generate() function can be called using the mapping
 "<Leader>og" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
 
-                                               *dn-markdown-pandoc-options*
-The pandoc options used in output generation are listed below. Those
-affected by ftplugin settings and user variables are indicated with an
-asterisk (*) -- see |dn-markdown-settings| for more details on these
-options.
+                 *dn-markdown-pandoc-extensions* *dn-markdown-pandoc-options*
+The pandoc options and extensions used in output generation are listed
+below. Options are indicated by "--" notation and extensions by "+"
+notation. Those affected by ftplugin settings and user variables are
+indicated with an asterisk (*) -- see |dn-markdown-settings| for more
+details on these options.
 
     context:
-          --smart --standalone --filter pandoc-citeproc*
+          +smart --standalone --filter pandoc-citeproc*
           --template=?* --variable fontsize=?*
           --variable linkcolor=?* --variable papersize=?*
 
     docbook:
           --standalone --filter pandoc-citeproc* --template=?*
 
-    docx: --smart --standalone --filter pandoc-citeproc*
+    docx: +smart --standalone --filter pandoc-citeproc*
           --reference-docx=?* --template=?*
 
-    epub: --epub-cover-image=cover.{gif,jpg,png} --smart --standalone
+    epub: --epub-cover-image=cover.{gif,jpg,png} +smart --standalone
           --epub-stylesheet=?* --filter pandoc-citeproc* --template=?*
 
           note: option --epub-cover-image uses the file
@@ -134,11 +135,11 @@ options.
                 multiple matches are available, ftplugin prefers png
                 over jpg over gif
 
-    html: --self-contained --smart --standalone --css=?*
+    html: --self-contained +smart --standalone --css=?*
           --filter pandoc-citeproc* --template=?*
 
     latex:
-          --smart --standalone --filter pandoc-citeproc*
+          +smart --standalone --filter pandoc-citeproc*
           --latex-engine=?* --template=?* --variable fontsize=?*
           --variable citecolor=?* --variable linkcolor=?*
           --variable toccolor=?* --variable urlcolor=?*
@@ -267,9 +268,11 @@ setting.
          default: ebook-convert
             menu: Converters > ebook-convert
 
-Here is a list of each pandoc option affected by ftplugin settings, the
-corresponding user configuration variable, allowable values, the default
-value, and the settings menu option that alters the setting.
+Here is a list of each pandoc option and extension affected by ftplugin
+settings, the corresponding user configuration variable, allowable
+values, the default value, and the settings menu option that alters the
+setting. Options are indicated by "--" notation and extensions by "+"
+notation.
 
     --css=?
         variable: g:DN_markdown_stylesheet_html
