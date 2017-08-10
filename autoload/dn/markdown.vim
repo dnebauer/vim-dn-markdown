@@ -900,7 +900,7 @@ function! s:_generator (format) abort
         endif
     endif
     " use docx stylesheet                                                  {{{3
-    if count(l:params, 'style_docx') > 0                   " style_docx
+    if count(l:params, 'style_docx') > 0                   " style/docx
         let l:style_docx =
                     \ b:dn_md_settings.stylesheet_docx.value
         if !empty(l:style_docx)
@@ -927,9 +927,9 @@ function! s:_generator (format) abort
     call extend(l:cmd, ['-f', join(l:from, '+')])
     " output format                                                        {{{3
     let l:to = [s:pandoc_params[a:format]['pandoc_to']]    " output format
-    call extend(l:to, l:pandoc_extensions.writer)          " + extensions
+    call extend(l:opts, l:to)                              " + extensions
+    call extend(l:to, l:pandoc_extensions.writer)
     call extend(l:cmd, ['-t', join(l:to, '+')])
-    call add(l:opts, l:to)
     " output file                                                          {{{3
     let l:ext    = s:pandoc_params[a:format]['after_ext']  " output file
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
