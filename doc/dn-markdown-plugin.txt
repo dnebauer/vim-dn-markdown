@@ -8,6 +8,7 @@ Filetype plugin for markdown                         *dn-markdown-ftplugin*
 3.  Output            |dn-markdown-output|
 4.  Viewing           |dn-markdown-view|
 5.  Settings          |dn-markdown-settings|
+6.  Editing           |dn-markdown-editing|
 
 =========================================================================
 1. Overview                                          *dn-markdown-overview*
@@ -208,8 +209,8 @@ The specified output file is (re)generated before being opened for
 viewing.
 
                                                  *dn-markdown-command-View*
-The dn#markdown#view() function can be called using the :View
-command. A format can be provided as an optional command parameter.
+The dn#markdown#view() function can be called using the :View command.
+A format can be provided as an optional command parameter.
 
                                                    *dn-markdown-mapping-ov*
 The dn#markdown#view() function can be called using the mapping
@@ -400,6 +401,25 @@ notation.
          allowed: a4, letter
          default: a4
             menu: Print only > Paper size (print)
+
+=========================================================================
+5. Editing                                            *dn-markdown-editing*
+
+This plugin provides limited support for editing markdown.
+
+                                                      *dn#markdown#image()*
+An image can be inserted by calling the dn#markdown#image() function. The
+user enters the image label and file path and the image is inserted
+following the current line.
+
+                                                *dn-markdown-command-Image*
+The dn#markdown#image() function can be called using the :Image command.
+
+                                                   *dn-markdown-mapping-ii*
+The dn#markdown#image() function can be called using the mapping
+"<Leader>ii" from either |Insert-mode| or |Normal-mode|. The default
+|mapleader| is a backslash.
+
 
 =========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:

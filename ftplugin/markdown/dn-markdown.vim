@@ -96,6 +96,18 @@ if !hasmapto('<Plug>DnESN')
 endif
 nmap <buffer> <unique> <Plug>DnESN
             \ :call dn#markdown#settings()<CR>
+" \ii : insert image                                                       {{{2
+if !hasmapto('<Plug>DnIII')
+    imap <buffer> <unique> <LocalLeader>ii <Plug>DnIII
+endif
+imap <buffer> <unique> <Plug>DnIII
+            \ <Esc>:call dn#markdown#image(g:dn_true)<CR>
+if !hasmapto('<Plug>DnIIN')
+    nmap <buffer> <unique> <LocalLeader>ii <Plug>DnIIN
+endif
+nmap <buffer> <unique> <Plug>DnIIN
+            \ :call dn#markdown#image()<CR>
+
                                                                          " }}}2
 
 " Commands                                                                 {{{1
@@ -117,6 +129,9 @@ command! -buffer -nargs=? -complete=customlist,dn#markdown#complete
 " Settings   : edit settings                                               {{{2
 command! -buffer Settings
             \ call dn#markdown#settings()
+" Image      : insert image                                                {{{2
+command! -buffer Image
+            \ call dn#markdown#image()
                                                                          " }}}2
 
 " Restore cpoptions                                                        {{{1

@@ -643,6 +643,37 @@ function! dn#markdown#complete(A, L, P) abort
 endfunction
 
 
+" dn#markdown#image([insert])                                              {{{2
+" does:   insert image following current line
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#image(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
+    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " get details for image
+    let l:label = input('Enter image label: ')
+    echo ' '  | " ensure move to a new line
+    let l:path = input('Enter path to image: ', '', 'file')
+    echo ' '  | " ensure move to a new line
+    " insert image
+    let l:cursor = getpos('.')
+    let l:indent = repeat(' ', indent(line('.')))
+    let l:cursor[1] = l:cursor[1] + 4  " line number
+    let l:cursor[2] = len(l:indent)    " column number
+    let l:line  = [l:indent, '![', l:label, '](', l:path, ' "', l:label, '")']
+    let l:lines = [l:indent, join(l:line, ''), l:indent, l:indent]
+    call append(line('.'), l:lines)
+    call setpos('.', l:cursor)
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
 " Private functions                                                        {{{1
 
 " s:_display_value(value, setting)                                         {{{2
