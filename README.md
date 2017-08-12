@@ -13,6 +13,8 @@ options. Can generate and view the following formats:
 * OpenDocument Text (odt)
 * Portable Document Format (pdf)
 
+Also enable inserting images.
+
 ## Requires ##
 
 Pandoc: To generate output files.
