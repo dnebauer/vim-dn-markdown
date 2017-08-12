@@ -410,7 +410,9 @@ This plugin provides limited support for editing markdown.
                                                       *dn#markdown#image()*
 An image can be inserted by calling the dn#markdown#image() function. The
 user enters the image label and file path and the image is inserted
-following the current line.
+following the current line. The image file path is inserted exactly as
+entered, without expansion or conversion to an absolute path; but tab
+expansion is available when entering the path.
 
                                                 *dn-markdown-command-Image*
 The dn#markdown#image() function can be called using the :Image command.

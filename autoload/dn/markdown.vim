@@ -670,6 +670,7 @@ function! dn#markdown#image(...) abort
     endif
     if !filereadable(l:path)
         call dn#util#warn('Image filepath appears to be invalid')
+        call dn#util#prompt()
     endif
     " insert image
     let l:cursor = getpos('.')
