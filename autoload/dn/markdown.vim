@@ -656,7 +656,7 @@ function! dn#markdown#image(...) abort
     " params
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     " insert image
-    if s:_image() | echo 'Done' | endif
+    call s:_image()
     call dn#util#prompt()
     redraw!
     " return to calling mode
