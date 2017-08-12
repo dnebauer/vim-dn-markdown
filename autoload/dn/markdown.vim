@@ -659,18 +659,17 @@ function! dn#markdown#image(...) abort
     let l:label = input('Enter image label: ')
     echo ' '  | " ensure move to a new line
     if empty(l:label)
-        call dn#util#warn('Image label cannot be blank')
+        call dn#util#error('Image label cannot be blank')
         return
     endif
     let l:path = input('Enter image filepath: ', '', 'file')
     echo ' '  | " ensure move to a new line
     if empty(l:path)
-        call dn#util#warn('Image filepath cannot be blank')
+        call dn#util#error('Image filepath cannot be blank')
         return
     endif
     if !filereadable(l:path)
         call dn#util#warn('Image filepath appears to be invalid')
-        return
     endif
     " insert image
     let l:cursor = getpos('.')
