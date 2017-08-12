@@ -669,7 +669,7 @@ function! dn#markdown#image(...) abort
         return
     endif
     if !filereadable(l:path)
-        call dn#util#warn('Image filepath appears to be invalid')
+        call dn#util#warn('Warning: image filepath appears to be invalid')
         call dn#util#prompt()
     endif
     " insert image
