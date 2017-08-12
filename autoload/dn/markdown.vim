@@ -655,32 +655,9 @@ function! dn#markdown#image(...) abort
     if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
     " params
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    " get details for image
-    let l:label = input('Enter image label: ')
-    echo ' '  | " ensure move to a new line
-    if empty(l:label)
-        call dn#util#error('Image label cannot be blank')
-        call dn#util#prompt() | redraw! | return
-    endif
-    let l:path = input('Enter image filepath: ', '', 'file')
-    echo ' '  | " ensure move to a new line
-    if empty(l:path)
-        call dn#util#error('Image filepath cannot be blank')
-        call dn#util#prompt() | redraw! | return
-    endif
-    if !filereadable(l:path)
-        call dn#util#warn('Warning: Image filepath appears to be invalid')
-        call dn#util#prompt() | redraw!
-    endif
     " insert image
-    let l:cursor = getpos('.')
-    let l:indent = repeat(' ', indent(line('.')))
-    let l:cursor[1] = l:cursor[1] + 4  " line number
-    let l:cursor[2] = len(l:indent)    " column number
-    let l:line  = [l:indent, '![', l:label, '](', l:path, ' "', l:label, '")']
-    let l:lines = [l:indent, join(l:line, ''), l:indent, l:indent]
-    call append(line('.'), l:lines)
-    call setpos('.', l:cursor)
+    if s:_image() | echo 'Done' | endif
+    call dn#util#prompt()
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -1028,6 +1005,40 @@ function! s:_generator (format) abort
     endif
     " return outcome                                                       {{{3
     return l:retval                                                      " }}}3
+endfunction
+
+" s:_image()                                                               {{{2
+" does:   insert image following current line
+" params: nil
+" prints: user prompts and feedback
+" return: whether operation succeeded
+function! s:_image() abort
+    " get details for image
+    let l:label = input('Enter image label: ')
+    echo ' '  | " ensure move to a new line
+    if empty(l:label)
+        call dn#util#error('Image label cannot be blank')
+        return
+    endif
+    let l:path = input('Enter image filepath: ', '', 'file')
+    echo ' '  | " ensure move to a new line
+    if empty(l:path)
+        call dn#util#error('Image filepath cannot be blank')
+        return
+    endif
+    if !filereadable(l:path)
+        call dn#util#warn('Warning: Image filepath appears to be invalid')
+    endif
+    " insert image
+    let l:cursor = getpos('.')
+    let l:indent = repeat(' ', indent(line('.')))
+    let l:cursor[1] = l:cursor[1] + 4  " line number
+    let l:cursor[2] = len(l:indent)    " column number
+    let l:line  = [l:indent, '![', l:label, '](', l:path, ' "', l:label, '")']
+    let l:lines = [l:indent, join(l:line, ''), l:indent, l:indent]
+    call append(line('.'), l:lines)
+    call setpos('.', l:cursor)
+    return g:dn_true
 endfunction
 
 " s:_initialise()                                                          {{{2
