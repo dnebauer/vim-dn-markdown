@@ -438,72 +438,75 @@ function! dn#markdown#view(...) abort
     if !exists('s:initialised') | call s:_initialise() | endif  " initialise
     " process params                                                       {{{3
     let [l:insert, l:format] = s:_process_dict_params(a:000)
-    if empty(l:format) | let l:format = s:_select_format() | endif
-    if empty(l:format) | return | endif
-    " (re)generate output                                                  {{{3
-    if !s:_generator(l:format)
-        call dn#util#error('Output (re)generation failed')
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif
-        return
-    endif
-    " check for output file to view                                        {{{3
-    let l:ext = s:pandoc_params[l:format]['final_ext']
-    let l:output = substitute(expand('%'), '\.md$', l:ext, '')
-    if !filereadable(l:output)
-        call dn#util#error('No ' . l:format . ' file to view')
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif
-        return
-    endif
-    " view output                                                          {{{3
-    if s:os ==# 'win'
-        let l:win_view_direct = ['docx', 'epub', 'html']
-        let l:win_view_cmd    = ['pdf']
-        if     count(l:win_view_direct, l:format) > 0
-            " execute as a direct shell (dos) command
-            let l:errmsg = [
-                        \   'Unable to display ' . l:format . ' output',
-                        \   'Windows has no default ' . l:format . ' viewer',
-                        \   'Shell feedback:',
-                        \ ]
-            let l:cmd = shellescape(l:output)
-            let l:succeeded = s:_execute_shell_command(l:cmd, l:errmsg)
-            if l:succeeded
-                echo 'Done'
+    let l:more = &more
+    set nomore
+    try
+        if empty(l:format) | let l:format = s:_select_format() | endif
+        if empty(l:format) | return | endif
+        " (re)generate output                                              {{{3
+        let l:more = &more
+        set nomore
+        if !s:_generator(l:format) | 
+            throw 'Output (re)generation failed' |
+        endif
+        " check for output file to view                                    {{{3
+        let l:ext    = s:pandoc_params[l:format]['final_ext']
+        let l:output = substitute(expand('%'), '\.md$', l:ext, '')
+        if !filereadable(l:output)
+            throw 'No ' . l:format . ' file to view'
+        endif
+        " view output                                                      {{{3
+        if s:os ==# 'win'
+            let l:win_view_direct = ['docx', 'epub', 'html']
+            let l:win_view_cmd    = ['pdf']
+            if     count(l:win_view_direct, l:format) > 0
+                " execute as a direct shell (dos) command
+                let l:errmsg = [
+                            \   'Unable to display ' . l:format . ' output',
+                            \   'Windows has no default ' . l:format
+                            \   . ' viewer',
+                            \   'Shell feedback:',
+                            \ ]
+                let l:cmd = shellescape(l:output)
+                let l:succeeded = s:_execute_shell_command(l:cmd, l:errmsg)
+                if l:succeeded | echo 'Done' | endif
+            elseif count(l:win_view_cmd, l:format) > 0
+                " execute in a cmd shell
+                try
+                    execute 'silent !start cmd /c "' l:output '"'
+                catch /.*/
+                    throw 'Unable to display ' . l:format . ' output' . "\n"
+                                \ . 'Windows has no default ' . l:format
+                                \ . ' viewer'
+                endtry
+            else  " script error - does l:win_view_{direct,cmd} = all formats?
+                throw 'Invalid format: ' . l:format
             endif
-        elseif count(l:win_view_cmd, l:format) > 0
-            " execute in a cmd shell
-            try
-                execute 'silent !start cmd /c "' l:output '"'
-            catch
-                let l:msg = 'Unable to display ' . l:format . ' output'
-                call dn#util#error(l:msg)
-                let l:msg = 'Windows has no default ' . l:format . ' viewer'
-                call dn#util#showMsg(l:msg)
-                return
-            endtry
-        else  " script error - do l:win_view_{direct,cmd} cover all formats?
-            call dn#util#error('Invalid format: ' . l:format)
-        endif
-    elseif s:os ==# 'nix'
-        echo '' | " clear command line
-        let l:opener = 'xdg-open'
-        if executable(l:opener) == g:dn_true
-            let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
-            let l:errmsg = [
-                        \   'Unable to display ' . l:format . ' output',
-                        \   l:opener . ' is not configured for ' . l:format,
-                        \   'Shell feedback:',
-                        \ ]
-            call s:_execute_shell_command(l:cmd, l:errmsg)
+        elseif s:os ==# 'nix'
+            echo '' | " clear command line
+            let l:opener = 'xdg-open'
+            if executable(l:opener) == g:dn_true
+                let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
+                let l:errmsg = [
+                            \   'Unable to display ' . l:format . ' output',
+                            \   l:opener . ' is not configured for ' . l:format,
+                            \   'Shell feedback:',
+                            \ ]
+                call s:_execute_shell_command(l:cmd, l:errmsg)
+            else
+                throw "Could not find '" . l:opener . "'"
+            endif
         else
-            call dn#util#error("Could not find '" . l:opener . "'")
+            echo ''
+            throw 'Operating system not supported'
         endif
-    else
-        echo ''
-        call dn#util#error('Operating system not supported')
-    endif
-    " return to calling mode                                               {{{3
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif |           " }}}3
+    catch /.*/
+        echohl ErrorMsg | echo v:exception | echohl None
+    finally
+        let &more = l:more
+        " return to calling mode                                           {{{3
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif |       " }}}3
+    endtry
 endfunction
 
 " dn#markdown#generate([params])                                           {{{2
@@ -525,9 +528,12 @@ function! dn#markdown#generate(...) abort
     if empty(l:format) | let l:format = s:_select_format() | endif
     if empty(l:format) | return | endif
     " generate output
+    let l:more = &more
+    set nomore
     if s:_generator(l:format) | echo 'Done' | endif
     call dn#util#prompt()
     redraw!
+    let &more = l:more
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
@@ -554,9 +560,7 @@ function! dn#markdown#regenerate(...) abort
     else  " generate output
         let l:succeeded = g:dn_true
         for l:format in l:formats
-            if !s:_generator(l:format)
-                let l:succeeded = g:dn_false
-            endif
+            if !s:_generator(l:format) | let l:succeeded = g:dn_false | endif
         endfor
         if l:succeeded | echo 'Done'
         else           | call dn#util#error('Problems occurred during output')
@@ -579,6 +583,8 @@ function! dn#markdown#settings() abort
     if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
     if !exists('s:initialised') | call s:_initialise() | endif
     " get setting to edit
+    let l:more = &more
+    set nomore
     let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
     while count(keys(b:dn_md_settings), l:setting) == 1
         let l:label   = b:dn_md_settings[l:setting]['label']
@@ -618,6 +624,7 @@ function! dn#markdown#settings() abort
             echo ' '  | " ensure move to a new line
         else  " script error!
             call dn#util#error("Invalid 'allowed' value: '" . l:allowed . "'")
+            let &more = l:more
             return
         endif
         " validate input
@@ -631,8 +638,8 @@ function! dn#markdown#settings() abort
         " get next setting to change
         let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
     endwhile
+    let &more = l:more
 endfunction
-
 
 " dn#markdown#complete(ArgLead, CmdLine, CursorPos)                        {{{2
 " does:   return completion candidates for output formats
@@ -644,7 +651,6 @@ function! dn#markdown#complete(A, L, P) abort
     let l:formats = sort(keys(s:pandoc_params))
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
-
 
 " dn#markdown#image([insert])                                              {{{2
 " does:   insert image following current line
