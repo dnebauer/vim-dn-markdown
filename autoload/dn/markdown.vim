@@ -1125,7 +1125,7 @@ function! s:_image() abort
     endif
     " get image ID
     let l:ids = s:_references('figures')
-    let l:default = substitute(lower(l:label), '[^a-z_-]', '-', 'g')
+    let l:default = substitute(tolower(l:label), '[^a-z_-]', '-', 'g')
     let l:id_sorted = g:dn_false
     while !l:id_sorted
         let l:id = input('Enter figure id (empty if none): ', l:default)
