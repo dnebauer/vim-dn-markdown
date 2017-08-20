@@ -551,11 +551,14 @@ function! dn#markdown#regenerate(...) abort
         call dn#util#warn(l:msg)
     else  " generate output
         let l:succeeded = g:dn_true
+        let l:more = &more
+        set nomore
         for l:format in l:formats
             if !s:_generator(l:format)
                 let l:succeeded = g:dn_false
             endif
         endfor
+        let &more = l:more
         if l:succeeded | echo 'Done'
         else           | call dn#util#error('Problems occurred during output')
         endif
