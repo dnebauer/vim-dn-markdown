@@ -1293,6 +1293,11 @@ function! s:_references(type) abort
     let l:matches = []
     let l:prefix = l:prefixes[a:type]
     let l:re = '{#' . l:prefix . ':\p\+}'
+    "for l:line in l:lines
+    "    let l:match = matchstr(l:line, l:re)
+    "    if !empty(l:match) | call add(l:matches, l:match) | endif
+    "endfor
+    let l:matches = filter(map(l:lines, 'matchstr(v:val, l:re)'), '!empty(v:val)')
     for l:line in l:lines
         let l:match = matchstr(l:line, l:re)
         if !empty(l:match) | call add(l:matches, l:match) | endif
