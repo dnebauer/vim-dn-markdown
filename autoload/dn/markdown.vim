@@ -711,6 +711,16 @@ function! dn#markdown#image(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
+" dn#markdown#test()                                                       {{{2
+" does:   insert image following current line
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#test() abort
+    let l:figure_ids = s:_references('figures')
+    echo l:figure_ids
+endfunction
+
 " Private functions                                                        {{{1
 
 " s:_display_value(value, setting)                                         {{{2
@@ -1106,13 +1116,15 @@ endfunction
 " prints: user prompts and feedback
 " return: whether operation succeeded
 function! s:_image() abort
-    " get details for image
+    " get image label
     let l:label = input('Enter image label: ')
     echo ' '  | " ensure move to a new line
     if empty(l:label)
         call dn#util#error('Image label cannot be blank')
         return
     endif
+    " get image ID
+    " get image filepath
     let l:path = input('Enter image filepath: ', '', 'file')
     echo ' '  | " ensure move to a new line
     if empty(l:path)
@@ -1254,6 +1266,45 @@ function! s:_process_dict_params(...) abort
         echo 'No output format selected'
     endif
     return [l:insert, l:format]
+endfunction
+
+" s:_references(type)                                                      {{{2
+" does:   get references in current file for figures, tables or equations
+" params: type - reference type
+"                [string, required, can be 'equations'|'tables'|'figures')]
+" return: list
+" note:   follows basic style of
+"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
+"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
+"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
+function! s:_references(type) abort
+    " check params
+    let l:prefixes = {'equations': 'eq', 'figures': 'fig', 'tables': 'tbl'}
+    if !has_key(l:prefixes, a:type)
+        call dn#util#error("Invalid reference type '" . a:type . "'")
+        return
+    endif
+    " get file contents
+    let l:lines = getline(1, '$')
+    " extract references
+    " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
+    "   by reference type and ID is a unique value entered by the user
+    " - assume no more than one match per line
+    let l:matches = []
+    let l:prefix = l:prefixes[a:type]
+    let l:re = '{#' . l:prefix . ':\p\+}'
+    for l:line in l:lines
+        let l:match = matchstr(l:line, l:re)
+        if !empty(l:match) | call add(l:matches, l:match) | endif
+    endfor
+    " extract id strings
+    let l:ids = []
+    let l:start = len(l:prefix) + 3
+    for l:match in l:matches
+        let l:id = strpart(l:match, l:start, len(l:match) - l:start - 1)
+        call add(l:ids, l:id)
+    endfor
+    return l:ids
 endfunction
 
 " s:_say(msg1, [msg2])                                                     {{{2
