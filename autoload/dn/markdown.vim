@@ -35,6 +35,11 @@ let s:menu_items = {
             \   {'pandoc'        : 'exe_pandoc'},
             \   {'ebook-convert' : 'exe_ebook_convert'},
             \   ],
+            \ 'Number cross-references (all formats)' : [
+            \   {'Figures'   : 'number_figures'},
+            \   {'Tables'    : 'number_tables'},
+            \   {'Equations' : 'number_equations'},
+            \   ],
             \ 'Print only' : [
             \   {'Font size (print)'    : 'fontsize_print'},
             \   {'Link colour (print)'  : 'linkcolor_print'},
@@ -123,6 +128,33 @@ let b:dn_md_settings = {
             \                'yellow'],
             \   'config'  : 'g:DN_markdown_linkcolor_print',
             \   'prompt'  : 'Select pdf hyperlink colour:',
+            \   },
+            \ 'number_equations' : {
+            \   'label'   : 'Number equations and equation references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_equations',
+            \   'prompt'  : 'Number equations and equation references?',
+            \   },
+            \ 'number_figures' : {
+            \   'label'   : 'Number figures and figure references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_figures',
+            \   'prompt'  : 'Number figures and figure references?',
+            \   },
+            \ 'number_tables' : {
+            \   'label'   : 'Number tables and table references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_tables',
+            \   'prompt'  : 'Number tables and table references?',
             \   },
             \ 'papersize_print' : {
             \   'label'   : 'Paper size [print only]',
@@ -310,7 +342,8 @@ let s:pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['standalone',   'smart',     'citeproc',
+            \   'params'    : ['figures',      'equations', 'tables',
+            \                  'standalone',   'smart',     'citeproc',
             \                  'contextlinks', 'papersize', 'template',
             \                  'fontsize'],
             \   },
@@ -321,7 +354,8 @@ let s:pandoc_params = {
             \   'after_ext' : '.xml',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.xml',
-            \   'params'    : ['standalone',  'template', 'citeproc'],
+            \   'params'    : ['figures',    'equations', 'tables',
+            \                  'standalone', 'template',  'citeproc'],
             \   },
             \ 'docx' : {
             \   'format'    : 'Microsoft Word (docx)',
@@ -330,7 +364,8 @@ let s:pandoc_params = {
             \   'after_ext' : '.docx',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.docx',
-            \   'params'    : ['standalone', 'smart',   'citeproc',
+            \   'params'    : ['figures',    'equations', 'tables',
+            \                  'standalone', 'smart',     'citeproc',
             \                  'style_docx', 'template'],
             \   },
             \ 'epub' : {
@@ -340,8 +375,9 @@ let s:pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.epub',
-            \   'params'    : ['standalone', 'smart',    'style_epub',
-            \                  'cover_epub', 'citeproc', 'template'],
+            \   'params'    : ['figures',    'equations', 'tables',
+            \                  'standalone', 'smart',     'style_epub',
+            \                  'cover_epub', 'citeproc',  'template'],
             \   },
             \ 'html' : {
             \   'format'    : 'HyperText Markup Language (html)',
@@ -350,7 +386,8 @@ let s:pandoc_params = {
             \   'after_ext' : '.html',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.html',
-            \   'params'    : ['standalone', 'smart',      'selfcontained',
+            \   'params'    : ['figures',    'equations',  'tables',
+            \                  'standalone', 'smart',      'selfcontained',
             \                  'citeproc',   'style_html', 'template'],
             \   },
             \ 'latex' : {
@@ -360,8 +397,9 @@ let s:pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['standalone',  'citeproc', 'smart',
-            \                  'latexengine', 'fontsize', 'latexlinks',
+            \   'params'    : ['figures',     'equations', 'tables',
+            \                  'standalone',  'citeproc',  'smart',
+            \                  'latexengine', 'fontsize',  'latexlinks',
             \                  'papersize',   'template'],
             \   },
             \ 'mobi' : {
@@ -380,8 +418,9 @@ let s:pandoc_params = {
             \   'after_ext' : '.odt',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.odt',
-            \   'params'    : ['standalone', 'smart',   'citeproc',
-            \                  'style_odt', 'template'],
+            \   'params'    : ['figures',    'equations', 'tables',
+            \                  'standalone', 'smart',     'citeproc',
+            \                  'style_odt',  'template'],
             \   },
             \ 'pdf_context' : {
             \   'format'    : 'Portable Document Format (pdf) via ConTeXt',
@@ -806,6 +845,51 @@ function! s:_generator (format) abort
     " variables                                                            {{{3
     let l:cmd = [l:pandoc_exe]
     let l:pandoc_extensions = {'reader': [], 'writer': []}
+    " number figures                                                       {{{3
+    " - pandoc-fignos filter must be called before
+    "   pandoc-citeproc filter or --bibliography=FILE
+    if count(l:params, 'figures') > 0                      " number figures
+        let l:use_fignos = b:dn_md_settings.number_figures.value
+        " requires pandoc-fignos filter be installed
+        if l:use_fignos && !executable('pandoc-fignos')
+            let l:use_fignos = g:dn_false
+            call s:_say('Figure xref:', 'pandoc-fignos filter not installed')
+        endif
+        if l:use_fignos
+            call add(l:cmd, '--filter pandoc-fignos')
+            call add(l:opts, 'pandoc-fignos')
+        endif
+    endif
+    " number equations                                                     {{{3
+    " - pandoc-eqnos filter must be called before
+    "   pandoc-citeproc filter or --bibliography=FILE
+    if count(l:params, 'equations') > 0                    " number equations
+        let l:use_eqnos = b:dn_md_settings.number_equations.value
+        " requires pandoc-eqnos filter be installed
+        if l:use_eqnos && !executable('pandoc-eqnos')
+            let l:use_eqnos = g:dn_false
+            call s:_say('Equation xref:', 'pandoc-eqnos filter not installed')
+        endif
+        if l:use_eqnos
+            call add(l:cmd, '--filter pandoc-eqnos')
+            call add(l:opts, 'pandoc-eqnos')
+        endif
+    endif
+    " number tables                                                        {{{3
+    " - pandoc-tablenos filter must be called before
+    "   pandoc-citeproc filter or --bibliography=FILE
+    if count(l:params, 'tables') > 0                       " number tables
+        let l:use_tablenos = b:dn_md_settings.number_tables.value
+        " requires pandoc-tablenos filter be installed
+        if l:use_tablenos && !executable('pandoc-tablenos')
+            let l:use_tablenos = g:dn_false
+            call s:_say('Table xref:', 'pandoc-tablenos filter not installed')
+        endif
+        if l:use_tablenos
+            call add(l:cmd, '--filter pandoc-tablenos')
+            call add(l:opts, 'pandoc-tablenos')
+        endif
+    endif
     " latex engine                                                         {{{3
     if count(l:params, 'latexengine') > 0                  " latex engine
         " latex engine

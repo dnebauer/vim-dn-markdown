@@ -295,6 +295,30 @@ notation.
          default: false
             menu: Citeproc (all formats)
 
+    --filter pandoc-eqnos
+        variable: g:DN_markdown_number_equations
+         allowed: boolean (whether this option is used or not)
+         default: true
+            menu: Number crossreferences (all formats) > Equations
+            note: requires installation of pandoc-eqnos filter
+                  (see https://github.com/tomduck/pandoc-eqnos)
+
+    --filter pandoc-fignos
+        variable: g:DN_markdown_number_figures
+         allowed: boolean (whether this option is used or not)
+         default: true
+            menu: Number crossreferences (all formats) > Figures
+            note: requires installation of pandoc-fignos filter
+                  (see https://github.com/tomduck/pandoc-fignos)
+
+    --filter pandoc-tablenos
+        variable: g:DN_markdown_number_tables
+         allowed: boolean (whether this option is used or not)
+         default: true
+            menu: Number crossreferences (all formats) > Tables
+            note: requires installation of pandoc-eqnos filter
+                  (see https://github.com/tomduck/pandoc-tablenos)
+
     --latex-engine=?
         variable: g:DN_markdown_latexengine_print
          allowed: xelatex, lualatex, pdflatex
