@@ -545,26 +545,26 @@ function! dn#markdown#regenerate(...) abort
     " params
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     " check for previous output
+    let l:more = &more
+    set nomore
     let l:formats = keys(b:dn_md_outputted_formats)
     if empty(l:formats)  " inform user
         let l:msg = 'No output files have been generated during this session'
         call dn#util#warn(l:msg)
     else  " generate output
         let l:succeeded = g:dn_true
-        let l:more = &more
-        set nomore
         for l:format in l:formats
             if !s:_generator(l:format)
                 let l:succeeded = g:dn_false
             endif
         endfor
-        let &more = l:more
         if l:succeeded | echo 'Done'
         else           | call dn#util#error('Problems occurred during output')
         endif
     endif
     call dn#util#prompt()
     redraw!
+    let &more = l:more
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
