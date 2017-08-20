@@ -1290,25 +1290,24 @@ function! s:_references(type) abort
     " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    let l:matches = []
+    "let l:matches = []
     let l:prefix = l:prefixes[a:type]
     let l:re = '{#' . l:prefix . ':\p\+}'
     "for l:line in l:lines
     "    let l:match = matchstr(l:line, l:re)
     "    if !empty(l:match) | call add(l:matches, l:match) | endif
     "endfor
-    let l:matches = filter(map(l:lines, 'matchstr(v:val, l:re)'), '!empty(v:val)')
-    for l:line in l:lines
-        let l:match = matchstr(l:line, l:re)
-        if !empty(l:match) | call add(l:matches, l:match) | endif
-    endfor
+    let l:matches = filter(map(l:lines, 'matchstr(v:val, l:re)'),
+                \ '!empty(v:val)')
     " extract id strings
-    let l:ids = []
+    "let l:ids = []
     let l:start = len(l:prefix) + 3
-    for l:match in l:matches
-        let l:id = strpart(l:match, l:start, len(l:match) - l:start - 1)
-        call add(l:ids, l:id)
-    endfor
+    "for l:match in l:matches
+    "    let l:id = strpart(l:match, l:start, len(l:match) - l:start - 1)
+    "    call add(l:ids, l:id)
+    "endfor
+    let l:ids = map(l:matches,
+                \ 'strpart(v:val, l:start, len(l:match) - l:start - 1)')
     return l:ids
 endfunction
 
