@@ -1039,12 +1039,12 @@ function! s:_image() abort
         call dn#util#warn('Warning: Image filepath appears to be invalid')
     endif
     " insert image
-    let l:cursor = getpos('.')
-    let l:indent = repeat(' ', indent(line('.')))
+    let l:cursor    = getpos('.')
+    let l:indent    = repeat(' ', indent(line('.')))
     let l:cursor[1] = l:cursor[1] + 4  " line number
     let l:cursor[2] = len(l:indent)    " column number
-    let l:line  = [l:indent, '![', l:label, '](', l:path, ' "', l:label, '")']
-    let l:lines = [l:indent, join(l:line, ''), l:indent, l:indent]
+    let l:line      = ['![', l:label, '](', l:path, ' "', l:label, '")']
+    let l:lines     = [l:indent, join(l:line, ''), l:indent, l:indent]
     call append(line('.'), l:lines)
     call setpos('.', l:cursor)
     return g:dn_true
