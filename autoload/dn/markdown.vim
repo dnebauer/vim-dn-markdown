@@ -1307,7 +1307,7 @@ function! s:_references(type) abort
     "    call add(l:ids, l:id)
     "endfor
     let l:ids = map(l:matches,
-                \ 'strpart(v:val, l:start, len(l:match) - l:start - 1)')
+                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
     return l:ids
 endfunction
 
