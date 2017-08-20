@@ -711,16 +711,6 @@ function! dn#markdown#image(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#test()                                                       {{{2
-" does:   insert image following current line
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#test() abort
-    let l:figure_ids = s:_references('figures')
-    echo l:figure_ids
-endfunction
-
 " Private functions                                                        {{{1
 
 " s:_display_value(value, setting)                                         {{{2
@@ -1124,7 +1114,7 @@ function! s:_image() abort
         return
     endif
     " get image ID
-    let l:ids = s:_references('figures')
+    let l:ids = s:_ids('figures')
     let l:default = substitute(tolower(l:label), '[^a-z1-9_-]', '-', 'g')
     let l:id_sorted = g:dn_false
     while !l:id_sorted
@@ -1284,16 +1274,16 @@ function! s:_process_dict_params(...) abort
     return [l:insert, l:format]
 endfunction
 
-" s:_references(type)                                                      {{{2
-" does:   get references in current file for figures, tables or equations
-" params: type - reference type
+" s:_ids(type)                                                             {{{2
+" does:   get ids in current file for figures, tables or equations
+" params: type - id type
 "                [string, required, can be 'equations'|'tables'|'figures')]
 " return: list
 " note:   follows basic style of
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
 "         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
 "         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
-function! s:_references(type) abort
+function! s:_ids(type) abort
     " check params
     let l:prefixes = {'equations': 'eq', 'figures': 'fig', 'tables': 'tbl'}
     if !has_key(l:prefixes, a:type)
