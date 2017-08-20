@@ -1129,6 +1129,7 @@ function! s:_image() abort
     let l:id_sorted = g:dn_false
     while !l:id_sorted
         let l:id = input('Enter figure id (empty if none): ', l:default)
+        echo ' '  | " ensure move to a new line
         if empty(l:id) | break | endif
         if count(l:ids, l:id) > 0
             call dn#util#warn("Figure id '" . l:id . "' already exists")
