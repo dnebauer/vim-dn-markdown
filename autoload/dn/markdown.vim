@@ -1282,32 +1282,21 @@ function! s:_references(type) abort
     let l:prefixes = {'equations': 'eq', 'figures': 'fig', 'tables': 'tbl'}
     if !has_key(l:prefixes, a:type)
         call dn#util#error("Invalid reference type '" . a:type . "'")
-        return
+        return []
     endif
-    " get file contents
-    let l:lines = getline(1, '$')
-    " extract references
+    " extract references from file contents
     " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    "let l:matches = []
     let l:prefix = l:prefixes[a:type]
-    let l:re = '{#' . l:prefix . ':\p\+}'
-    "for l:line in l:lines
-    "    let l:match = matchstr(l:line, l:re)
-    "    if !empty(l:match) | call add(l:matches, l:match) | endif
-    "endfor
-    let l:matches = filter(map(l:lines, 'matchstr(v:val, l:re)'),
+    let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
+    let l:matches = filter(map(getline(1, '$'), 'matchstr(v:val, l:re)'),
                 \ '!empty(v:val)')
     " extract id strings
-    "let l:ids = []
-    let l:start = len(l:prefix) + 3
-    "for l:match in l:matches
-    "    let l:id = strpart(l:match, l:start, len(l:match) - l:start - 1)
-    "    call add(l:ids, l:id)
-    "endfor
+    let l:start = len(l:prefix) + 3  " the 3 accounts for '{', '#' and ':'
     let l:ids = map(l:matches,
                 \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+    " return results
     return l:ids
 endfunction
 
