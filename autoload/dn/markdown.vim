@@ -1110,37 +1110,6 @@ function! s:_generator (format) abort
     return l:retval                                                      " }}}3
 endfunction
 
-" s:_update_ids(type)                                                      {{{2
-" does:   update ids for figures, tables or equations in current file 
-" params: type - id type
-"                [string, required, can be 'equations'|'tables'|'figures']
-" return: list
-" note:   follows basic style of
-"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
-"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
-"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
-function! s:_update_ids(type) abort
-    " check params
-    if !has_key(s:numbered_types, a:type)
-        call dn#util#error("Invalid reference type '" . a:type . "'")
-        return []
-    endif
-    " extract references from file contents
-    " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
-    "   by reference type and ID is a unique value entered by the user
-    " - assume no more than one match per line
-    let l:prefix = s:numbered_types[a:type]['prefix']
-    let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
-    let l:matches = filter(map(getline(1, '$'), 'matchstr(v:val, l:re)'),
-                \ '!empty(v:val)')
-    " extract id strings
-    let l:start = len(l:prefix) + 3  " the 3 accounts for '{', '#' and ':'
-    let l:ids = map(l:matches,
-                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-    " update ids
-    let b:dn_md_ids[a:type] = l:ids
-endfunction
-
 " s:_image_insert()                                                        {{{2
 " does:   insert image following current line
 " params: nil
@@ -1428,6 +1397,37 @@ function! s:_set_default_html_stylesheet() abort
     " set value
     if empty(l:stylesheet) | return | endif
     let b:dn_md_settings.stylesheet_html.default = l:stylesheet
+endfunction
+
+" s:_update_ids(type)                                                      {{{2
+" does:   update ids for figures, tables or equations in current file 
+" params: type - id type
+"                [string, required, can be 'equations'|'tables'|'figures']
+" return: list
+" note:   follows basic style of
+"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
+"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
+"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
+function! s:_update_ids(type) abort
+    " check params
+    if !has_key(s:numbered_types, a:type)
+        call dn#util#error("Invalid reference type '" . a:type . "'")
+        return []
+    endif
+    " extract references from file contents
+    " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
+    "   by reference type and ID is a unique value entered by the user
+    " - assume no more than one match per line
+    let l:prefix = s:numbered_types[a:type]['prefix']
+    let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
+    let l:matches = filter(map(getline(1, '$'), 'matchstr(v:val, l:re)'),
+                \ '!empty(v:val)')
+    " extract id strings
+    let l:start = len(l:prefix) + 3  " the 3 accounts for '{', '#' and ':'
+    let l:ids = map(l:matches,
+                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+    " update ids
+    let b:dn_md_ids[a:type] = l:ids
 endfunction
 
 " s:_valid_format(format)                                                  {{{2
