@@ -461,12 +461,12 @@ let s:pandoc_params.pdf_latex.params   = s:pandoc_params.latex.params
 " numbered structures for referencing                                      {{{1
 " - types
 let s:numbered_types = {
-            \ 'equations': {'prefix': 'eq',  'name' : 'equation'},
-            \ 'figures'  : {'prefix': 'fig', 'name' : 'figure'},
-            \ 'tables'   : {'prefix': 'tbl', 'name' : 'table'},
+            \ 'equation': {'prefix': 'eq',  'name' : 'equation'},
+            \ 'figure'  : {'prefix': 'fig', 'name' : 'figure'},
+            \ 'table'   : {'prefix': 'tbl', 'name' : 'table'},
             \ }
 " - ids
-let b:dn_md_ids = {'equations' : [], 'figures' : [], 'tables' : []}
+let b:dn_md_ids = {'equation' : [], 'figure' : [], 'table' : []}
 
 " Public functions                                                         {{{1
 
@@ -763,6 +763,52 @@ function! s:_ebook_post_processing (format) abort
     return count(['mobi', 'azw3'], a:format) == 1
 endfunction
 
+" s:_enter_id(type, label)                                                 {{{2
+" does:   get id for figure, table or equation 
+" params: type  - id type
+"                 [string, required, can be 'equation'|'table'|'figure']
+"         label - label for figure, table or equation
+"                 [string, optional, no default]
+" return: String
+" note:   follows basic style of
+"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
+"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
+"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
+"         except allows only the characters: a-z, 1-9, _ and -
+function! s:_enter_id(type, label) abort
+    " check params
+    if !has_key(s:numbered_types, a:type)
+        call dn#util#error("Invalid reference type '" . a:type . "'")
+        return ''
+    endif
+    " set variables
+    let l:prefix  = s:numbered_types[a:type]['prefix']
+    let l:name    = s:numbered_types[a:type]['name']
+    let l:Name    = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
+    let l:default = substitute(tolower(a:label), '[^a-z1-9_-]', '-', 'g')
+    let l:prompt  = 'Enter ' . l:name . ' id (empty if none): '
+    call s:_update_ids(a:type)  " update list of existing ids
+    while 1
+        let l:id = input(l:prompt, l:default)
+        echo ' '  | " ensure move to a new line
+        " empty value allowed - means no id for this item
+        if empty(l:id) | break | endif
+        " cannot use existing id
+        if count(b:dn_md_ids[a:type], l:id) > 0
+            call dn#util#warn(l:Name . " id '" . l:id . "' already exists")
+            continue
+        endif
+        " must be legal id
+        if l:id !~# '\%^[a-z1-9_-]\+\%$'
+            call dn#util#warn(l:Name . ' ids contain only a-z, 1-9, _ and -')
+            continue
+        endif
+        " ok, if here must be legal
+        break
+    endwhile
+    return l:id
+endfunction
+
 " s:_execute_shell_command(cmd,[err])                                      {{{2
 " does:   execute shell command
 " params: cmd - shell command [required, string]
@@ -858,7 +904,7 @@ function! s:_generator (format) abort
     " number figures                                                       {{{3
     " - pandoc-fignos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
-    if count(l:params, 'figures') > 0                      " number figures
+    if count(l:params, 'figure') > 0                       " number figures
         let l:use_fignos = b:dn_md_settings.number_figures.value
         " requires pandoc-fignos filter be installed
         if l:use_fignos && !executable('pandoc-fignos')
@@ -1123,27 +1169,8 @@ function! s:_image_insert() abort
         call dn#util#error('Image label cannot be blank')
         return
     endif
-    " get image ID
-    call s:_update_ids('figures')
-    let l:default = substitute(tolower(l:label), '[^a-z1-9_-]', '-', 'g')
-    while 1
-        let l:id = input('Enter figure id (empty if none): ', l:default)
-        echo ' '  | " ensure move to a new line
-        " empty value allowed - means no id for this item
-        if empty(l:id) | break | endif
-        " cannot use existing id
-        if count(b:dn_md_ids['figures'], l:id) > 0
-            call dn#util#warn("Figure id '" . l:id . "' already exists")
-            continue
-        endif
-        " must be legal id
-        if l:id !~# '\%^[a-z1-9_-]\+\%$'
-            call dn#util#warn('Figure id can contain only a-z, 1-9, _ and -')
-            continue
-        endif
-        " ok, if here must be legal
-        break
-    endwhile
+    " get image id
+    let l:id = s:_enter_id('figure', l:label)
     " get image filepath
     let l:path = input('Enter image filepath: ', '', 'file')
     echo ' '  | " ensure move to a new line
@@ -1402,7 +1429,7 @@ endfunction
 " s:_update_ids(type)                                                      {{{2
 " does:   update ids for figures, tables or equations in current file 
 " params: type - id type
-"                [string, required, can be 'equations'|'tables'|'figures']
+"                [string, required, can be 'equation'|'table'|'figure']
 " return: list
 " note:   follows basic style of
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
