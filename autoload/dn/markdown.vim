@@ -1116,16 +1116,23 @@ function! s:_image() abort
     " get image ID
     let l:ids = s:_ids('figures')
     let l:default = substitute(tolower(l:label), '[^a-z1-9_-]', '-', 'g')
-    let l:id_sorted = g:dn_false
-    while !l:id_sorted
+    while 1
         let l:id = input('Enter figure id (empty if none): ', l:default)
         echo ' '  | " ensure move to a new line
+        " empty value allowed - means no id for this item
         if empty(l:id) | break | endif
+        " cannot use existing id
         if count(l:ids, l:id) > 0
             call dn#util#warn("Figure id '" . l:id . "' already exists")
-        else
-            let l:id_sorted = g:dn_true
+            continue
         endif
+        " must be legal id
+        if l:id !=# '\%^[a-z1-9_-]\+\%$'
+            call dn#util#warn('Figure id can contain only a-z, 1-9, _ and -')
+            continue
+        endif
+        " ok, if here must be legal
+        break
     endwhile
     " get image filepath
     let l:path = input('Enter image filepath: ', '', 'file')
