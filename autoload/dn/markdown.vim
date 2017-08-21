@@ -1127,7 +1127,7 @@ function! s:_image() abort
             continue
         endif
         " must be legal id
-        if l:id !=# '\%^[a-z1-9_-]\+\%$'
+        if l:id !~# '\%^[a-z1-9_-]\+\%$'
             call dn#util#warn('Figure id can contain only a-z, 1-9, _ and -')
             continue
         endif
