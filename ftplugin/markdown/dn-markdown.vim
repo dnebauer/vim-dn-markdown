@@ -113,7 +113,7 @@ nmap <buffer> <unique> <Plug>DnIIN
 " Commands                                                                 {{{1
 
 " Generate   : generate output                                             {{{2
-command! -buffer -nargs=? -complete=customlist,dn#markdown#complete
+command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ Generate
             \ call dn#markdown#generate({'format': '<args>'})
 
@@ -122,7 +122,7 @@ command! -buffer Regenerate
             \ call dn#markdown#regenerate()
 
 " View       : view output                                                 {{{2
-command! -buffer -nargs=? -complete=customlist,dn#markdown#complete
+command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ View
             \ call dn#markdown#view({'format': '<args>'})
 

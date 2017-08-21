@@ -458,6 +458,16 @@ let s:pandoc_params.pdf_context.params = s:pandoc_params.context.params
 let s:pandoc_params.pdf_html.params    = s:pandoc_params.html.params
 let s:pandoc_params.pdf_latex.params   = s:pandoc_params.latex.params
 
+" numbered structures for referencing                                      {{{1
+" - types
+let s:numbered_types = {
+            \ 'equations': {'prefix': 'eq',  'name' : 'equation'},
+            \ 'figures'  : {'prefix': 'fig', 'name' : 'figure'},
+            \ 'tables'   : {'prefix': 'tbl', 'name' : 'table'},
+            \ }
+" - ids
+let b:dn_md_ids = {'equations' : [], 'figures' : [], 'tables' : []}
+
 " Public functions                                                         {{{1
 
 " dn#markdown#view([params])                                               {{{2
@@ -680,13 +690,13 @@ function! dn#markdown#settings() abort
     let &more = l:more
 endfunction
 
-" dn#markdown#complete(ArgLead, CmdLine, CursorPos)                        {{{2
+" dn#markdown#completeFormat(ArgLead, CmdLine, CursorPos)                  {{{2
 " does:   return completion candidates for output formats
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
 "         CursorPos - see help for |command-completion-custom|
 " return: List of output formats
-function! dn#markdown#complete(A, L, P) abort
+function! dn#markdown#completeFormat(A, L, P) abort
     let l:formats = sort(keys(s:pandoc_params))
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
@@ -704,7 +714,7 @@ function! dn#markdown#image(...) abort
     " params
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     " insert image
-    call s:_image()
+    call s:_image_insert()
     call dn#util#prompt()
     redraw!
     " return to calling mode
@@ -1100,12 +1110,43 @@ function! s:_generator (format) abort
     return l:retval                                                      " }}}3
 endfunction
 
-" s:_image()                                                               {{{2
+" s:_update_ids(type)                                                      {{{2
+" does:   update ids for figures, tables or equations in current file 
+" params: type - id type
+"                [string, required, can be 'equations'|'tables'|'figures']
+" return: list
+" note:   follows basic style of
+"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
+"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
+"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
+function! s:_update_ids(type) abort
+    " check params
+    if !has_key(s:numbered_types, a:type)
+        call dn#util#error("Invalid reference type '" . a:type . "'")
+        return []
+    endif
+    " extract references from file contents
+    " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
+    "   by reference type and ID is a unique value entered by the user
+    " - assume no more than one match per line
+    let l:prefix = s:numbered_types[a:type]['prefix']
+    let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
+    let l:matches = filter(map(getline(1, '$'), 'matchstr(v:val, l:re)'),
+                \ '!empty(v:val)')
+    " extract id strings
+    let l:start = len(l:prefix) + 3  " the 3 accounts for '{', '#' and ':'
+    let l:ids = map(l:matches,
+                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+    " update ids
+    let b:dn_md_ids[a:type] = l:ids
+endfunction
+
+" s:_image_insert()                                                        {{{2
 " does:   insert image following current line
 " params: nil
 " prints: user prompts and feedback
 " return: whether operation succeeded
-function! s:_image() abort
+function! s:_image_insert() abort
     " get image label
     let l:label = input('Enter image label: ')
     echo ' '  | " ensure move to a new line
@@ -1114,7 +1155,7 @@ function! s:_image() abort
         return
     endif
     " get image ID
-    let l:ids = s:_ids('figures')
+    call s:_update_ids('figures')
     let l:default = substitute(tolower(l:label), '[^a-z1-9_-]', '-', 'g')
     while 1
         let l:id = input('Enter figure id (empty if none): ', l:default)
@@ -1122,7 +1163,7 @@ function! s:_image() abort
         " empty value allowed - means no id for this item
         if empty(l:id) | break | endif
         " cannot use existing id
-        if count(l:ids, l:id) > 0
+        if count(b:dn_md_ids['figures'], l:id) > 0
             call dn#util#warn("Figure id '" . l:id . "' already exists")
             continue
         endif
@@ -1279,38 +1320,6 @@ function! s:_process_dict_params(...) abort
         echo 'No output format selected'
     endif
     return [l:insert, l:format]
-endfunction
-
-" s:_ids(type)                                                             {{{2
-" does:   get ids in current file for figures, tables or equations
-" params: type - id type
-"                [string, required, can be 'equations'|'tables'|'figures')]
-" return: list
-" note:   follows basic style of
-"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
-"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
-"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
-function! s:_ids(type) abort
-    " check params
-    let l:prefixes = {'equations': 'eq', 'figures': 'fig', 'tables': 'tbl'}
-    if !has_key(l:prefixes, a:type)
-        call dn#util#error("Invalid reference type '" . a:type . "'")
-        return []
-    endif
-    " extract references from file contents
-    " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
-    "   by reference type and ID is a unique value entered by the user
-    " - assume no more than one match per line
-    let l:prefix = l:prefixes[a:type]
-    let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
-    let l:matches = filter(map(getline(1, '$'), 'matchstr(v:val, l:re)'),
-                \ '!empty(v:val)')
-    " extract id strings
-    let l:start = len(l:prefix) + 3  " the 3 accounts for '{', '#' and ':'
-    let l:ids = map(l:matches,
-                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-    " return results
-    return l:ids
 endfunction
 
 " s:_say(msg1, [msg2])                                                     {{{2
