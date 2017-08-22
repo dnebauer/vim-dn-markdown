@@ -544,10 +544,10 @@ function! dn#markdown#initialise() abort
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     "echo ' [2/3] Configure settings'
-    "silent call s:_settings_configure()
+    silent call s:_settings_configure()
     " extract equation, table and figure ids
     "echo ' [3/3] Extract ids'
-    silent call s:_update_ids('equation', 'figure', 'table')
+    "silent call s:_update_ids('equation', 'figure', 'table')
     "echo "dn-markdown ftplugin initialised\n"
     let l:output = @a
     let @a = l:register_a
