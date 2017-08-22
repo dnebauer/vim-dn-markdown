@@ -509,12 +509,32 @@ function! dn#markdown#generate(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#image([insert])                                              {{{2
+" dn#markdown#idsUpdate([insert])                                          {{{2
+" does:   update id lists for equations, figures and tables
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#idsUpdate(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " update ids
+    call s:_update_ids('equation', 'figure', 'table')
+    echo 'Updates lists of equation, figure and table ids'
+    call dn#util#prompt()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#imageInsert([insert])                                        {{{2
 " does:   insert image following current line
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
 " return: nil
-function! dn#markdown#image(...) abort
+function! dn#markdown#imageInsert(...) abort
     " universal tasks
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
@@ -770,7 +790,7 @@ endfunction
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
 "         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
 "         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
-"         except allows only the characters: a-z, 1-9, _ and -
+"         except allows only the characters: a-z, 0-9, _ and -
 function! s:_enter_id(type, label) abort
     " check params
     if !has_key(s:numbered_types, a:type)
@@ -781,7 +801,7 @@ function! s:_enter_id(type, label) abort
     let l:prefix  = s:numbered_types[a:type]['prefix']
     let l:name    = s:numbered_types[a:type]['name']
     let l:Name    = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
-    let l:default = substitute(tolower(a:label), '[^a-z1-9_-]', '-', 'g')
+    let l:default = substitute(tolower(a:label), '[^a-z0-9_-]', '-', 'g')
     let l:prompt  = 'Enter ' . l:name . ' id (empty if none): '
     "call s:_update_ids(a:type)  " update list of existing ids
     while 1
@@ -795,8 +815,8 @@ function! s:_enter_id(type, label) abort
             continue
         endif
         " must be legal id
-        if l:id !~# '\%^[a-z1-9_-]\+\%$'
-            call dn#util#warn(l:Name . ' ids contain only a-z, 1-9, _ and -')
+        if l:id !~# '\%^[a-z0-9_-]\+\%$'
+            call dn#util#warn(l:Name . ' ids contain only a-z, 0-9, _ and -')
             continue
         endif
         " ok, if here must be legal

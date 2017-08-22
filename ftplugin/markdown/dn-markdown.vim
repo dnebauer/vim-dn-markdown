@@ -96,44 +96,107 @@ if !hasmapto('<Plug>DnESN')
 endif
 nmap <buffer> <unique> <Plug>DnESN
             \ :call dn#markdown#settings()<CR>
+
+" \ui : update lists of ids                                                {{{2
+if !hasmapto('<Plug>DnUII')
+    imap <buffer> <unique> <LocalLeader>ui <Plug>DnUII
+endif
+imap <buffer> <unique> <Plug>DnUII
+            \ <Esc>:call dn#markdown#idsUpdate(g:dn_true)<CR>
+if !hasmapto('<Plug>DnUIN')
+    nmap <buffer> <unique> <LocalLeader>ui <Plug>DnUIN
+endif
+nmap <buffer> <unique> <Plug>DnUIN
+            \ :call dn#markdown#idsUpdate()<CR>
+
 " \ii : insert image                                                       {{{2
 if !hasmapto('<Plug>DnIII')
     imap <buffer> <unique> <LocalLeader>ii <Plug>DnIII
 endif
 imap <buffer> <unique> <Plug>DnIII
-            \ <Esc>:call dn#markdown#image(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#imageInsert(g:dn_true)<CR>
 if !hasmapto('<Plug>DnIIN')
     nmap <buffer> <unique> <LocalLeader>ii <Plug>DnIIN
 endif
 nmap <buffer> <unique> <Plug>DnIIN
-            \ :call dn#markdown#image()<CR>
+            \ :call dn#markdown#imageInsert()<CR>
 
+" \ie : insert equation reference                                          {{{2
+if !hasmapto('<Plug>DnIEI')
+    imap <buffer> <unique> <LocalLeader>ie <Plug>DnIEI
+endif
+imap <buffer> <unique> <Plug>DnIEI
+            \ <Esc>:call dn#markdown#equationRef(g:dn_true)<CR>
+if !hasmapto('<Plug>DnIEN')
+    nmap <buffer> <unique> <LocalLeader>ie <Plug>DnIEN
+endif
+nmap <buffer> <unique> <Plug>DnIEN
+            \ :call dn#markdown#equationRef()<CR>
+
+" \ir : insert image reference                                             {{{2
+if !hasmapto('<Plug>DnIRI')
+    imap <buffer> <unique> <LocalLeader>ir <Plug>DnIRI
+endif
+imap <buffer> <unique> <Plug>DnIRI
+            \ <Esc>:call dn#markdown#imageRef(g:dn_true)<CR>
+if !hasmapto('<Plug>DnIRN')
+    nmap <buffer> <unique> <LocalLeader>ir <Plug>DnIRN
+endif
+nmap <buffer> <unique> <Plug>DnIRN
+            \ :call dn#markdown#imageRef()<CR>
+
+" \it : insert table reference                                             {{{2
+if !hasmapto('<Plug>DnITI')
+    imap <buffer> <unique> <LocalLeader>it <Plug>DnITI
+endif
+imap <buffer> <unique> <Plug>DnITI
+            \ <Esc>:call dn#markdown#tableRef(g:dn_true)<CR>
+if !hasmapto('<Plug>DnITN')
+    nmap <buffer> <unique> <LocalLeader>it <Plug>DnITN
+endif
+nmap <buffer> <unique> <Plug>DnITN
+            \ :call dn#markdown#tableRef()<CR>
                                                                          " }}}2
-
 " Commands                                                                 {{{1
 
-" Generate   : generate output                                             {{{2
+" EquationReference : insert image reference                               {{{2
+command! -buffer EquationReference
+            \ call dn#markdown#equationRef()
+
+" Generate          : generate output                                      {{{2
 command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ Generate
             \ call dn#markdown#generate({'format': '<args>'})
 
-" Regenerate : regenerate all previous output                              {{{2
+" ImageInsert       : insert image                                         {{{2
+command! -buffer ImageInsert
+            \ call dn#markdown#imageInsert()
+
+" ImageReference    : insert image reference                               {{{2
+command! -buffer ImageReference
+            \ call dn#markdown#imageRef()
+
+" Regenerate        : regenerate all previous output                       {{{2
 command! -buffer Regenerate
             \ call dn#markdown#regenerate()
 
-" View       : view output                                                 {{{2
+" Settings          : edit settings                                        {{{2
+command! -buffer Settings
+            \ call dn#markdown#settings()
+
+" TableReference    : insert image reference                               {{{2
+command! -buffer TableReference
+            \ call dn#markdown#tableRef()
+
+" UpdateIDs         : update id lists                                      {{{2
+command! -buffer UpdateIDs
+            \ call dn#markdown#idsUpdate()
+
+" View              : view output                                          {{{2
 command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ View
             \ call dn#markdown#view({'format': '<args>'})
-
-" Settings   : edit settings                                               {{{2
-command! -buffer Settings
-            \ call dn#markdown#settings()
-" Image      : insert image                                                {{{2
-command! -buffer Image
-            \ call dn#markdown#image()
                                                                          " }}}2
-
 " Initialise                                                               {{{1
 call dn#markdown#initialise()
 
