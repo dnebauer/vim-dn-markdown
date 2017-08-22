@@ -545,7 +545,7 @@ function! dn#markdown#initialise() abort
     " extract equation, table and figure ids
     echo ' [3/3] Extract ids'
     call s:_update_ids('equation', 'figure', 'table')
-    echo 'dn-markdown ftplugin initialised'
+    echo "dn-markdown ftplugin initialised\n"
 endfunction
 
 " dn#markdown#regenerate([insert])                                         {{{2
