@@ -540,14 +540,14 @@ function! dn#markdown#initialise() abort
     " unlike other settings set statically with b:dn_md_settings variable)
     "echo 'dn-markdown ftplugin initialisation:'
     "echo ' [1/3] Set default html stylesheet'
-    silent call s:_set_default_html_stylesheet()
+    "silent call s:_set_default_html_stylesheet()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     "echo ' [2/3] Configure settings'
-    "silent call s:_settings_configure()
+    silent call s:_settings_configure()
     " extract equation, table and figure ids
     "echo ' [3/3] Extract ids'
-    "silent call s:_update_ids('equation', 'figure', 'table')
+    silent call s:_update_ids('equation', 'figure', 'table')
     "echo "dn-markdown ftplugin initialised\n"
     let l:output = @a
     let @a = l:register_a
