@@ -533,6 +533,9 @@ endfunction
 " params: nil
 " return: nil
 function! dn#markdown#initialise() abort
+    let l:register_a = @a
+    let @a = ''
+    redir @a>>
     " set default html stylesheet (because it must be set dynamically,
     " unlike other settings set statically with b:dn_md_settings variable)
     "echo 'dn-markdown ftplugin initialisation:'
@@ -546,6 +549,9 @@ function! dn#markdown#initialise() abort
     "echo ' [3/3] Extract ids'
     silent call s:_update_ids('equation', 'figure', 'table')
     "echo "dn-markdown ftplugin initialised\n"
+    let l:output = @a
+    let @a = l:register_a
+    if !empty(l:output) | echo '>>' . l:output . '<<' | endif
 endfunction
 
 " dn#markdown#regenerate([insert])                                         {{{2
