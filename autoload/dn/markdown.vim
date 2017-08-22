@@ -540,7 +540,7 @@ function! dn#markdown#initialise() abort
     " unlike other settings set statically with b:dn_md_settings variable)
     "echo 'dn-markdown ftplugin initialisation:'
     "echo ' [1/3] Set default html stylesheet'
-    silent call s:_set_default_html_stylesheet()
+    "silent call s:_set_default_html_stylesheet()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     "echo ' [2/3] Configure settings'
