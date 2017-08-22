@@ -135,7 +135,7 @@ command! -buffer Image
                                                                          " }}}2
 
 " Initialise                                                               {{{1
-call dn#markdown#initialise()
+debug call dn#markdown#initialise()
 
 " Restore cpoptions                                                        {{{1
 let &cpoptions = s:save_cpo
