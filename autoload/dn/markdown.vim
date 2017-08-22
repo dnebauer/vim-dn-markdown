@@ -551,7 +551,7 @@ function! dn#markdown#initialise() abort
     "echo "dn-markdown ftplugin initialised\n"
     let l:output = @a
     let @a = l:register_a
-    if !empty(l:output) | echo '>>' . l:output . '<<' | endif
+    if !empty(l:output) | echo '>>' . l:output . "<<\n" | endif
 endfunction
 
 " dn#markdown#regenerate([insert])                                         {{{2
