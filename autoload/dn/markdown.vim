@@ -533,25 +533,15 @@ endfunction
 " params: nil
 " return: nil
 function! dn#markdown#initialise() abort
-    let l:register_a = @a
-    let @a = ''
-    redir @a>>
+    if s:_utils_missing() | return | endif |  " requires dn-utils plugin
     " set default html stylesheet (because it must be set dynamically,
     " unlike other settings set statically with b:dn_md_settings variable)
-    "echo 'dn-markdown ftplugin initialisation:'
-    "echo ' [1/3] Set default html stylesheet'
     silent call s:_set_default_html_stylesheet()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
-    "echo ' [2/3] Configure settings'
     silent call s:_settings_configure()
     " extract equation, table and figure ids
-    "echo ' [3/3] Extract ids'
     silent call s:_update_ids('equation', 'figure', 'table')
-    "echo "dn-markdown ftplugin initialised\n"
-    let l:output = @a
-    let @a = l:register_a
-    if !empty(l:output) | echo '>>' . l:output . "<<\n" | endif
 endfunction
 
 " dn#markdown#regenerate([insert])                                         {{{2
@@ -1329,8 +1319,6 @@ endfunction
 " params: nil
 " return: nil, sets variable in place
 function! s:_set_default_html_stylesheet() abort
-    " universal tasks
-    if s:_utils_missing() | return | endif |  " requires dn-utils plugin
     " requires s:dn_md_settings.stylesheet_html.default
     if !exists('b:dn_md_settings')
         echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
