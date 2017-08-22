@@ -11,14 +11,14 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 " Variables                                                                {{{1
-" operating system                                                         {{{2
+" operating system (s:os)                                                  {{{2
 if has('win32') || has ('win64')
     let s:os = 'win'
 elseif has('unix')
     let s:os = 'nix'
 endif
 
-" outputted formats                                                        {{{2
+" outputted formats (b:dn_md_outputted_formats)                            {{{2
 let b:dn_md_outputted_formats = {}
 
 " pandoc settings menu (s:menu_items, s:menu_prompt)                       {{{2
@@ -458,7 +458,7 @@ let s:pandoc_params.pdf_context.params = s:pandoc_params.context.params
 let s:pandoc_params.pdf_html.params    = s:pandoc_params.html.params
 let s:pandoc_params.pdf_latex.params   = s:pandoc_params.latex.params
 
-" numbered structures for referencing                                      {{{1
+" ids for numbered structures (s:numbered_types, b:dn_md_ids)              {{{2
 " - types
 let s:numbered_types = {
             \ 'equation': {'prefix': 'eq',  'name' : 'equation'},
@@ -537,14 +537,14 @@ function! dn#markdown#initialise() abort
     " unlike other settings set statically with b:dn_md_settings variable)
     "echo 'dn-markdown ftplugin initialisation:'
     "echo ' [1/3] Set default html stylesheet'
-    call s:_set_default_html_stylesheet()
+    silent call s:_set_default_html_stylesheet()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     "echo ' [2/3] Configure settings'
-    call s:_settings_configure()
+    silent call s:_settings_configure()
     " extract equation, table and figure ids
     "echo ' [3/3] Extract ids'
-    call s:_update_ids('equation', 'figure', 'table')
+    silent call s:_update_ids('equation', 'figure', 'table')
     "echo "dn-markdown ftplugin initialised\n"
 endfunction
 
@@ -787,7 +787,7 @@ function! s:_enter_id(type, label) abort
     let l:Name    = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
     let l:default = substitute(tolower(a:label), '[^a-z1-9_-]', '-', 'g')
     let l:prompt  = 'Enter ' . l:name . ' id (empty if none): '
-    call s:_update_ids(a:type)  " update list of existing ids
+    "call s:_update_ids(a:type)  " update list of existing ids
     while 1
         let l:id = input(l:prompt, l:default)
         echo ' '  | " ensure move to a new line
@@ -1171,6 +1171,7 @@ function! s:_image_insert() abort
     endif
     " get image id
     let l:id = s:_enter_id('figure', l:label)
+    let l:full_id = '{#fig:' . l:id . '}'
     " get image filepath
     let l:path = input('Enter image filepath: ', '', 'file')
     echo ' '  | " ensure move to a new line
@@ -1188,11 +1189,14 @@ function! s:_image_insert() abort
     let l:cursor[2] = len(l:indent)    " column number
     let l:line      = ['![', l:label, '](', l:path, ' "', l:label, '")']
     if !empty(l:id)
-        call extend(l:line, ['{#fig:', l:id, '}'])
+        call add(l:line, l:full_id)
     endif
     let l:lines = [l:indent, join(l:line, ''), l:indent, l:indent]
     call append(line('.'), l:lines)
     call setpos('.', l:cursor)
+    " update ids list
+    " - has to be unique or would not have been allowed
+    call add(b:dn_md_ids.figure, l:id)
     return g:dn_true
 endfunction
 
