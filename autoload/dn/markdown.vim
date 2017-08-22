@@ -69,8 +69,8 @@ let s:menu_items = {
             \ }
 " pandoc settings values (b:dn_md_settings)                                {{{2
 " - keep b:dn_md_settings.stylesheet_html.default = '' as it is set by
-"   function s:_initialise to the stylesheet provided by this plugin
-"   (unless it is set by the corresponding config variable)
+"   function dn#markdown#initialise to the stylesheet provided by this
+"   plugin (unless it is set by the corresponding config variable)
 let b:dn_md_settings = {
             \ 'citeproc_all' : {
             \   'label'   : 'Use pandoc-citeproc filter [all formats]',
@@ -470,6 +470,185 @@ let b:dn_md_ids = {'equation' : [], 'figure' : [], 'table' : []}
 
 " Public functions                                                         {{{1
 
+" dn#markdown#completeFormat(ArgLead, CmdLine, CursorPos)                  {{{2
+" does:   return completion candidates for output formats
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of output formats
+function! dn#markdown#completeFormat(A, L, P) abort
+    let l:formats = sort(keys(s:pandoc_params))
+    return filter(l:formats, 'v:val =~# "^' . a:A . '"')
+endfunction
+
+" dn#markdown#generate([params])                                           {{{2
+" does:   generate output
+" params: params - parameters dictionary with the following keys:
+"                  'insert' - whether entered from insert mode
+"                             [optional, default=<false>, boolean]
+"                  'format' - output format
+"                             [optional, no default,
+"                              must be a key of s:pandoc_params]
+" return: nil
+function! dn#markdown#generate(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " process params
+    let [l:insert, l:format] = s:_process_dict_params(a:000)
+    if empty(l:format) | let l:format = s:_select_format() | endif
+    if empty(l:format) | return | endif
+    " generate output
+    let l:more = &more
+    set nomore
+    if s:_generator(l:format) | echo 'Done' | endif
+    call dn#util#prompt()
+    redraw!
+    let &more = l:more
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#image([insert])                                              {{{2
+" does:   insert image following current line
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#image(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_image_insert()
+    call dn#util#prompt()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#initialise()                                                 {{{2
+" does:   initialise plugin
+" params: nil
+" return: nil
+function! dn#markdown#initialise() abort
+    " set default html stylesheet (because it must be set dynamically,
+    " unlike other settings set statically with b:dn_md_settings variable)
+    echo 'dn-markdown ftplugin initialisation:'
+    echo ' [1/3] Set default html stylesheet'
+    call s:_set_default_html_stylesheet()
+    " set parameters from configuration variables where available,
+    " otherwise set to their default values
+    echo ' [2/3] Configure settings'
+    call s:_settings_configure()
+    " extract equation, table and figure ids
+    echo ' [3/3] Extract ids'
+    call s:_update_ids('equation', 'figure', 'table')
+    echo 'dn-markdown ftplugin initialised'
+endfunction
+
+" dn#markdown#regenerate([insert])                                         {{{2
+" does:   regenerate all previously outputted files
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#regenerate(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " check for previous output
+    let l:more = &more
+    set nomore
+    let l:formats = keys(b:dn_md_outputted_formats)
+    if empty(l:formats)  " inform user
+        let l:msg = 'No output files have been generated during this session'
+        call dn#util#warn(l:msg)
+    else  " generate output
+        let l:succeeded = g:dn_true
+        for l:format in l:formats
+            if !s:_generator(l:format) | let l:succeeded = g:dn_false | endif
+        endfor
+        if l:succeeded | echo 'Done'
+        else           | call dn#util#error('Problems occurred during output')
+        endif
+    endif
+    call dn#util#prompt()
+    redraw!
+    let &more = l:more
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#settings()                                                   {{{2
+" does:   change settings, e.g., b:dn_md_settings.<var>.value
+" params: nil
+" return: nil, edits b:dn_md_settings in place
+function! dn#markdown#settings() abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif |  " requires dn-utils plugin
+    " get setting to edit
+    let l:more = &more
+    set nomore
+    let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
+    while count(keys(b:dn_md_settings), l:setting) == 1
+        let l:label   = b:dn_md_settings[l:setting]['label']
+        let l:value   = b:dn_md_settings[l:setting]['value']
+        let l:source  = b:dn_md_settings[l:setting]['source']
+        let l:allowed = b:dn_md_settings[l:setting]['allowed']
+        let l:prompt  = b:dn_md_settings[l:setting]['prompt'] . ' '
+        " notify user of current setting
+        echo l:label
+        call s:_say('Current value:', s:_display_value(l:value, l:setting))
+        call s:_say('Source:', l:source)
+        " display allowed values and get user input
+        if     type(l:allowed) == type([])
+            call s:_say('Allowed:', join(l:allowed, ', '))
+            let l:options = []
+            for l:option in sort(l:allowed)
+                let l:item = (type(l:option) == type('')) ? l:option
+                            \                             : string(l:option)
+                call add(l:options, {l:item : l:option})
+            endfor
+            let l:input = dn#util#menuSelect(l:options, l:prompt)
+        elseif l:allowed ==# 'boolean'
+            call s:_say('Allowed:', 'Yes, No')
+            let l:options = [{'Yes': g:dn_true}, {'No': g:dn_false}]
+            let l:input = dn#util#menuSelect(l:options, l:prompt)
+        elseif l:allowed ==# 'executable'
+            call s:_say('Allowed:', '[valid executable file name]')
+            let l:input = input(l:prompt, l:value, 'file_in_path')
+            echo ' '  | " ensure move to a new line
+        elseif l:allowed ==# 'path_url'
+            call s:_say('Allowed:', '[valid file path or url]')
+            let l:input = input(l:prompt, l:value, 'file')
+            echo ' '  | " ensure move to a new line
+        elseif l:allowed ==# 'template_file'
+            call s:_say('Allowed:', '[valid base/file name, file path or url]')
+            let l:input = input(l:prompt, l:value, 'file')
+            echo ' '  | " ensure move to a new line
+        else  " script error!
+            call dn#util#error("Invalid 'allowed' value: '" . l:allowed . "'")
+            let &more = l:more
+            return
+        endif
+        " validate input
+        if s:_valid_setting_value(l:input, l:setting)
+            let b:dn_md_settings[l:setting]['value']  = l:input
+            let b:dn_md_settings[l:setting]['source'] = 'set by user'
+            call s:_say('Now set to:', s:_display_value(l:input, l:setting))
+        else
+            call dn#util#error('Error: Not a valid value')
+        endif
+        " get next setting to change
+        let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
+    endwhile
+    let &more = l:more
+endfunction
+
 " dn#markdown#view([params])                                               {{{2
 " does:   view output of a specified format
 " params: params - parameters dictionary with the following keys:
@@ -483,8 +662,7 @@ let b:dn_md_ids = {'equation' : [], 'figure' : [], 'table' : []}
 function! dn#markdown#view(...) abort
     " universal tasks                                                      {{{3
     echo '' |  " clear command line
-    if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
-    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
+    if s:_utils_missing() | return | endif |  " requires dn-utils plugin
     " process params                                                       {{{3
     let [l:insert, l:format] = s:_process_dict_params(a:000)
     let l:more = &more
@@ -558,169 +736,6 @@ function! dn#markdown#view(...) abort
     endtry
 endfunction
 
-" dn#markdown#generate([params])                                           {{{2
-" does:   generate output
-" params: params - parameters dictionary with the following keys:
-"                  'insert' - whether entered from insert mode
-"                             [optional, default=<false>, boolean]
-"                  'format' - output format
-"                             [optional, no default,
-"                              must be a key of s:pandoc_params]
-" return: nil
-function! dn#markdown#generate(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
-    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
-    " process params
-    let [l:insert, l:format] = s:_process_dict_params(a:000)
-    if empty(l:format) | let l:format = s:_select_format() | endif
-    if empty(l:format) | return | endif
-    " generate output
-    let l:more = &more
-    set nomore
-    if s:_generator(l:format) | echo 'Done' | endif
-    call dn#util#prompt()
-    redraw!
-    let &more = l:more
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
-" dn#markdown#regenerate([insert])                                         {{{2
-" does:   regenerate all previously outputted files
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#regenerate(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
-    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    " check for previous output
-    let l:more = &more
-    set nomore
-    let l:formats = keys(b:dn_md_outputted_formats)
-    if empty(l:formats)  " inform user
-        let l:msg = 'No output files have been generated during this session'
-        call dn#util#warn(l:msg)
-    else  " generate output
-        let l:succeeded = g:dn_true
-        for l:format in l:formats
-            if !s:_generator(l:format) | let l:succeeded = g:dn_false | endif
-        endfor
-        if l:succeeded | echo 'Done'
-        else           | call dn#util#error('Problems occurred during output')
-        endif
-    endif
-    call dn#util#prompt()
-    redraw!
-    let &more = l:more
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
-" dn#markdown#settings()                                                   {{{2
-" does:   change settings, e.g., b:dn_md_settings.<var>.value
-" params: nil
-" return: nil, edits b:dn_md_settings in place
-function! dn#markdown#settings() abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
-    if !exists('s:initialised') | call s:_initialise() | endif
-    " get setting to edit
-    let l:more = &more
-    set nomore
-    let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
-    while count(keys(b:dn_md_settings), l:setting) == 1
-        let l:label   = b:dn_md_settings[l:setting]['label']
-        let l:value   = b:dn_md_settings[l:setting]['value']
-        let l:source  = b:dn_md_settings[l:setting]['source']
-        let l:allowed = b:dn_md_settings[l:setting]['allowed']
-        let l:prompt  = b:dn_md_settings[l:setting]['prompt'] . ' '
-        " notify user of current setting
-        echo l:label
-        call s:_say('Current value:', s:_display_value(l:value, l:setting))
-        call s:_say('Source:', l:source)
-        " display allowed values and get user input
-        if     type(l:allowed) == type([])
-            call s:_say('Allowed:', join(l:allowed, ', '))
-            let l:options = []
-            for l:option in sort(l:allowed)
-                let l:item = (type(l:option) == type('')) ? l:option
-                            \                             : string(l:option)
-                call add(l:options, {l:item : l:option})
-            endfor
-            let l:input = dn#util#menuSelect(l:options, l:prompt)
-        elseif l:allowed ==# 'boolean'
-            call s:_say('Allowed:', 'Yes, No')
-            let l:options = [{'Yes': g:dn_true}, {'No': g:dn_false}]
-            let l:input = dn#util#menuSelect(l:options, l:prompt)
-        elseif l:allowed ==# 'executable'
-            call s:_say('Allowed:', '[valid executable file name]')
-            let l:input = input(l:prompt, l:value, 'file_in_path')
-            echo ' '  | " ensure move to a new line
-        elseif l:allowed ==# 'path_url'
-            call s:_say('Allowed:', '[valid file path or url]')
-            let l:input = input(l:prompt, l:value, 'file')
-            echo ' '  | " ensure move to a new line
-        elseif l:allowed ==# 'template_file'
-            call s:_say('Allowed:', '[valid base/file name, file path or url]')
-            let l:input = input(l:prompt, l:value, 'file')
-            echo ' '  | " ensure move to a new line
-        else  " script error!
-            call dn#util#error("Invalid 'allowed' value: '" . l:allowed . "'")
-            let &more = l:more
-            return
-        endif
-        " validate input
-        if s:_valid_setting_value(l:input, l:setting)
-            let b:dn_md_settings[l:setting]['value']  = l:input
-            let b:dn_md_settings[l:setting]['source'] = 'set by user'
-            call s:_say('Now set to:', s:_display_value(l:input, l:setting))
-        else
-            call dn#util#error('Error: Not a valid value')
-        endif
-        " get next setting to change
-        let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
-    endwhile
-    let &more = l:more
-endfunction
-
-" dn#markdown#completeFormat(ArgLead, CmdLine, CursorPos)                  {{{2
-" does:   return completion candidates for output formats
-" params: ArgLead   - see help for |command-completion-custom|
-"         CmdLine   - see help for |command-completion-custom|
-"         CursorPos - see help for |command-completion-custom|
-" return: List of output formats
-function! dn#markdown#completeFormat(A, L, P) abort
-    let l:formats = sort(keys(s:pandoc_params))
-    return filter(l:formats, 'v:val =~# "^' . a:A . '"')
-endfunction
-
-" dn#markdown#image([insert])                                              {{{2
-" does:   insert image following current line
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#image(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
-    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    " insert image
-    call s:_image_insert()
-    call dn#util#prompt()
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
 " Private functions                                                        {{{1
 
 " s:_display_value(value, setting)                                         {{{2
@@ -737,21 +752,6 @@ function! s:_display_value(value, setting) abort
                     \                        : dn#util#stringify(a:value)
     endif
     return l:display_value
-endfunction
-
-" s:_dn_utils_missing()                                                    {{{2
-" does:   determine whether dn-utils plugin is loaded
-" params: nil
-" prints: nil
-" return: whether dn-utils plugin is loaded
-function! s:_dn_utils_missing() abort
-    if exists('g:loaded_dn_utils')
-        return g:dn_false
-    else
-        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
-        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
-        return g:dn_true
-    endif
 endfunction
 
 " s:_ebook_post_processing(format)                                         {{{2
@@ -1196,56 +1196,6 @@ function! s:_image_insert() abort
     return g:dn_true
 endfunction
 
-" s:_initialise()                                                          {{{2
-" does:   initialise plugin
-" params: nil
-" return: nil
-function! s:_initialise() abort
-    let s:initialised = 1  " do only once
-    " set default html stylesheet (because it must be set dynamically,
-    " unlike other settings set statically with b:dn_md_settings variable)
-    call s:_set_default_html_stylesheet()
-    " set parameters from configuration variables where available,
-    " otherwise set to their default values
-    for l:setting in keys(b:dn_md_settings)
-        let l:default = b:dn_md_settings[l:setting]['default']
-        let l:config  = b:dn_md_settings[l:setting]['config']
-        let l:allowed = b:dn_md_settings[l:setting]['allowed']
-        let l:source  = b:dn_md_settings[l:setting]['source']
-        let l:set_from_config = g:dn_false
-        if exists(l:config)  " try to set from config variable
-            let l:value = {l:config}
-            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
-                let l:source = 'set from configuration variable ' . l:config
-                let b:dn_md_settings[l:setting]['value']  = l:value
-                let b:dn_md_settings[l:setting]['source'] = l:source
-                let l:set_from_config = g:dn_true
-            else
-                let l:msgs = ["Attempted to set '" . l:setting . "'",
-                            \ "from variable '" . l:config . "', but it",
-                            \ "had the invalid value '" . l:value . "'",
-                            \ ]
-                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
-            endif
-        endif
-        if !l:set_from_config  " try to set from default
-            let l:value = b:dn_md_settings[l:setting]['default']
-            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
-                let l:source = 'default'
-                let b:dn_md_settings[l:setting]['value']  = l:value
-                let b:dn_md_settings[l:setting]['source'] = l:source
-            else
-                let l:msgs = ["Attempted to set '" . l:setting . "' from",
-                            \ "invalid default value '" . l:value . "'",
-                            \ ]
-                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
-            endif
-        endif
-    endfor
-    " reset outputted formats
-    let l:dn_md_outputted_formats = {}
-endfunction
-
 " s:_process_dict_params(params)                                           {{{2
 " does:   process dict param used by dn#markdown#{view,output}
 " params: params - List that may contain a parameters dictionary
@@ -1259,8 +1209,7 @@ endfunction
 function! s:_process_dict_params(...) abort
     " universal tasks
     echo '' |  " clear command line
-    if !exists('s:initialised') | call s:_initialise() | endif  " initialise
-    if s:_dn_utils_missing() | return | endif  " requires dn-utils plugin
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " default params
     let l:insert = g:dn_false | let l:format = '' |  " defaults
     " expecting a list containing a single dict
@@ -1372,7 +1321,7 @@ endfunction
 function! s:_set_default_html_stylesheet() abort
     " universal tasks
     echo '' |  " clear command line
-    if s:_dn_utils_missing() | return | endif |  " requires dn-utils plugin
+    if s:_utils_missing() | return | endif |  " requires dn-utils plugin
     " requires s:dn_md_settings.stylesheet_html.default
     if !exists('b:dn_md_settings')
         echoerr 'dn-markdown ftplugin cannot set html stylesheet default'
@@ -1426,35 +1375,111 @@ function! s:_set_default_html_stylesheet() abort
     let b:dn_md_settings.stylesheet_html.default = l:stylesheet
 endfunction
 
-" s:_update_ids(type)                                                      {{{2
+" s:_settings_configure()                                                  {{{2
+" does:   configure settings variables
+" params: nil
+" return: nil
+function! s:_settings_configure() abort
+    " set parameters from configuration variables where available,
+    " otherwise set to their default values
+    for l:setting in keys(b:dn_md_settings)
+        let l:default = b:dn_md_settings[l:setting]['default']
+        let l:config  = b:dn_md_settings[l:setting]['config']
+        let l:allowed = b:dn_md_settings[l:setting]['allowed']
+        let l:source  = b:dn_md_settings[l:setting]['source']
+        let l:set_from_config = g:dn_false
+        if exists(l:config)  " try to set from config variable
+            let l:value = {l:config}
+            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
+                let l:source = 'set from configuration variable ' . l:config
+                let b:dn_md_settings[l:setting]['value']  = l:value
+                let b:dn_md_settings[l:setting]['source'] = l:source
+                let l:set_from_config = g:dn_true
+            else
+                let l:msgs = ["Attempted to set '" . l:setting . "'",
+                            \ "from variable '" . l:config . "', but it",
+                            \ "had the invalid value '" . l:value . "'",
+                            \ ]
+                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
+            endif
+        endif
+        if !l:set_from_config  " try to set from default
+            let l:value = b:dn_md_settings[l:setting]['default']
+            if s:_valid_setting_value(l:value, l:setting, g:dn_true)
+                let l:source = 'default'
+                let b:dn_md_settings[l:setting]['value']  = l:value
+                let b:dn_md_settings[l:setting]['source'] = l:source
+            else
+                let l:msgs = ["Attempted to set '" . l:setting . "' from",
+                            \ "invalid default value '" . l:value . "'",
+                            \ ]
+                for l:msg in l:msgs | call dn#util#error(l:msg) | endfor
+            endif
+        endif
+    endfor
+    " reset outputted formats
+    let l:dn_md_outputted_formats = {}
+endfunction
+
+" s:_update_ids(type, [type, [type]])                                      {{{2
 " does:   update ids for figures, tables or equations in current file 
-" params: type - id type
+" params: type - id types, duplicates ignored
 "                [string, required, can be 'equation'|'table'|'figure']
 " return: list
 " note:   follows basic style of
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
 "         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
 "         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
-function! s:_update_ids(type) abort
+function! s:_update_ids(...) abort
     " check params
-    if !has_key(s:numbered_types, a:type)
-        call dn#util#error("Invalid reference type '" . a:type . "'")
+    let l:types = uniq(sort(copy(a:000)))
+    if empty(l:types)  " script error
+        call dn#util#error('No id types provided')
+        return []
+    endif
+    let l:invalid = []
+    for l:type in l:types
+        if !has_key(s:numbered_types, l:type)
+            call add(l:invalid, l:type)
+        endif
+    endfor
+    if !empty(l:invalid)
+        let l:msg = 'Invalid reference type(s): ' . join(l:invalid, ', ')
+        call dn#util#error(l:msg)
         return []
     endif
     " extract references from file contents
     " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    let l:prefix = s:numbered_types[a:type]['prefix']
-    let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
-    let l:matches = filter(map(getline(1, '$'), 'matchstr(v:val, l:re)'),
-                \ '!empty(v:val)')
-    " extract id strings
-    let l:start = len(l:prefix) + 3  " the 3 accounts for '{', '#' and ':'
-    let l:ids = map(l:matches,
-                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-    " update ids
-    let b:dn_md_ids[a:type] = l:ids
+    let l:lines = getline(1, '$')
+    for l:type in l:types
+        let l:prefix = s:numbered_types[l:type]['prefix']
+        let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
+        let l:matches = filter(map(l:lines, 'matchstr(v:val, l:re)'),
+                    \ '!empty(v:val)')
+        " extract id strings
+        let l:start = len(l:prefix) + 3  " the 3 is for '{', '#' and ':'
+        let l:ids = map(l:matches,
+                    \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+        " update ids
+        let b:dn_md_ids[l:type] = l:ids
+    endfor
+endfunction
+
+" s:_utils_missing()                                                       {{{2
+" does:   determine whether dn-utils plugin is loaded
+" params: nil
+" prints: nil
+" return: whether dn-utils plugin is loaded
+function! s:_utils_missing() abort
+    if exists('g:loaded_dn_utils')
+        return g:dn_false
+    else
+        echoerr 'dn-markdown ftplugin cannot find the dn-utils plugin'
+        echoerr 'dn-markdown ftplugin requires the dn-utils plugin'
+        return g:dn_true
+    endif
 endfunction
 
 " s:_valid_format(format)                                                  {{{2
