@@ -1473,7 +1473,7 @@ function! s:_update_ids(...) abort
     for l:type in l:types
         let l:prefix = s:numbered_types[l:type]['prefix']
         let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
-        let l:matches = filter(map(l:lines, 'matchstr(v:val, l:re)'),
+        let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
                     \ '!empty(v:val)')
         " extract id strings
         let l:start = len(l:prefix) + 3  " the 3 is for '{', '#' and ':'
