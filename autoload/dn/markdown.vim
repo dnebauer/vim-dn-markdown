@@ -540,7 +540,7 @@ function! dn#markdown#initialise() abort
     " unlike other settings set statically with b:dn_md_settings variable)
     "echo 'dn-markdown ftplugin initialisation:'
     "echo ' [1/3] Set default html stylesheet'
-    "silent call s:_set_default_html_stylesheet()
+    silent call s:_set_default_html_stylesheet()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     "echo ' [2/3] Configure settings'
@@ -1353,36 +1353,6 @@ function! s:_set_default_html_stylesheet() abort
         call extend(l:style_filepaths,
                     \ glob(l:style_dir . '/*', g:dn_false, g:dn_true))
     endfor
-    " examine found file(s)
-    let l:stylesheet = ''
-    if     len(l:style_filepaths) == 0
-        " whoah, who deleted the ftplugin stylesheet?
-        echoerr 'dn-markdown ftplugin cannot find default stylesheet'
-        return
-    elseif len(l:style_filepaths) == 1
-        " found expected single match
-        let l:stylesheet = l:style_filepaths[0]
-    else
-        " okay, there are multiple css files (and possibly from multiple
-        " matching subdirectories) (how?) -- anyway, let's pick one of them
-        let l:menu_options = {}
-        for l:style_filepath in l:style_filepaths
-            let l:menu_option = fnamemodify(l:style_filepath, ':t:r')
-            let l:menu_options[l:menu_option] = l:style_filepath
-        endfor
-        let l:msg = 'dn-markdown ftplugin found '
-                    \. 'multiple default html stylesheets'
-        call dn#util#warn(l:msg)
-        call dn#util#warn('-- that should not happen with this plugin')
-        let l:prompt = 'Select default html stylesheet:'
-        let l:selection = dn#util#menuSelect(l:menu_options, l:prompt)
-        if !empty(l:selection)
-            let l:stylesheet = l:selection
-        endif
-    endif
-    " set value
-    if empty(l:stylesheet) | return | endif
-    let b:dn_md_settings.stylesheet_html.default = l:stylesheet
 endfunction
 
 " s:_settings_configure()                                                  {{{2
