@@ -1212,7 +1212,7 @@ function! s:_image_insert() abort
     call setpos('.', l:cursor)
     " update ids list
     " - has to be unique or would not have been allowed
-    call s:_increment_id_count(b:dn_md_ids['figure'], l:id)
+    call s:_increment_id_count('figure', l:id)
     return g:dn_true
 endfunction
 
