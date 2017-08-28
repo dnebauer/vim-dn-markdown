@@ -466,7 +466,7 @@ let s:numbered_types = {
             \ 'table'   : {'prefix': 'tbl', 'name' : 'table'},
             \ }
 " - ids
-let b:dn_md_ids = {'equation' : [], 'figure' : [], 'table' : []}
+let b:dn_md_ids = {'equation' : {}, 'figure' : {}, 'table' : {}}
 
 " Public functions                                                         {{{1
 
@@ -810,7 +810,7 @@ function! s:_enter_id(type, label) abort
         " empty value allowed - means no id for this item
         if empty(l:id) | break | endif
         " cannot use existing id
-        if count(b:dn_md_ids[a:type], l:id) > 0
+        if has_key(b:dn_md_ids[a:type], l:id)
             call dn#util#warn(l:Name . " id '" . l:id . "' already exists")
             continue
         endif
@@ -1212,7 +1212,7 @@ function! s:_image_insert() abort
     call setpos('.', l:cursor)
     " update ids list
     " - has to be unique or would not have been allowed
-    call add(b:dn_md_ids.figure, l:id)
+    call s:_increment_id_count(b:dn_md_ids['figure'], l:id)
     return g:dn_true
 endfunction
 
@@ -1438,6 +1438,30 @@ function! s:_settings_configure() abort
     let l:dn_md_outputted_formats = {}
 endfunction
 
+" s:_increment_id_count(type, id)                                          {{{2
+" does:   increase id count by one
+" params: type - id type
+"                [string, required, can be 'equation'|'table'|'figure']
+"         id   - id to increment count for [string, required]
+" return: nil
+function! s:_increment_id_count(type, id) abort
+    " check params
+    if empty(a:id) || empty (a:type)  " script error
+        call dn#util#error("Did not get both id ('"
+                    \ . a:id . "') and type ('" . a:type . "')")
+        return
+    endif
+    if !has_key(s:numbered_types, a:type)  " script error
+        call dn#util#error("Invalid type: " . a:type)
+    endif
+    " update id count
+    if has_key(b:dn_md_ids[a:type], a:id)
+        let b:dn_md_ids[a:type][a:id] += 1
+    else
+        let b:dn_md_ids[a:type][a:id] = 1
+    endif
+endfunction
+
 " s:_update_ids(type, [type, [type]])                                      {{{2
 " does:   update ids for figures, tables or equations in current file 
 " params: type - id types, duplicates ignored
@@ -1480,7 +1504,10 @@ function! s:_update_ids(...) abort
         let l:ids = map(l:matches,
                     \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
         " update ids
-        let b:dn_md_ids[l:type] = l:ids
+        let b:dn_md_ids[l:type] = {}
+        for l:id in l:ids
+            call s:_increment_id_count(l:type, l:id)
+        endfor
     endfor
 endfunction
 
