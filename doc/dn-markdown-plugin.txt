@@ -109,11 +109,11 @@ If no format is provided as a parameter Dict entry, the user selects an
 output format from a menu.
 
                                              *dn-markdown-command-Generate*
-The dn#markdown#generate() function can be called using the :Generate
+The |dn#markdown#generate()| function can be called using the :Generate
 command. A format can be provided as an optional command parameter.
 
                                                    *dn-markdown-mapping-og*
-The dn#markdown#generate() function can be called using the mapping
+The |dn#markdown#generate()| function can be called using the mapping
 "<Leader>og" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
 
@@ -176,11 +176,11 @@ single boolean parameter indicating whether the function was called from
 |Insert-mode|.
 
                                            *dn-markdown-command-Regenerate*
-The dn#markdown#regenerate() function can be called using the :Regenerate
+The |dn#markdown#regenerate()| function can be called using the :Regenerate
 command.
 
                                                    *dn-markdown-mapping-or*
-The dn#markdown#regenerate() function can be called using the mapping
+The |dn#markdown#regenerate()| function can be called using the mapping
 "<Leader>or" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
 
@@ -216,11 +216,11 @@ The specified output file is (re)generated before being opened for
 viewing.
 
                                                  *dn-markdown-command-View*
-The dn#markdown#view() function can be called using the :View command.
+The |dn#markdown#view()| function can be called using the :View command.
 A format can be provided as an optional command parameter.
 
                                                    *dn-markdown-mapping-ov*
-The dn#markdown#view() function can be called using the mapping
+The |dn#markdown#view()| function can be called using the mapping
 "<Leader>ov" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
 
@@ -251,12 +251,12 @@ In summary then, there are three ways to assign a value to a setting:
     - manually setting the variable using dn#markdown#settings()
 
                                              *dn-markdown-command-Settings*
-The dn#markdown#view() function can be called using the :View
+The |dn#markdown#settings()| function can be called using the :Settings
 command. A format can be provided as an optional command parameter.
 
-                                                   *dn-markdown-mapping-es*
-The dn#markdown#view() function can be called using the mapping
-"<Leader>ov" from either |Insert-mode| or |Normal-mode|. The default
+                                                   *dn-markdown-mapping-se*
+The |dn#markdown#settings()| function can be called using the mapping
+"<Leader>se" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
 
 The two executables that can be affected by ftplugin settings are listed
@@ -500,10 +500,10 @@ ids is updated whenever a new id is added by the
 time by calling the dn#markdown#idsUpdate() function.
 
                                             *dn-markdown-command-UpdateIDs*
-The dn#markdown#idsUpdate() function can be called using the :UpdateIDs
+The |dn#markdown#idsUpdate()| function can be called using the :UpdateIDs
 command.
                                                    *dn-markdown-mapping-ui*
-The dn#markdown#idsUpdate() function can be called using the mapping
+The |dn#markdown#idsUpdate()| function can be called using the mapping
 "<Leader>ui" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
                                                 *dn#markdown#equationRef()*
