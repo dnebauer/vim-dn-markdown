@@ -785,7 +785,7 @@ endfunction
 "                 [string, required, can be 'equation'|'table'|'figure']
 "         label - label for figure, table or equation
 "                 [string, optional, no default]
-" return: String
+" return: String, empty if aborted
 " note:   follows basic style of
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
 "         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
@@ -802,13 +802,13 @@ function! s:_enter_id(type, label) abort
     let l:name    = s:numbered_types[a:type]['name']
     let l:Name    = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
     let l:default = substitute(tolower(a:label), '[^a-z0-9_-]', '-', 'g')
-    let l:prompt  = 'Enter ' . l:name . ' id (empty if none): '
+    let l:prompt  = 'Enter ' . l:name . ' id (empty to abort): '
     "call s:_update_ids(a:type)  " update list of existing ids
     while 1
         let l:id = input(l:prompt, l:default)
         echo ' '  | " ensure move to a new line
-        " empty value allowed - means no id for this item
-        if empty(l:id) | break | endif
+        " empty value means aborting
+        if empty(l:id) | return '' | endif
         " cannot use existing id
         if has_key(b:dn_md_ids[a:type], l:id)
             call dn#util#warn(l:Name . " id '" . l:id . "' already exists")
@@ -1178,19 +1178,23 @@ endfunction
 " prints: user prompts and feedback
 " return: whether operation succeeded
 function! s:_image_insert() abort
-    " get image label
-    let l:label = input('Enter image label: ')
+    " get image caption
+    let l:caption = input('Enter image caption: ', 'Caption.')
     echo ' '  | " ensure move to a new line
-    if empty(l:label)
-        call dn#util#error('Image label cannot be blank')
+    if empty(l:caption)
+        call dn#util#error('Image caption cannot be blank')
         return
     endif
     " get image id
-    let l:id = s:_enter_id('figure', l:label)
-    let l:full_id = '{#fig:' . l:id . '}'
+    let l:id = s:_enter_id('figure', l:caption)
+    echo ' '  | " ensure move to a new line
+    if empty(l:id)
+        call dn#util#error('Image id cannot be empty')
+        return
+    endif
+    let l:ref = '{#fig:' . l:id . '}'
     " get image filepath
     let l:path = input('Enter image filepath: ', '', 'file')
-    echo ' '  | " ensure move to a new line
     if empty(l:path)
         call dn#util#error('Image filepath cannot be blank')
         return
@@ -1203,12 +1207,9 @@ function! s:_image_insert() abort
     let l:indent    = repeat(' ', indent(line('.')))
     let l:cursor[1] = l:cursor[1] + 4  " line number
     let l:cursor[2] = len(l:indent)    " column number
-    let l:line      = ['![', l:label, '](', l:path, ' "', l:label, '")']
-    if !empty(l:id)
-        call add(l:line, l:full_id)
-    endif
-    let l:lines = [l:indent, join(l:line, ''), l:indent, l:indent]
-    call append(line('.'), l:lines)
+    let l:line      = ['![', l:caption, '](', l:path, ' "',
+                \      l:caption, '")', l:ref]
+    call append(line('.'), join(l:line, ''))
     call setpos('.', l:cursor)
     " update ids list
     " - has to be unique or would not have been allowed
