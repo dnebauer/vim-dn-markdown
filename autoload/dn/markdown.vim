@@ -929,7 +929,7 @@ function! s:_figure_insert() abort
     if !filereadable(l:path)
         echo ' '  | " ensure move to a new line
         let l:prompt  = 'Image filepath appears to be invalid:'
-        let l:options = [{'Proceed anyway': g:dn_false, 'Abort': g:dn_true}]
+        let l:options = [{'Proceed anyway': g:dn_false}, {'Abort': g:dn_true}]
         let l:abort   = dn#util#menuSelect(l:options, l:prompt)
         if l:abort | return | endif
     endif
