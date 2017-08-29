@@ -1179,7 +1179,7 @@ endfunction
 " return: whether operation succeeded
 function! s:_image_insert() abort
     " get image caption
-    let l:caption = input('Enter image caption: ', 'Caption.')
+    let l:caption = input('Enter image caption: ')
     echo ' '  | " ensure move to a new line
     if empty(l:caption)
         call dn#util#error('Image caption cannot be blank')
@@ -1209,7 +1209,8 @@ function! s:_image_insert() abort
     let l:cursor[2] = len(l:indent)    " column number
     let l:line      = ['![', l:caption, '](', l:path, ' "',
                 \      l:caption, '")', l:ref]
-    call append(line('.'), join(l:line, ''))
+    let l:lines = [join(l:line, ''), l:indent, l:indent]
+    call append(line('.'), l:lines)
     call setpos('.', l:cursor)
     " update ids list
     " - has to be unique or would not have been allowed
