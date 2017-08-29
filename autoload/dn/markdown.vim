@@ -928,8 +928,10 @@ function! s:_figure_insert() abort
     if empty(l:path) | return | endif
     if !filereadable(l:path)
         echo ' '  | " ensure move to a new line
-        call dn#util#warn('Warning: Image filepath appears to be invalid')
-        call dn#util#prompt()
+        let l:prompt  = 'Image filepath appears to be invalid:'
+        let l:options = [{'Proceed anyway': g:dn_false, 'Abort': g:dn_true}]
+        let l:abort   = dn#util#menuSelect(l:options, l:prompt)
+        if l:abort | return | endif
     endif
     " insert figure
     let l:cursor    = getpos('.')
