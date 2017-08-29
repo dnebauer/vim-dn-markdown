@@ -481,6 +481,24 @@ function! dn#markdown#completeFormat(A, L, P) abort
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
+" dn#markdown#equationInsert([insert])                                     {{{2
+" does:   insert equation at cursor location
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#equationInsert(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_equation_insert()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
 " dn#markdown#generate([params])                                           {{{2
 " does:   generate output
 " params: params - parameters dictionary with the following keys:
@@ -529,20 +547,19 @@ function! dn#markdown#idsUpdate(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#imageInsert([insert])                                        {{{2
-" does:   insert image following current line
+" dn#markdown#figureInsert([insert])                                       {{{2
+" does:   insert figure following current line
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
 " return: nil
-function! dn#markdown#imageInsert(...) abort
+function! dn#markdown#figureInsert(...) abort
     " universal tasks
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     " insert image
-    call s:_image_insert()
-    call dn#util#prompt()
+    call s:_figure_insert()
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -663,6 +680,24 @@ function! dn#markdown#settings() abort
         let l:setting = dn#util#menuSelect(s:menu_items, s:menu_prompt)
     endwhile
     let &more = l:more
+endfunction
+
+" dn#markdown#tableInsert([insert])                                        {{{2
+" does:   insert table title following current line
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#tableInsert(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_table_insert()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
 " dn#markdown#view([params])                                               {{{2
@@ -803,7 +838,6 @@ function! s:_enter_id(type, label) abort
     let l:Name    = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
     let l:default = substitute(tolower(a:label), '[^a-z0-9_-]', '-', 'g')
     let l:prompt  = 'Enter ' . l:name . ' id (empty to abort): '
-    "call s:_update_ids(a:type)  " update list of existing ids
     while 1
         let l:id = input(l:prompt, l:default)
         echo ' '  | " ensure move to a new line
@@ -823,6 +857,27 @@ function! s:_enter_id(type, label) abort
         break
     endwhile
     return l:id
+endfunction
+
+" s:_equation_insert()                                                     {{{2
+" does:   insert equation at cursor location
+" params: nil
+" prints: user prompts and feedback
+" return: whether operation succeeded
+function! s:_equation_insert() abort
+    " get equation id
+    let l:id = s:_enter_id('equation')
+    if empty(l:id)
+        call dn#util#error('Equation id cannot be empty')
+        return
+    endif
+    let l:label = '{#eq:' . l:id . '}'
+    " insert equation label
+    call dn#util#insertImage(l:label)
+    " update ids list
+    " - has to be unique or would not have been allowed
+    call s:_increment_id_count('equation', l:id)
+    return g:dn_true
 endfunction
 
 " s:_execute_shell_command(cmd,[err])                                      {{{2
@@ -854,6 +909,51 @@ function! s:_execute_shell_command(cmd, ...) abort
     else
         return g:dn_true
     endif
+endfunction
+
+" s:_figure_insert()                                                       {{{2
+" does:   insert figure following current line
+" params: nil
+" prints: user prompts and feedback
+" return: whether operation succeeded
+function! s:_figure_insert() abort
+    " get figure caption
+    let l:caption = input('Enter figure caption: ')
+    echo ' '  | " ensure move to a new line
+    if empty(l:caption)
+        call dn#util#error('Figure caption cannot be blank')
+        return
+    endif
+    " get figure id
+    let l:id = s:_enter_id('figure', l:caption)
+    if empty(l:id)
+        call dn#util#error('Figure id cannot be empty')
+        return
+    endif
+    let l:label = '{#fig:' . l:id . '}'
+    " get image filepath
+    let l:path = input('Enter image filepath: ', '', 'file')
+    if empty(l:path)
+        call dn#util#error('Image filepath cannot be blank')
+        return
+    endif
+    if !filereadable(l:path)
+        call dn#util#warn('Warning: Image filepath appears to be invalid')
+    endif
+    " insert figure
+    let l:cursor    = getpos('.')
+    let l:indent    = repeat(' ', indent(line('.')))
+    let l:cursor[1] = l:cursor[1] + 4  " line number
+    let l:cursor[2] = len(l:indent)    " column number
+    let l:line      = ['![', l:caption, '](', l:path, ' "',
+                \      l:caption, '")', l:label]
+    let l:lines = [join(l:line, ''), l:indent, l:indent]
+    call append(line('.'), l:lines)
+    call setpos('.', l:cursor)
+    " update ids list
+    " - has to be unique or would not have been allowed
+    call s:_increment_id_count('figure', l:id)
+    return g:dn_true
 endfunction
 
 " s:_generator(format)                                                     {{{2
@@ -1172,50 +1272,28 @@ function! s:_generator (format) abort
     return l:retval                                                      " }}}3
 endfunction
 
-" s:_image_insert()                                                        {{{2
-" does:   insert image following current line
-" params: nil
-" prints: user prompts and feedback
-" return: whether operation succeeded
-function! s:_image_insert() abort
-    " get image caption
-    let l:caption = input('Enter image caption: ')
-    echo ' '  | " ensure move to a new line
-    if empty(l:caption)
-        call dn#util#error('Image caption cannot be blank')
+" s:_increment_id_count(type, id)                                          {{{2
+" does:   increase id count by one
+" params: type - id type
+"                [string, required, can be 'equation'|'table'|'figure']
+"         id   - id to increment count for [string, required]
+" return: nil
+function! s:_increment_id_count(type, id) abort
+    " check params
+    if empty(a:id) || empty (a:type)  " script error
+        call dn#util#error("Did not get both id ('"
+                    \ . a:id . "') and type ('" . a:type . "')")
         return
     endif
-    " get image id
-    let l:id = s:_enter_id('figure', l:caption)
-    if empty(l:id)
-        call dn#util#error('Image id cannot be empty')
-        return
+    if !has_key(s:numbered_types, a:type)  " script error
+        call dn#util#error("Invalid type: " . a:type)
     endif
-    let l:ref = '{#fig:' . l:id . '}'
-    " get image filepath
-    echo ' '  | " ensure move to a new line
-    let l:path = input('Enter image filepath: ', '', 'file')
-    if empty(l:path)
-        call dn#util#error('Image filepath cannot be blank')
-        return
+    " update id count
+    if has_key(b:dn_md_ids[a:type], a:id)
+        let b:dn_md_ids[a:type][a:id] += 1
+    else
+        let b:dn_md_ids[a:type][a:id] = 1
     endif
-    if !filereadable(l:path)
-        call dn#util#warn('Warning: Image filepath appears to be invalid')
-    endif
-    " insert image
-    let l:cursor    = getpos('.')
-    let l:indent    = repeat(' ', indent(line('.')))
-    let l:cursor[1] = l:cursor[1] + 4  " line number
-    let l:cursor[2] = len(l:indent)    " column number
-    let l:line      = ['![', l:caption, '](', l:path, ' "',
-                \      l:caption, '")', l:ref]
-    let l:lines = [join(l:line, ''), l:indent, l:indent]
-    call append(line('.'), l:lines)
-    call setpos('.', l:cursor)
-    " update ids list
-    " - has to be unique or would not have been allowed
-    call s:_increment_id_count('figure', l:id)
-    return g:dn_true
 endfunction
 
 " s:_process_dict_params(params)                                           {{{2
@@ -1440,28 +1518,39 @@ function! s:_settings_configure() abort
     let l:dn_md_outputted_formats = {}
 endfunction
 
-" s:_increment_id_count(type, id)                                          {{{2
-" does:   increase id count by one
-" params: type - id type
-"                [string, required, can be 'equation'|'table'|'figure']
-"         id   - id to increment count for [string, required]
-" return: nil
-function! s:_increment_id_count(type, id) abort
-    " check params
-    if empty(a:id) || empty (a:type)  " script error
-        call dn#util#error("Did not get both id ('"
-                    \ . a:id . "') and type ('" . a:type . "')")
+" s:_table_insert()                                                        {{{2
+" does:   insert table title following current line
+" params: nil
+" prints: user prompts and feedback
+" return: whether operation succeeded
+function! s:_table_insert() abort
+    " get table caption
+    let l:caption = input('Enter table caption: ')
+    echo ' '  | " ensure move to a new line
+    if empty(l:caption)
+        call dn#util#error('Table caption cannot be blank')
         return
     endif
-    if !has_key(s:numbered_types, a:type)  " script error
-        call dn#util#error("Invalid type: " . a:type)
+    " get table id
+    let l:id = s:_enter_id('table', l:caption)
+    if empty(l:id)
+        call dn#util#error('Table id cannot be empty')
+        return
     endif
-    " update id count
-    if has_key(b:dn_md_ids[a:type], a:id)
-        let b:dn_md_ids[a:type][a:id] += 1
-    else
-        let b:dn_md_ids[a:type][a:id] = 1
-    endif
+    let l:label = '{#tbl:' . l:id . '}'
+    " insert table title
+    let l:cursor    = getpos('.')
+    let l:indent    = repeat(' ', indent(line('.')))
+    let l:cursor[1] = l:cursor[1] + 4  " line number
+    let l:cursor[2] = len(l:indent)    " column number
+    let l:line      = ['Table:', l:caption, l:label]
+    let l:lines = [join(l:line, ' '), l:indent, l:indent]
+    call append(line('.'), l:lines)
+    call setpos('.', l:cursor)
+    " update ids list
+    " - has to be unique or would not have been allowed
+    call s:_increment_id_count('table', l:id)
+    return g:dn_true
 endfunction
 
 " s:_update_ids(type, [type, [type]])                                      {{{2

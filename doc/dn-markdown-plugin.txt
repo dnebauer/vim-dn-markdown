@@ -438,39 +438,67 @@ notation.
 
 This plugin provides limited support for editing markdown.
 
-                                                *dn#markdown#imageInsert()*
-An image can be inserted by calling the dn#markdown#imageInsert()
-function. The user enters the image label and file path and the image is
-inserted following the current line. The user can optionally enter an
-image id according to the schema used by the pandoc-fignos filter (see
-https://github.com/tomduck/pandoc-fignos). Figure ids can be used only
-once in a given file. The image file path is inserted exactly as entered,
-without expansion or conversion to an absolute path; but tab expansion is
-available when entering the path.
+                                             *dn#markdown#equationInsert()*
+An equation label can be inserted by calling the
+dn#markdown#equationInsert() function. The user enters the equation id.
+The equation label is created from the equation id according to the
+schema used by the pandoc-eqnos filter (see
+https://github.com/tomduck/pandoc-eqnos) and inserted at the cursor
+location. Equation ids can be used only once in a given file.
 
-                                          *dn-markdown-command-ImageInsert*
-The dn#markdown#imageInsert() function can be called using the
-:ImageInsert command.
+                                               *dn#markdown#figureInsert()*
+A figure can be inserted by calling the dn#markdown#figureInsert()
+function. The user enters the figure caption, figure id and image file
+path. The figure is inserted following the current line. The figure label
+is created from the figure id according to the schema used by the
+pandoc-fignos filter (see https://github.com/tomduck/pandoc-fignos).
+Figure ids can be used only once in a given file. The image file path is
+inserted exactly as entered, without expansion or conversion to an
+absolute path; but tab expansion is available when entering the path.
 
-                                                   *dn-markdown-mapping-ii*
-The dn#markdown#imageInsert() function can be called using the mapping
-"<Leader>ii" from either |Insert-mode| or |Normal-mode|. The default
-|mapleader| is a backslash.
+                                                *dn#markdown#tableInsert()*
+A table title (label, caption and label) can be inserted by calling the
+dn#markdown#tableInsert() function. The user enters the table caption and
+table id.  The table title is inserted following the current line. The
+table label is created from the table id according to the schema used by
+the pandoc-tablenos filter (see
+https://github.com/tomduck/pandoc-tablenos). Table ids can be used only
+once in a given file.
+
+                                       *dn-markdown-command-EquationInsert*
+                                         *dn-markdown-command-FigureInsert*
+                                          *dn-markdown-command-TableInsert*
+The |dn#markdown#equationInsert()| function can be called using the
+:EquationInsert command. The |dn#markdown#figureInsert()| function can be
+called using the :FigureInsert command. The |dn#markdown#tableInsert()|
+function can be called using the :TableInsert command.
+
+                                                   *dn-markdown-mapping-ei*
+                            *dn-markdown-mapping-fi* *dn-markdown-mapping-ti*
+The |dn#markdown#equationInsert()| function can be called using the mapping
+"<Leader>ei". The |dn#markdown#figureInsert()| function can be called using
+the mapping "<Leader>fi". The |dn#markdown#tableInsert()| function can be
+called using the mapping "<Leader>ti".
+
+All three function can be called from either |Insert-mode| or |Normal-mode|.
+The default |mapleader| is a backslash.
 
                                                     *dn-markdown-reference*
 This ftplugin supports the use of numbering and referencing equations,
 figures and tables using the schemas supported by the pandoc-eqnos
 (https://github.com/tomduck/pandoc-eqnos), pandoc-fignos 
 (https://github.com/tomduck/pandoc-fignos) and pandoc-tablenos
-(https://github.com/tomduck/pandoc-fignos) filters. The only restriction
-is that all references are enclosed in braces and ids have to be lower
-case. (More precisely, ids can consist only of 'a-z', '0-9', '_' and
-'-'.)
+(https://github.com/tomduck/pandoc-tablenos) filters. The only
+restriction is that all references are enclosed in braces and ids have to
+be lower case. (More precisely, ids can consist only of 'a-z', '0-9', '_'
+and '-'.)
                                                   *dn#markdown#idsUpdate()*
 Lists of ids are built when the ftplugin initialises. The list of figure
-ids is updated whenever a new id is added by the dn#markdown#imageInsert
-function. The id lists can be updated at any time by calling the
-dn#markdown#idsUpdate() function.
+ids is updated whenever a new id is added by the
+|dn#markdown#equationInsert()|, |dn#markdown#figureInsert()| and
+|dn#markdown#tableInsert()| functions. The id lists can be updated at any
+time by calling the dn#markdown#idsUpdate() function.
+
                                             *dn-markdown-command-UpdateIDs*
 The dn#markdown#idsUpdate() function can be called using the :UpdateIDs
 command.
@@ -479,26 +507,26 @@ The dn#markdown#idsUpdate() function can be called using the mapping
 "<Leader>ui" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
                                                 *dn#markdown#equationRef()*
-                            *dn#markdown#imageRef()* *dn#markdown#tableRef()*
-To select an existing equation, image or table id and insert it as a
-reference, use the dn#markdown#equationRef, dn#markdown#imageRef or
-dn#markdown#tableRef function. (See |dn#markdown#idsUpdate()| for details
+                           *dn#markdown#figureRef()* *dn#markdown#tableRef()*
+To select an existing equation, figure or table id and insert it as a
+reference, use the dn#markdown#equationRef(), dn#markdown#figureRef() or
+dn#markdown#tableRef() function. (See |dn#markdown#idsUpdate()| for details
 about when it may be necessary to manually update id lists using
 |dn#markdown#idsUpdate()|.)
                                     *dn-markdown-command-EquationReference*
-                                       *dn-markdown-command-ImageReference*
+                                      *dn-markdown-command-FigureReference*
                                        *dn-markdown-command-TableReference*
-The dn#markdown#equationRef() function can be called using the
-:EquationReference command. The dn#markdown#imageRef() function can be
-called using the :ImageReference command. The dn#markdown#tableRef()
+The |dn#markdown#equationRef()| function can be called using the
+:EquationReference command. The |dn#markdown#figureRef()| function can be
+called using the :FigureReference command. The |dn#markdown#tableRef()|
 function can be called using the :TableReference command.
 
                                                    *dn-markdown-mapping-er*
-                            *dn-markdown-mapping-ir* *dn-markdown-mapping-tr*
-The dn#markdown#equationRef() function can be called using the mapping
-"<Leader>er". The dn#markdown#imageRef() function can be called using the
-mapping "<Leader>ir". The dn#markdown#tableRef() function can be called
-using the mapping "<Leader>it".
+                            *dn-markdown-mapping-fr* *dn-markdown-mapping-tr*
+The |dn#markdown#equationRef()| function can be called using the mapping
+"<Leader>er". The |dn#markdown#figureRef()| function can be called using
+the mapping "<Leader>fr". The |dn#markdown#tableRef()| function can be
+called using the mapping "<Leader>it".
 
 All three mappings can be called from either |Insert-mode| or |Normal-mode|.
 The default |mapleader| is a backslash.

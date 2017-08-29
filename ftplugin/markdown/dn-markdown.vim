@@ -109,55 +109,83 @@ endif
 nmap <buffer> <unique> <Plug>DnUIN
             \ :call dn#markdown#idsUpdate()<CR>
 
-" \ii : insert image                                                       {{{2
-if !hasmapto('<Plug>DnIII')
-    imap <buffer> <unique> <LocalLeader>ii <Plug>DnIII
+" \ei : insert equation id                                                 {{{2
+if !hasmapto('<Plug>DnEII')
+    imap <buffer> <unique> <LocalLeader>ei <Plug>DnEII
 endif
-imap <buffer> <unique> <Plug>DnIII
-            \ <Esc>:call dn#markdown#imageInsert(g:dn_true)<CR>
-if !hasmapto('<Plug>DnIIN')
-    nmap <buffer> <unique> <LocalLeader>ii <Plug>DnIIN
+imap <buffer> <unique> <Plug>DnEII
+            \ <Esc>:call dn#markdown#equationInsert(g:dn_true)<CR>
+if !hasmapto('<Plug>DnEIN')
+    nmap <buffer> <unique> <LocalLeader>ei <Plug>DnEIN
 endif
-nmap <buffer> <unique> <Plug>DnIIN
-            \ :call dn#markdown#imageInsert()<CR>
+nmap <buffer> <unique> <Plug>DnEIN
+            \ :call dn#markdown#equationInsert()<CR>
 
-" \ie : insert equation reference                                          {{{2
-if !hasmapto('<Plug>DnIEI')
-    imap <buffer> <unique> <LocalLeader>ie <Plug>DnIEI
+" \fi : insert figure                                                      {{{2
+if !hasmapto('<Plug>DnFII')
+    imap <buffer> <unique> <LocalLeader>fi <Plug>DnFII
 endif
-imap <buffer> <unique> <Plug>DnIEI
+imap <buffer> <unique> <Plug>DnFII
+            \ <Esc>:call dn#markdown#figureInsert(g:dn_true)<CR>
+if !hasmapto('<Plug>DnFIN')
+    nmap <buffer> <unique> <LocalLeader>fi <Plug>DnFIN
+endif
+nmap <buffer> <unique> <Plug>DnFIN
+            \ :call dn#markdown#figureInsert()<CR>
+
+" \ti : insert table title                                                 {{{2
+if !hasmapto('<Plug>DnTII')
+    imap <buffer> <unique> <LocalLeader>ti <Plug>DnTII
+endif
+imap <buffer> <unique> <Plug>DnTII
+            \ <Esc>:call dn#markdown#tableInsert(g:dn_true)<CR>
+if !hasmapto('<Plug>DnTIN')
+    nmap <buffer> <unique> <LocalLeader>ti <Plug>DnTIN
+endif
+nmap <buffer> <unique> <Plug>DnTIN
+            \ :call dn#markdown#tableInsert()<CR>
+
+" \er : insert equation reference                                          {{{2
+if !hasmapto('<Plug>DnERI')
+    imap <buffer> <unique> <LocalLeader>er <Plug>DnERI
+endif
+imap <buffer> <unique> <Plug>DnERI
             \ <Esc>:call dn#markdown#equationRef(g:dn_true)<CR>
-if !hasmapto('<Plug>DnIEN')
-    nmap <buffer> <unique> <LocalLeader>ie <Plug>DnIEN
+if !hasmapto('<Plug>DnERN')
+    nmap <buffer> <unique> <LocalLeader>er <Plug>DnERN
 endif
-nmap <buffer> <unique> <Plug>DnIEN
+nmap <buffer> <unique> <Plug>DnERN
             \ :call dn#markdown#equationRef()<CR>
 
-" \ir : insert image reference                                             {{{2
-if !hasmapto('<Plug>DnIRI')
-    imap <buffer> <unique> <LocalLeader>ir <Plug>DnIRI
+" \fr : insert figure reference                                            {{{2
+if !hasmapto('<Plug>DnFRI')
+    imap <buffer> <unique> <LocalLeader>fr <Plug>DnFRI
 endif
-imap <buffer> <unique> <Plug>DnIRI
-            \ <Esc>:call dn#markdown#imageRef(g:dn_true)<CR>
-if !hasmapto('<Plug>DnIRN')
-    nmap <buffer> <unique> <LocalLeader>ir <Plug>DnIRN
+imap <buffer> <unique> <Plug>DnFRI
+            \ <Esc>:call dn#markdown#figureRef(g:dn_true)<CR>
+if !hasmapto('<Plug>DnFRN')
+    nmap <buffer> <unique> <LocalLeader>fr <Plug>DnFRN
 endif
-nmap <buffer> <unique> <Plug>DnIRN
-            \ :call dn#markdown#imageRef()<CR>
+nmap <buffer> <unique> <Plug>DnFRN
+            \ :call dn#markdown#figureRef()<CR>
 
-" \it : insert table reference                                             {{{2
-if !hasmapto('<Plug>DnITI')
-    imap <buffer> <unique> <LocalLeader>it <Plug>DnITI
+" \tr : insert table reference                                             {{{2
+if !hasmapto('<Plug>DnTRI')
+    imap <buffer> <unique> <LocalLeader>tr <Plug>DnTRI
 endif
-imap <buffer> <unique> <Plug>DnITI
+imap <buffer> <unique> <Plug>DnTRI
             \ <Esc>:call dn#markdown#tableRef(g:dn_true)<CR>
-if !hasmapto('<Plug>DnITN')
-    nmap <buffer> <unique> <LocalLeader>it <Plug>DnITN
+if !hasmapto('<Plug>DnTRN')
+    nmap <buffer> <unique> <LocalLeader>tr <Plug>DnTRN
 endif
-nmap <buffer> <unique> <Plug>DnITN
+nmap <buffer> <unique> <Plug>DnTRN
             \ :call dn#markdown#tableRef()<CR>
                                                                          " }}}2
 " Commands                                                                 {{{1
+
+" EquationInsert    : insert image                                         {{{2
+command! -buffer EquationInsert
+            \ call dn#markdown#equationInsert()
 
 " EquationReference : insert image reference                               {{{2
 command! -buffer EquationReference
@@ -168,13 +196,13 @@ command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ Generate
             \ call dn#markdown#generate({'format': '<args>'})
 
-" ImageInsert       : insert image                                         {{{2
-command! -buffer ImageInsert
-            \ call dn#markdown#imageInsert()
+" FigureInsert      : insert image                                         {{{2
+command! -buffer FigureInsert
+            \ call dn#markdown#figureInsert()
 
-" ImageReference    : insert image reference                               {{{2
-command! -buffer ImageReference
-            \ call dn#markdown#imageRef()
+" FigureReference   : insert image reference                               {{{2
+command! -buffer FigureReference
+            \ call dn#markdown#figureRef()
 
 " Regenerate        : regenerate all previous output                       {{{2
 command! -buffer Regenerate
@@ -183,6 +211,10 @@ command! -buffer Regenerate
 " Settings          : edit settings                                        {{{2
 command! -buffer Settings
             \ call dn#markdown#settings()
+
+" TableInsert       : insert image                                         {{{2
+command! -buffer TableInsert
+            \ call dn#markdown#tableInsert()
 
 " TableReference    : insert image reference                               {{{2
 command! -buffer TableReference
