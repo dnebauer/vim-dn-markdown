@@ -49,6 +49,66 @@ endif
 
 " Mappings                                                                 {{{1
 
+" \iu : update lists of ids                                                {{{2
+if !hasmapto('<Plug>DnIUI')
+    imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
+endif
+imap <buffer> <unique> <Plug>DnIUI
+            \ <Esc>:call dn#markdown#idsUpdate(g:dn_true)<CR>
+if !hasmapto('<Plug>DnIUN')
+    nmap <buffer> <unique> <LocalLeader>iu <Plug>DnIUN
+endif
+nmap <buffer> <unique> <Plug>DnIUN
+            \ :call dn#markdown#idsUpdate()<CR>
+
+" \ei : insert equation label                                              {{{2
+if !hasmapto('<Plug>DnEII')
+    imap <buffer> <unique> <LocalLeader>ei <Plug>DnEII
+endif
+imap <buffer> <unique> <Plug>DnEII
+            \ <Esc>:call dn#markdown#equationInsert(g:dn_true)<CR>
+if !hasmapto('<Plug>DnEIN')
+    nmap <buffer> <unique> <LocalLeader>ei <Plug>DnEIN
+endif
+nmap <buffer> <unique> <Plug>DnEIN
+            \ :call dn#markdown#equationInsert()<CR>
+
+" \er : insert equation reference                                          {{{2
+if !hasmapto('<Plug>DnERI')
+    imap <buffer> <unique> <LocalLeader>er <Plug>DnERI
+endif
+imap <buffer> <unique> <Plug>DnERI
+            \ <Esc>:call dn#markdown#equationRef(g:dn_true)<CR>
+if !hasmapto('<Plug>DnERN')
+    nmap <buffer> <unique> <LocalLeader>er <Plug>DnERN
+endif
+nmap <buffer> <unique> <Plug>DnERN
+            \ :call dn#markdown#equationRef()<CR>
+
+" \fi : insert figure                                                      {{{2
+if !hasmapto('<Plug>DnFII')
+    imap <buffer> <unique> <LocalLeader>fi <Plug>DnFII
+endif
+imap <buffer> <unique> <Plug>DnFII
+            \ <Esc>:call dn#markdown#figureInsert(g:dn_true)<CR>
+if !hasmapto('<Plug>DnFIN')
+    nmap <buffer> <unique> <LocalLeader>fi <Plug>DnFIN
+endif
+nmap <buffer> <unique> <Plug>DnFIN
+            \ :call dn#markdown#figureInsert()<CR>
+
+" \fr : insert figure reference                                            {{{2
+if !hasmapto('<Plug>DnFRI')
+    imap <buffer> <unique> <LocalLeader>fr <Plug>DnFRI
+endif
+imap <buffer> <unique> <Plug>DnFRI
+            \ <Esc>:call dn#markdown#figureRef(g:dn_true)<CR>
+if !hasmapto('<Plug>DnFRN')
+    nmap <buffer> <unique> <LocalLeader>fr <Plug>DnFRN
+endif
+nmap <buffer> <unique> <Plug>DnFRN
+            \ :call dn#markdown#figureRef()<CR>
+
 " \og : output generation                                                  {{{2
 if !hasmapto('<Plug>DnOGI')
     imap <buffer> <unique> <LocalLeader>og <Plug>DnOGI
@@ -85,53 +145,17 @@ endif
 nmap <buffer> <unique> <Plug>DnOVN
             \ :call dn#markdown#view()<CR>
 
-" \es : edit settings                                                      {{{2
-if !hasmapto('<Plug>DnESI')
-    imap <buffer> <unique> <LocalLeader>es <Plug>DnESI
+" \se : settings edit                                                      {{{2
+if !hasmapto('<Plug>DnSEI')
+    imap <buffer> <unique> <LocalLeader>se <Plug>DnSEI
 endif
-imap <buffer> <unique> <Plug>DnESI
+imap <buffer> <unique> <Plug>DnSEI
             \ <Esc>:call dn#markdown#settings({'insert': g:dn_true})<CR>
-if !hasmapto('<Plug>DnESN')
-    nmap <buffer> <unique> <LocalLeader>es <Plug>DnESN
+if !hasmapto('<Plug>DnSEN')
+    nmap <buffer> <unique> <LocalLeader>se <Plug>DnSEN
 endif
-nmap <buffer> <unique> <Plug>DnESN
+nmap <buffer> <unique> <Plug>DnSEN
             \ :call dn#markdown#settings()<CR>
-
-" \iu : update lists of ids                                                {{{2
-if !hasmapto('<Plug>DnIUI')
-    imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
-endif
-imap <buffer> <unique> <Plug>DnIUI
-            \ <Esc>:call dn#markdown#idsUpdate(g:dn_true)<CR>
-if !hasmapto('<Plug>DnIUN')
-    nmap <buffer> <unique> <LocalLeader>iu <Plug>DnIUN
-endif
-nmap <buffer> <unique> <Plug>DnIUN
-            \ :call dn#markdown#idsUpdate()<CR>
-
-" \ei : insert equation id                                                 {{{2
-if !hasmapto('<Plug>DnEII')
-    imap <buffer> <unique> <LocalLeader>ei <Plug>DnEII
-endif
-imap <buffer> <unique> <Plug>DnEII
-            \ <Esc>:call dn#markdown#equationInsert(g:dn_true)<CR>
-if !hasmapto('<Plug>DnEIN')
-    nmap <buffer> <unique> <LocalLeader>ei <Plug>DnEIN
-endif
-nmap <buffer> <unique> <Plug>DnEIN
-            \ :call dn#markdown#equationInsert()<CR>
-
-" \fi : insert figure                                                      {{{2
-if !hasmapto('<Plug>DnFII')
-    imap <buffer> <unique> <LocalLeader>fi <Plug>DnFII
-endif
-imap <buffer> <unique> <Plug>DnFII
-            \ <Esc>:call dn#markdown#figureInsert(g:dn_true)<CR>
-if !hasmapto('<Plug>DnFIN')
-    nmap <buffer> <unique> <LocalLeader>fi <Plug>DnFIN
-endif
-nmap <buffer> <unique> <Plug>DnFIN
-            \ :call dn#markdown#figureInsert()<CR>
 
 " \ti : insert table title                                                 {{{2
 if !hasmapto('<Plug>DnTII')
@@ -144,30 +168,6 @@ if !hasmapto('<Plug>DnTIN')
 endif
 nmap <buffer> <unique> <Plug>DnTIN
             \ :call dn#markdown#tableInsert()<CR>
-
-" \er : insert equation reference                                          {{{2
-if !hasmapto('<Plug>DnERI')
-    imap <buffer> <unique> <LocalLeader>er <Plug>DnERI
-endif
-imap <buffer> <unique> <Plug>DnERI
-            \ <Esc>:call dn#markdown#equationRef(g:dn_true)<CR>
-if !hasmapto('<Plug>DnERN')
-    nmap <buffer> <unique> <LocalLeader>er <Plug>DnERN
-endif
-nmap <buffer> <unique> <Plug>DnERN
-            \ :call dn#markdown#equationRef()<CR>
-
-" \fr : insert figure reference                                            {{{2
-if !hasmapto('<Plug>DnFRI')
-    imap <buffer> <unique> <LocalLeader>fr <Plug>DnFRI
-endif
-imap <buffer> <unique> <Plug>DnFRI
-            \ <Esc>:call dn#markdown#figureRef(g:dn_true)<CR>
-if !hasmapto('<Plug>DnFRN')
-    nmap <buffer> <unique> <LocalLeader>fr <Plug>DnFRN
-endif
-nmap <buffer> <unique> <Plug>DnFRN
-            \ :call dn#markdown#figureRef()<CR>
 
 " \tr : insert table reference                                             {{{2
 if !hasmapto('<Plug>DnTRI')
