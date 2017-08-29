@@ -927,6 +927,7 @@ function! s:_figure_insert() abort
     let l:path = input(l:prompt, '', 'file')
     if empty(l:path) | return | endif
     if !filereadable(l:path)
+        echo ' '  | " ensure move to a new line
         call dn#util#warn('Warning: Image filepath appears to be invalid')
         call dn#util#prompt()
     endif
