@@ -1187,13 +1187,13 @@ function! s:_image_insert() abort
     endif
     " get image id
     let l:id = s:_enter_id('figure', l:caption)
-    echo ' '  | " ensure move to a new line
     if empty(l:id)
         call dn#util#error('Image id cannot be empty')
         return
     endif
     let l:ref = '{#fig:' . l:id . '}'
     " get image filepath
+    echo ' '  | " ensure move to a new line
     let l:path = input('Enter image filepath: ', '', 'file')
     if empty(l:path)
         call dn#util#error('Image filepath cannot be blank')
