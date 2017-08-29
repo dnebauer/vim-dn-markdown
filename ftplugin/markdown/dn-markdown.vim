@@ -97,16 +97,16 @@ endif
 nmap <buffer> <unique> <Plug>DnESN
             \ :call dn#markdown#settings()<CR>
 
-" \ui : update lists of ids                                                {{{2
-if !hasmapto('<Plug>DnUII')
-    imap <buffer> <unique> <LocalLeader>ui <Plug>DnUII
+" \iu : update lists of ids                                                {{{2
+if !hasmapto('<Plug>DnIUI')
+    imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
 endif
-imap <buffer> <unique> <Plug>DnUII
+imap <buffer> <unique> <Plug>DnIUI
             \ <Esc>:call dn#markdown#idsUpdate(g:dn_true)<CR>
-if !hasmapto('<Plug>DnUIN')
-    nmap <buffer> <unique> <LocalLeader>ui <Plug>DnUIN
+if !hasmapto('<Plug>DnIUN')
+    nmap <buffer> <unique> <LocalLeader>iu <Plug>DnIUN
 endif
-nmap <buffer> <unique> <Plug>DnUIN
+nmap <buffer> <unique> <Plug>DnIUN
             \ :call dn#markdown#idsUpdate()<CR>
 
 " \ei : insert equation id                                                 {{{2

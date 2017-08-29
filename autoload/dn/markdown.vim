@@ -865,12 +865,9 @@ endfunction
 " prints: user prompts and feedback
 " return: whether operation succeeded
 function! s:_equation_insert() abort
-    " get equation id
+    " get equation id (empty means abort)
     let l:id = s:_enter_id('equation')
-    if empty(l:id)
-        call dn#util#error('Equation id cannot be empty')
-        return
-    endif
+    if empty(l:id) | return | endif
     let l:label = '{#eq:' . l:id . '}'
     " insert equation label
     call dn#util#insertImage(l:label)
@@ -918,27 +915,20 @@ endfunction
 " return: whether operation succeeded
 function! s:_figure_insert() abort
     " get figure caption
-    let l:caption = input('Enter figure caption: ')
+    let l:caption = input('Enter figure caption (empty to abort): ')
     echo ' '  | " ensure move to a new line
-    if empty(l:caption)
-        call dn#util#error('Figure caption cannot be blank')
-        return
-    endif
-    " get figure id
+    if empty(l:caption) | return | endif
+    " get figure id (empty means abort)
     let l:id = s:_enter_id('figure', l:caption)
-    if empty(l:id)
-        call dn#util#error('Figure id cannot be empty')
-        return
-    endif
+    if empty(l:id) | return | endif
     let l:label = '{#fig:' . l:id . '}'
     " get image filepath
-    let l:path = input('Enter image filepath: ', '', 'file')
-    if empty(l:path)
-        call dn#util#error('Image filepath cannot be blank')
-        return
-    endif
+    let l:prompt = 'Enter image filepath (empty to abort): '
+    let l:path = input(l:prompt, '', 'file')
+    if empty(l:path) | return | endif
     if !filereadable(l:path)
         call dn#util#warn('Warning: Image filepath appears to be invalid')
+        call dn#util#prompt()
     endif
     " insert figure
     let l:cursor    = getpos('.')
@@ -1525,18 +1515,12 @@ endfunction
 " return: whether operation succeeded
 function! s:_table_insert() abort
     " get table caption
-    let l:caption = input('Enter table caption: ')
+    let l:caption = input('Enter table caption (empty to abort): ')
     echo ' '  | " ensure move to a new line
-    if empty(l:caption)
-        call dn#util#error('Table caption cannot be blank')
-        return
-    endif
-    " get table id
+    if empty(l:caption) | return | endif
+    " get table id (empty means abort)
     let l:id = s:_enter_id('table', l:caption)
-    if empty(l:id)
-        call dn#util#error('Table id cannot be empty')
-        return
-    endif
+    if empty(l:id) | return | endif
     let l:label = '{#tbl:' . l:id . '}'
     " insert table title
     let l:cursor    = getpos('.')
@@ -1544,7 +1528,7 @@ function! s:_table_insert() abort
     let l:cursor[1] = l:cursor[1] + 4  " line number
     let l:cursor[2] = len(l:indent)    " column number
     let l:line      = ['Table:', l:caption, l:label]
-    let l:lines = [join(l:line, ' '), l:indent, l:indent]
+    let l:lines     = [join(l:line, ' '), l:indent, l:indent]
     call append(line('.'), l:lines)
     call setpos('.', l:cursor)
     " update ids list

@@ -502,9 +502,9 @@ time by calling the dn#markdown#idsUpdate() function.
                                             *dn-markdown-command-UpdateIDs*
 The |dn#markdown#idsUpdate()| function can be called using the :UpdateIDs
 command.
-                                                   *dn-markdown-mapping-ui*
+                                                   *dn-markdown-mapping-iu*
 The |dn#markdown#idsUpdate()| function can be called using the mapping
-"<Leader>ui" from either |Insert-mode| or |Normal-mode|. The default
+"<Leader>iu" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
                                                 *dn#markdown#equationRef()*
                            *dn#markdown#figureRef()* *dn#markdown#tableRef()*
