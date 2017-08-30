@@ -461,12 +461,29 @@ let s:pandoc_params.pdf_latex.params   = s:pandoc_params.latex.params
 " ids for numbered structures (s:numbered_types, b:dn_md_ids)              {{{2
 " - types
 let s:numbered_types = {
-            \ 'equation': {'prefix': 'eq',  'name' : 'equation'},
-            \ 'figure'  : {'prefix': 'fig', 'name' : 'figure'},
-            \ 'table'   : {'prefix': 'tbl', 'name' : 'table'},
+            \ 'equation' : {
+            \   'prefix'   : 'eq',
+            \   'name'     : 'equation',
+            \   'Name'     : 'Equation',
+            \   'complete' : 'dn#markdown#completeIdEquation',
+            \   },
+            \ 'figure' : {
+            \   'prefix'   : 'fig',
+            \   'name'     : 'figure',
+            \   'Name'     : 'Figure',
+            \   'complete' : 'dn#markdown#completeIdFigure',
+            \   },
+            \ 'table' : {
+            \   'prefix'   : 'tbl',
+            \   'name'     : 'table',
+            \   'Name'     : 'Table',
+            \   'complete' : 'dn#markdown#completeIdTable',
+            \   },
             \ }
 " - ids
-let b:dn_md_ids = {'equation' : {}, 'figure' : {}, 'table' : {}}
+let b:dn_md_ids = {}
+for b:type in s:numbered_types | let b:dn_md_ids[b:type] = {} | endfor
+unlet b:type
 
 " Public functions                                                         {{{1
 
@@ -479,6 +496,28 @@ let b:dn_md_ids = {'equation' : {}, 'figure' : {}, 'table' : {}}
 function! dn#markdown#completeFormat(A, L, P) abort
     let l:formats = sort(keys(s:pandoc_params))
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
+endfunction
+
+" dn#markdown#completeIdEquation(ArgLead, CmdLine, CursorPos)              {{{2
+" does:   perform completion on figure ids
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of ids
+function! dn#markdown#completeIdFigure(A, L, P) abort
+    let l:ids = sort(keys(b:dn_md_ids.figure))
+    return filter(l:ids, 'v:val =~# "' . a:A . '"')
+endfunction
+
+" dn#markdown#completeIdFigure(ArgLead, CmdLine, CursorPos)                {{{2
+" does:   perform completion on figure ids
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of ids
+function! dn#markdown#completeIdFigure(A, L, P) abort
+    let l:ids = sort(keys(b:dn_md_ids.figure))
+    return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
 " dn#markdown#completeIdFigure(ArgLead, CmdLine, CursorPos)                {{{2
@@ -865,7 +904,7 @@ function! s:_enter_id(type, label) abort
     " set variables
     let l:prefix  = s:numbered_types[a:type]['prefix']
     let l:name    = s:numbered_types[a:type]['name']
-    let l:Name    = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
+    let l:Name    = s:numbered_types[a:type]['Name']
     let l:default = substitute(tolower(a:label), '[^a-z0-9_-]', '-', 'g')
     let l:prompt  = 'Enter ' . l:name . ' id (empty to abort): '
     while 1
@@ -1405,19 +1444,17 @@ function! s:_reference_insert(type) abort
     if !has_key(s:numbered_types, a:type)  " script error
         call dn#util#error("Invalid type: " . a:type)
     endif
-    " set vars
-    let l:prefix = s:numbered_types[a:type]['prefix']
-    let l:name   = s:numbered_types[a:type]['name']
-    let l:Name   = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
     " get id
-    let l:prompt = 'Enter ' . l:name . ' id (empty to abort): '
-    let l:complete = 'customlist,dn#markdown#completeId' . l:Name
-    let l:id = input(l:prompt, '', l:complete)
+    let l:name     = s:numbered_types[a:type]['name']
+    let l:prompt   = 'Enter ' . l:name . ' id (empty to abort): '
+    let l:complete = 'customlist,' . s:numbered_types[a:type]['complete']
+    let l:id       = input(l:prompt, '', l:complete)
+    " check id value
     if empty(l:id) | return | endif
     if !has_key(b:dn_md_ids[a:type], l:id)
         " rebuild index to be sure it is complete and accurate
         echo ' '  | " ensure move to a new line
-        echo 'Rebuilding ' . l:name . ' id index'
+        echo 'Rebuilding ' . l:name . ' id index...'
         call s:_update_ids(a:type)
         if !has_key(b:dn_md_ids[a:type], l:id)
             " see if user wants to insert an id that does not yet exist
@@ -1430,7 +1467,8 @@ function! s:_reference_insert(type) abort
         endif
     endif
     " insert reference, i.e., label
-    let l:ref = '{@' . l:prefix . ':' . l:id . '}'
+    let l:prefix = s:numbered_types[a:type]['prefix']
+    let l:ref    = '{@' . l:prefix . ':' . l:id . '}'
     call dn#util#insertString(l:ref)
 endfunction
 
