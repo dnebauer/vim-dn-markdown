@@ -921,29 +921,30 @@ function! s:_ebook_post_processing (format) abort
     return count(['mobi', 'azw3'], a:format) == 1
 endfunction
 
-" s:_enter_id(type, label)                                                 {{{2
+" s:_enter_id(type, [base])                                                {{{2
 " does:   get id for figure, table or equation 
-" params: type  - id type
-"                 [string, required, can be 'equation'|'table'|'figure']
-"         label - label for figure, table or equation
-"                 [string, optional, no default]
+" params: type - id type
+"                [string, required, can be 'equation'|'table'|'figure']
+"         base - base for default value for id
+"                [string, optional, no default]
 " return: String, empty if aborted
 " note:   follows basic style of
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
 "         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
 "         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
 "         except allows only the characters: a-z, 0-9, _ and -
-function! s:_enter_id(type, label) abort
+function! s:_enter_id(type, ...) abort
     " check params
     if !has_key(s:numbered_types, a:type)
         call dn#util#error("Invalid reference type '" . a:type . "'")
         return ''
     endif
+    let l:base = (a:0 > 0 && !empty(a:1)) ? tolower(a:1) : ''
     " set variables
     let l:prefix  = s:numbered_types[a:type]['prefix']
     let l:name    = s:numbered_types[a:type]['name']
     let l:Name    = s:numbered_types[a:type]['Name']
-    let l:default = substitute(tolower(a:label), '[^a-z0-9_-]', '-', 'g')
+    let l:default = substitute(l:base, '[^a-z0-9_-]', '-', 'g')
     let l:prompt  = 'Enter ' . l:name . ' id (empty to abort): '
     while 1
         let l:id = input(l:prompt, l:default)
