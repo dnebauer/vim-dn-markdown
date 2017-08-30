@@ -1037,9 +1037,11 @@ function! s:_figure_insert() abort
     if !filereadable(l:path)
         echo ' '  | " ensure move to a new line
         let l:prompt  = 'Image filepath appears to be invalid:'
-        let l:options = [{'Proceed anyway': g:dn_false}, {'Abort': g:dn_true}]
-        let l:abort   = dn#util#menuSelect(l:options, l:prompt)
-        if l:abort == g:dn_true | return | endif
+        let l:options = []
+        call add(l:options, {'Proceed anyway': g:dn_true})
+        call add(l:options, {'Abort': g:dn_false})
+        let l:proceed = dn#util#menuSelect(l:options, l:prompt)
+        if !l:proceed | return | endif
     endif
     " insert figure
     let l:cursor    = getpos('.')
@@ -1496,10 +1498,10 @@ function! s:_reference_insert(type) abort
             " see if user wants to insert an id that does not yet exist
             let l:prompt  = 'Cannot find ' . l:name . ' with that id:'
             let l:options = []
-            call add(l:options, {'Insert reference to it anyway': g:dn_false})
-            call add(l:options, {'Abort': g:dn_true})
-            let l:abort = dn#util#menuSelect(l:options, l:prompt)
-            if l:abort == g:dn_true | return | endif
+            call add(l:options, {'Insert reference to it anyway': g:dn_true})
+            call add(l:options, {'Abort': g:dn_false})
+            let l:proceed = dn#util#menuSelect(l:options, l:prompt)
+            if !l:proceed == g:dn_true | return | endif
         endif
     endif
     " insert reference, i.e., label
