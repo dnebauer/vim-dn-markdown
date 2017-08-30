@@ -481,6 +481,17 @@ function! dn#markdown#completeFormat(A, L, P) abort
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
+" dn#markdown#completeIdFigure(ArgLead, CmdLine, CursorPos)                {{{2
+" does:   perform completion on figure ids
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of ids
+function! dn#markdown#completeIdFigure(A, L, P) abort
+    let l:ids = sort(keys(b:dn_md_ids.figure))
+    return filter(l:ids, 'v:val =~# "' . a:A . '"')
+endfunction
+
 " dn#markdown#equationInsert([insert])                                     {{{2
 " does:   insert equation at cursor location
 " params: insert - whether entered from insert mode
@@ -807,17 +818,6 @@ function! dn#markdown#view(...) abort
 endfunction
 
 " Private functions                                                        {{{1
-
-" s:_complete_id_figure(ArgLead, CmdLine, CursorPos)                       {{{2
-" does:   perform completion on figure ids
-" params: ArgLead   - see help for |command-completion-custom|
-"         CmdLine   - see help for |command-completion-custom|
-"         CursorPos - see help for |command-completion-custom|
-" return: List of ids
-function! s:_complete_id_figure(A, L, P) abort
-    let l:ids = sort(keys(b:dn_md_ids.figure))
-    return filter(l:ids, 'v:val =~# "' . a:A . '"')
-endfunction
 
 " s:_display_value(value, setting)                                         {{{2
 " does:   get the display value for a setting value
