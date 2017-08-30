@@ -1411,7 +1411,7 @@ function! s:_reference_insert(type) abort
     let l:Name   = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
     " get id
     let l:prompt = 'Enter ' . l:name . ' id (empty to abort): '
-    let l:complete = 'customlist,s:_complete_id_' . a:type
+    let l:complete = 'customlist,dn#markdown#completeId' . l:Name
     let l:id = input(l:prompt, '', l:complete)
     if empty(l:id) | return | endif
     if !has_key(b:dn_md_ids[a:type], l:id)
