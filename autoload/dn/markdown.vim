@@ -499,13 +499,13 @@ function! dn#markdown#completeFormat(A, L, P) abort
 endfunction
 
 " dn#markdown#completeIdEquation(ArgLead, CmdLine, CursorPos)              {{{2
-" does:   perform completion on figure ids
+" does:   perform completion on equation ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
 "         CursorPos - see help for |command-completion-custom|
 " return: List of ids
-function! dn#markdown#completeIdFigure(A, L, P) abort
-    let l:ids = sort(keys(b:dn_md_ids.figure))
+function! dn#markdown#completeIdEquation(A, L, P) abort
+    let l:ids = sort(keys(b:dn_md_ids.equation))
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
@@ -520,14 +520,14 @@ function! dn#markdown#completeIdFigure(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdFigure(ArgLead, CmdLine, CursorPos)                {{{2
-" does:   perform completion on figure ids
+" dn#markdown#completeIdTable(ArgLead, CmdLine, CursorPos)                 {{{2
+" does:   perform completion on table ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
 "         CursorPos - see help for |command-completion-custom|
 " return: List of ids
-function! dn#markdown#completeIdFigure(A, L, P) abort
-    let l:ids = sort(keys(b:dn_md_ids.figure))
+function! dn#markdown#completeIdTable(A, L, P) abort
+    let l:ids = sort(keys(b:dn_md_ids.table))
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
@@ -544,6 +544,25 @@ function! dn#markdown#equationInsert(...) abort
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     " insert image
     call s:_equation_insert()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#equationRef([insert])                                        {{{2
+" does:   insert equation reference at cursor location
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" prints: equation reference
+" return: nil
+function! dn#markdown#equationRef(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_reference_insert('equation')
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -764,6 +783,25 @@ function! dn#markdown#tableInsert(...) abort
     let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
     " insert image
     call s:_table_insert()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#tableRef([insert])                                           {{{2
+" does:   insert table reference at cursor location
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" prints: table reference
+" return: nil
+function! dn#markdown#tableRef(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_reference_insert('table')
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -1437,12 +1475,9 @@ endfunction
 " return: String, reference
 function! s:_reference_insert(type) abort
     " check params
-    if empty (a:type)  " script error
-        call dn#util#error('No type provided')
+    if empty (a:type) || !has_key(s:numbered_types, a:type)  " script error
+        call dn#util#error("Invalid type '" . a:type . "' provided")
         return
-    endif
-    if !has_key(s:numbered_types, a:type)  " script error
-        call dn#util#error("Invalid type: " . a:type)
     endif
     " get id
     let l:name     = s:numbered_types[a:type]['name']
