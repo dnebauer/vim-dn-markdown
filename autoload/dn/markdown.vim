@@ -1120,7 +1120,7 @@ function! s:_generator (format) abort
     " number figures                                                       {{{3
     " - pandoc-fignos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
-    if count(l:params, 'figure') > 0                       " number figures
+    if count(l:params, 'figures') > 0                      " number figures
         let l:use_fignos = b:dn_md_settings.number_figures.value
         " requires pandoc-fignos filter be installed
         if l:use_fignos && !executable('pandoc-fignos')
