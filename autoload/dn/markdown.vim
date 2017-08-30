@@ -565,6 +565,25 @@ function! dn#markdown#figureInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
+" dn#markdown#figureRef([insert])                                          {{{2
+" does:   insert figure reference at cursor location
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" prints: figure reference
+" return: nil
+function! dn#markdown#figureRef(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_reference_insert('figure')
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
 " dn#markdown#initialise()                                                 {{{2
 " does:   initialise plugin
 " params: nil
@@ -789,6 +808,17 @@ endfunction
 
 " Private functions                                                        {{{1
 
+" s:_complete_id_figure(ArgLead, CmdLine, CursorPos)                       {{{2
+" does:   perform completion on figure ids
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of ids
+function! s:_complete_id_figure(A, L, P) abort
+    let l:ids = sort(keys(b:dn_md_ids.figure))
+    return filter(l:ids, 'v:val =~# "' . a:A . '"')
+endfunction
+
 " s:_display_value(value, setting)                                         {{{2
 " does:   get the display value for a setting value
 " params: value   - setting value to display [any, required]
@@ -870,7 +900,7 @@ function! s:_equation_insert() abort
     if empty(l:id) | return | endif
     let l:label = '{#eq:' . l:id . '}'
     " insert equation label
-    call dn#util#insertImage(l:label)
+    call dn#util#insertString(l:label)
     " update ids list
     " - has to be unique or would not have been allowed
     call s:_increment_id_count('equation', l:id)
@@ -1280,6 +1310,7 @@ function! s:_increment_id_count(type, id) abort
     endif
     if !has_key(s:numbered_types, a:type)  " script error
         call dn#util#error("Invalid type: " . a:type)
+        return
     endif
     " update id count
     if has_key(b:dn_md_ids[a:type], a:id)
@@ -1358,6 +1389,49 @@ function! s:_process_dict_params(...) abort
         echo 'No output format selected'
     endif
     return [l:insert, l:format]
+endfunction
+
+" s:_reference_insert(type)                                                {{{2
+" does:   insert equation, figure or table reference
+" params: type - reference type
+"                [string, required, can be 'equation'|'table'|'figure']
+" return: String, reference
+function! s:_reference_insert(type) abort
+    " check params
+    if empty (a:type)  " script error
+        call dn#util#error('No type provided')
+        return
+    endif
+    if !has_key(s:numbered_types, a:type)  " script error
+        call dn#util#error("Invalid type: " . a:type)
+    endif
+    " set vars
+    let l:prefix = s:numbered_types[a:type]['prefix']
+    let l:name   = s:numbered_types[a:type]['name']
+    let l:Name   = toupper(strpart(l:name, 0, 1)) . strpart(l:name, 1)
+    " get id
+    let l:prompt = 'Enter ' . l:name . ' id (empty to abort): '
+    let l:complete = 'customlist,s:_complete_id_' . a:type
+    let l:id = input(l:prompt, '', l:complete)
+    if empty(l:id) | return | endif
+    if !has_key(b:dn_md_ids[a:type], l:id)
+        " rebuild index to be sure it is complete and accurate
+        echo ' '  | " ensure move to a new line
+        echo 'Rebuilding ' . l:name . ' id index'
+        call s:_update_ids(a:type)
+        if !has_key(b:dn_md_ids[a:type], l:id)
+            " see if user wants to insert an id that does not yet exist
+            let l:prompt  = 'Cannot find ' . l:name . ' with that id:'
+            let l:options = []
+            call add(l:options, {'Insert reference to it anyway': g:dn_false})
+            call add(l:options, {'Abort': g:dn_true})
+            let l:abort = dn#util#menuSelect(l:options, l:prompt)
+            if l:abort | return | endif
+        endif
+    endif
+    " insert reference, i.e., label
+    let l:ref = '{@' . l:prefix . ':' . l:id . '}'
+    call dn#util#insertString(l:ref)
 endfunction
 
 " s:_say(msg1, [msg2])                                                     {{{2
