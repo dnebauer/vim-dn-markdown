@@ -487,7 +487,7 @@ unlet b:type
 
 " Public functions                                                         {{{1
 
-" dn#markdown#completeFormat(ArgLead, CmdLine, CursorPos)                  {{{2
+" dn#markdown#completeFormat(A, L, P)                                      {{{2
 " does:   return completion candidates for output formats
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -498,7 +498,7 @@ function! dn#markdown#completeFormat(A, L, P) abort
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdEquation(ArgLead, CmdLine, CursorPos)              {{{2
+" dn#markdown#completeIdEquation(A, L, P)                                  {{{2
 " does:   perform completion on equation ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -509,7 +509,7 @@ function! dn#markdown#completeIdEquation(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdFigure(ArgLead, CmdLine, CursorPos)                {{{2
+" dn#markdown#completeIdFigure(A, L, P)                                    {{{2
 " does:   perform completion on figure ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -520,7 +520,7 @@ function! dn#markdown#completeIdFigure(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdTable(ArgLead, CmdLine, CursorPos)                 {{{2
+" dn#markdown#completeIdTable(A, L, P)                                     {{{2
 " does:   perform completion on table ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -945,6 +945,8 @@ function! s:_enter_id(type, ...) abort
     let l:name    = s:numbered_types[a:type]['name']
     let l:Name    = s:numbered_types[a:type]['Name']
     let l:default = substitute(l:base, '[^a-z0-9_-]', '-', 'g')
+    let l:default = substitute(l:default, '^-\+', '', '')
+    let l:default = substitute(l:default, '-\+$', '', '')
     let l:prompt  = 'Enter ' . l:name . ' id (empty to abort): '
     while 1
         let l:id = input(l:prompt, l:default)
