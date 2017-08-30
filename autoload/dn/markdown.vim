@@ -482,7 +482,7 @@ let s:numbered_types = {
             \ }
 " - ids
 let b:dn_md_ids = {}
-for b:type in s:numbered_types | let b:dn_md_ids[b:type] = {} | endfor
+for b:type in keys(s:numbered_types) | let b:dn_md_ids[b:type] = {} | endfor
 unlet b:type
 
 " Public functions                                                         {{{1
