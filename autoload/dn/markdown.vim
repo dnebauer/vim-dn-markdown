@@ -568,6 +568,43 @@ function! dn#markdown#equationRef(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
+" dn#markdown#figureInsert([insert])                                       {{{2
+" does:   insert figure following current line
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#figureInsert(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_figure_insert()
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
+" dn#markdown#figureRef([insert])                                          {{{2
+" does:   insert figure reference at cursor location
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" prints: figure reference
+" return: nil
+function! dn#markdown#figureRef(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " insert image
+    call s:_reference_insert('figure')
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
 " dn#markdown#generate([params])                                           {{{2
 " does:   generate output
 " params: params - parameters dictionary with the following keys:
@@ -611,43 +648,6 @@ function! dn#markdown#idsUpdate(...) abort
     call s:_update_ids('equation', 'figure', 'table')
     echo 'Updates lists of equation, figure and table ids'
     call dn#util#prompt()
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
-" dn#markdown#figureInsert([insert])                                       {{{2
-" does:   insert figure following current line
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#figureInsert(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    " insert image
-    call s:_figure_insert()
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
-" dn#markdown#figureRef([insert])                                          {{{2
-" does:   insert figure reference at cursor location
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" prints: figure reference
-" return: nil
-function! dn#markdown#figureRef(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
-    " insert image
-    call s:_reference_insert('figure')
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -1696,7 +1696,7 @@ endfunction
 " does:   update ids for figures, tables or equations in current file 
 " params: type - id types, duplicates ignored
 "                [string, required, can be 'equation'|'table'|'figure']
-" return: list
+" return: n/a
 " note:   follows basic style of
 "         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
 "         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
@@ -1706,7 +1706,7 @@ function! s:_update_ids(...) abort
     let l:types = uniq(sort(copy(a:000)))
     if empty(l:types)  " script error
         call dn#util#error('No id types provided')
-        return []
+        return
     endif
     let l:invalid = []
     for l:type in l:types
@@ -1717,13 +1717,15 @@ function! s:_update_ids(...) abort
     if !empty(l:invalid)
         let l:msg = 'Invalid reference type(s): ' . join(l:invalid, ', ')
         call dn#util#error(l:msg)
-        return []
+        return
     endif
+    " get file contents (and exit if file is empty)
+    let l:lines = getline(1, '$')
+    if len(l:lines) == 1 && empty(l:lines[0]) | return | endif
     " extract references from file contents
     " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    let l:lines = getline(1, '$')
     for l:type in l:types
         let l:prefix = s:numbered_types[l:type]['prefix']
         let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
