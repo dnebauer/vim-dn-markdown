@@ -482,7 +482,7 @@ The |dn#markdown#equationInsert()| function can be called using the mapping
 the mapping "<Leader>fi". The |dn#markdown#tableInsert()| function can be
 called using the mapping "<Leader>ti".
 
-All three function can be called from either |Insert-mode| or |Normal-mode|.
+All three functions can be called from either |Insert-mode| or |Normal-mode|.
 The default |mapleader| is a backslash.
 
                                                     *dn-markdown-reference*
