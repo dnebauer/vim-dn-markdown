@@ -671,7 +671,7 @@ function! dn#markdown#initialise() abort
     " otherwise set to their default values
     silent call s:_settings_configure()
     " check equation, table and figure refs (and update indices
-    debug call s:_check_refs(g:dn_true)
+    call s:_check_refs(g:dn_true)
 endfunction
 
 " dn#markdown#refsCheck([insert])                                          {{{2
@@ -939,7 +939,7 @@ endfunction
 "                  - eq/fig/tbl defined multiple times
 function! s:_check_refs(...) abort
     " variables                                                            {{{3
-    let l:startup = (a:0 > 1 && a:1)
+    let l:startup = (a:0 > 0 && a:1)
     let l:types   = keys(s:numbered_types)
     let l:issues  = {}
     " update ref and id indices                                            {{{3
@@ -1165,11 +1165,11 @@ function! s:_execute_shell_command(cmd, ...) abort
     echo '' | " clear command line
     " variables
     let l:errmsg = (a:0 > 0) ? a:1 : ['Error occurred:']
-    "if a:0 > 0
-    "    let l:errmsg = a:1
-    "else
-    "    let l:errmsg = ['Error occurred:']
-    "endif
+    if type(l:errmsg) != type([])
+        let l:msg = 'Expected list messages, got ' . dn#util#varType(l:errmsg)
+        call dn#util#error(l:msg)
+        return
+    endif
     " run command
     let l:shell_feedback = system(a:cmd)
     " if failed display error message and shell feedback
