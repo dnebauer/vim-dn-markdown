@@ -49,18 +49,6 @@ endif
 
 " Mappings                                                                 {{{1
 
-" \iu : update lists of ids                                                {{{2
-if !hasmapto('<Plug>DnIUI')
-    imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
-endif
-imap <buffer> <unique> <Plug>DnIUI
-            \ <Esc>:call dn#markdown#idsUpdate(g:dn_true)<CR>
-if !hasmapto('<Plug>DnIUN')
-    nmap <buffer> <unique> <LocalLeader>iu <Plug>DnIUN
-endif
-nmap <buffer> <unique> <Plug>DnIUN
-            \ :call dn#markdown#idsUpdate()<CR>
-
 " \ei : insert equation label                                              {{{2
 if !hasmapto('<Plug>DnEII')
     imap <buffer> <unique> <LocalLeader>ei <Plug>DnEII
@@ -109,6 +97,18 @@ endif
 nmap <buffer> <unique> <Plug>DnFRN
             \ :call dn#markdown#figureRef()<CR>
 
+" \iu : update lists of ids                                                {{{2
+if !hasmapto('<Plug>DnIUI')
+    imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
+endif
+imap <buffer> <unique> <Plug>DnIUI
+            \ <Esc>:call dn#markdown#idsUpdate(g:dn_true)<CR>
+if !hasmapto('<Plug>DnIUN')
+    nmap <buffer> <unique> <LocalLeader>iu <Plug>DnIUN
+endif
+nmap <buffer> <unique> <Plug>DnIUN
+            \ :call dn#markdown#idsUpdate()<CR>
+
 " \og : output generation                                                  {{{2
 if !hasmapto('<Plug>DnOGI')
     imap <buffer> <unique> <LocalLeader>og <Plug>DnOGI
@@ -144,6 +144,18 @@ if !hasmapto('<Plug>DnOVN')
 endif
 nmap <buffer> <unique> <Plug>DnOVN
             \ :call dn#markdown#view()<CR>
+
+" \rc : check references                                                   {{{2
+if !hasmapto('<Plug>DnRCI')
+    imap <buffer> <unique> <LocalLeader>rc <Plug>DnRCI
+endif
+imap <buffer> <unique> <Plug>DnRCI
+            \ <Esc>:call dn#markdown#refsCheck(g:dn_true)<CR>
+if !hasmapto('<Plug>DnRCN')
+    nmap <buffer> <unique> <LocalLeader>rc <Plug>DnRCN
+endif
+nmap <buffer> <unique> <Plug>DnRCN
+            \ :call dn#markdown#refsCheck()<CR>
 
 " \se : settings edit                                                      {{{2
 if !hasmapto('<Plug>DnSEI')
@@ -182,6 +194,10 @@ nmap <buffer> <unique> <Plug>DnTRN
             \ :call dn#markdown#tableRef()<CR>
                                                                          " }}}2
 " Commands                                                                 {{{1
+
+" CheckReferences   : check references                                     {{{2
+command! -buffer CheckReferences
+            \ call dn#markdown#refsCheck()
 
 " EquationInsert    : insert image                                         {{{2
 command! -buffer EquationInsert

@@ -557,5 +557,30 @@ called using the mapping "<Leader>it".
 All three mappings can be called from either |Insert-mode| or |Normal-mode|.
 The default |mapleader| is a backslash.
 
+                                                  *dn#markdown#refsCheck()*
+Use the dn#markdown#refsCheck() function to check equation, figure and
+table definitions, and references to them. The following conditions will
+be reported as warnings:
+    an equation, figure or table is referenced not referenced
+    an equation, figure or table is referenced multiple times
+
+The following conditions are reported as errors:
+    a reference is made to an equation, figure or table that is not defined
+    an equation, figure or table is defined more than once
+
+This function is run automatically when the plugin is loaded, i.e., when
+a markdown file is loaded into the buffer. When run at initialisation the
+funtion reports warnings and errors, but does not print any other
+messages.
+
+                                      *dn-markdown-command-CheckReferences*
+The |dn#markdown#refsCheck()| function can be called using the
+:CheckReferences command.
+
+                                                   *dn-markdown-mapping-rc*
+The |dn#markdown#refsCheck()| function can be called using the mapping
+"<Leader>rc" from either |Insert-mode| or |Normal-mode|. The default
+|mapleader| is a backslash.
+
 =========================================================================
  vim:tw=78:fo=tcq2:ts=4:ft=help:
