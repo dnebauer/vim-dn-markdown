@@ -1039,7 +1039,6 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
         call dn#util#error("Invalid id type: '" . a:type . "'")
         return
     endif
-    if empty(a:issues) | call dn#util#error('No issues') | return | endif
     if type(a:issues) != type({})
         let l:msg = 'Expected issues to be dict, got '
                     \ . dn#util#varType(a:issues)
