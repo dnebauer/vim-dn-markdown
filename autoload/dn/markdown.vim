@@ -1010,7 +1010,7 @@ function! s:_check_refs(...) abort
                 if !has_key(l:issues[l:type][l:id], l:class) | continue | endif
                 for l:item in l:issues[l:type][l:id][l:class]
                     let l:msg = l:class . ': '
-                    let l:msg = dn#util#rightPad(l:class, 9)  " 9 = 'warning: '
+                    let l:msg = dn#util#padRight(l:class, 9)  " 9 = 'warning: '
                     let l:msg .= l:item
                     call add(l:report, l:msg)
                 endfor
