@@ -1923,13 +1923,13 @@ function! s:_update_ids(...) abort
     "   by id type and ID is a unique value entered by the user
     " - assume no more than one match per line
     for l:type in l:types
-        let l:prefix = s:numbered_types[l:type]['prefix']
-        let l:re = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
+        let l:prefix  = s:numbered_types[l:type]['prefix']
+        let l:re      = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
                     \ '!empty(v:val)')
         " extract id strings
         let l:start = len(l:prefix) + 3  " the 3 is for '{', '#' and ':'
-        let l:ids = map(l:matches,
+        let l:ids   = map(l:matches,
                     \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
         " update ids
         let b:dn_md_ids[l:type] = {}
