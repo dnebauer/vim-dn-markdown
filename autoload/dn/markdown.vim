@@ -458,8 +458,8 @@ let s:pandoc_params.pdf_context.params = s:pandoc_params.context.params
 let s:pandoc_params.pdf_html.params    = s:pandoc_params.html.params
 let s:pandoc_params.pdf_latex.params   = s:pandoc_params.latex.params
 
-" ids for numbered structures (s:numbered_types, b:dn_md_ids)              {{{2
-" - types
+" numbered structures (s:numbered_types, b:dn_md_{ids,refs})               {{{2
+" - types                                                                  {{{3
 let s:numbered_types = {
             \ 'equation' : {
             \   'prefix'   : 'eq',
@@ -480,12 +480,15 @@ let s:numbered_types = {
             \   'complete' : 'dn#markdown#completeIdTable',
             \   },
             \ }
-" - ids
+" - ids and refs                                                           {{{3
 let b:dn_md_ids = {}
 for b:type in keys(s:numbered_types) | let b:dn_md_ids[b:type] = {} | endfor
 unlet b:type
-" - refs
 let b:dn_md_refs = deepcopy(b:dn_md_ids)
+
+" hanging indent                                                           {{{2
+" - default hanging indent
+let s:hang = 15
 
 " Public functions                                                         {{{1
 
@@ -648,7 +651,7 @@ function! dn#markdown#idsUpdate(...) abort
     let l:insert = (a:0 > 0 && a:1)
     " update ids
     call s:_update_ids('equation', 'figure', 'table')
-    echo 'Updates lists of equation, figure and table ids'
+    echo 'Updated lists of equation, figure and table ids'
     call dn#util#prompt()
     redraw!
     " return to calling mode
@@ -747,11 +750,12 @@ function! dn#markdown#settings() abort
         let l:prompt  = b:dn_md_settings[l:setting]['prompt'] . ' '
         " notify user of current setting
         echo l:label
-        call s:_say('Current value:', s:_display_value(l:value, l:setting))
-        call s:_say('Source:', l:source)
+        call s:_say(s:hang,'Current value:',
+                    \ s:_display_value(l:value, l:setting))
+        call s:_say(s:hang, 'Source:', l:source)
         " display allowed values and get user input
         if     type(l:allowed) == type([])
-            call s:_say('Allowed:', join(l:allowed, ', '))
+            call s:_say(s:hang, 'Allowed:', join(l:allowed, ', '))
             let l:options = []
             for l:option in sort(l:allowed)
                 let l:item = (type(l:option) == type('')) ? l:option
@@ -760,19 +764,20 @@ function! dn#markdown#settings() abort
             endfor
             let l:input = dn#util#menuSelect(l:options, l:prompt)
         elseif l:allowed ==# 'boolean'
-            call s:_say('Allowed:', 'Yes, No')
+            call s:_say(s:hang, 'Allowed:', 'Yes, No')
             let l:options = [{'Yes': g:dn_true}, {'No': g:dn_false}]
             let l:input = dn#util#menuSelect(l:options, l:prompt)
         elseif l:allowed ==# 'executable'
-            call s:_say('Allowed:', '[valid executable file name]')
+            call s:_say(s:hang, 'Allowed:', '[valid executable file name]')
             let l:input = input(l:prompt, l:value, 'file_in_path')
             echo ' '  | " ensure move to a new line
         elseif l:allowed ==# 'path_url'
-            call s:_say('Allowed:', '[valid file path or url]')
+            call s:_say(s:hang, 'Allowed:', '[valid file path or url]')
             let l:input = input(l:prompt, l:value, 'file')
             echo ' '  | " ensure move to a new line
         elseif l:allowed ==# 'template_file'
-            call s:_say('Allowed:', '[valid base/file name, file path or url]')
+            call s:_say(s:hang, 'Allowed:',
+                        \ '[valid base/file name, file path or url]')
             let l:input = input(l:prompt, l:value, 'file')
             echo ' '  | " ensure move to a new line
         else  " script error!
@@ -784,7 +789,8 @@ function! dn#markdown#settings() abort
         if s:_valid_setting_value(l:input, l:setting)
             let b:dn_md_settings[l:setting]['value']  = l:input
             let b:dn_md_settings[l:setting]['source'] = 'set by user'
-            call s:_say('Now set to:', s:_display_value(l:input, l:setting))
+            call s:_say(s:hang, 'Now set to:',
+                        \ s:_display_value(l:input, l:setting))
         else
             call dn#util#error('Error: Not a valid value')
         endif
@@ -930,13 +936,135 @@ endfunction
 " note:   warnings - eq/fig/tbl not referenced
 "                  - duplicate references to same eq/fig/tbl
 "         errors   - reference to non-existant eq/fig/tbl
-"                  - duplicate eq/fig/tbl id
+"                  - eq/fig/tbl defined multiple times
 function! s:_check_refs(...) abort
-    " check params
+    " variables                                                            {{{3
     let l:startup = (a:0 > 1 && a:1)
-    " update ref and id indices
+    let l:types   = keys(s:numbered_types)
+    let l:issues  = {}
+    " update ref and id indices                                            {{{3
+    if !l:startup | echo 'Updating... ' | endif
     call s:_update_ids('equation', 'figure', 'table')
     call s:_update_refs()
+    " check for problems                                                   {{{3
+    if !l:startup | echon 'analysing... ' | endif
+    for l:type in l:types
+        for l:id in keys(b:dn_md_ids[l:type])
+            if has_key(b:dn_md_refs[l:type][l:id])
+                " check for multiple references to id (warning)
+                let l:count = b:dn_md_refs[l:type][l:id]
+                if l:count > 1
+                    if !s:_check_refs_issue(l:issues, l:type, l:id, 'warning',
+                                \ 'referenced ' . l:count . ' times')
+                        return
+                    endif
+                endif
+            else
+                " check if no references to id (warning)
+                if !s:_check_refs_issue(l:issues, l:type, l:id, 'warning',
+                            \ 'not referenced')
+                    return
+                endif
+            endif
+        endfor
+        for l:ref in keys(b:dn_md_ref[l:type])
+            if has_key(b:dn_md_ids[l:type][l:id])
+                " check for multiple definitions (error)
+                let l:count = b:dn_md_ids[l:type][l:id]
+                if l:count > 1
+                    let l:msg = 'defined ' . l:count . ' times'
+                    if !s:_check_refs_issue(l:issues, l:type, l:ref, 'error',
+                                \ l:msg)
+                        return
+                    endif
+                endif
+            else
+                " check if reference is to non-existant structure (error)
+                let l:msg = 'is referenced but is not defined anywhere'
+                if !s:_check_refs_issue(l:issues, l:type, l:ref, 'error',
+                            \ l:msg)
+                    return
+                endif
+            endif
+        endfor
+    endfor
+    " report results                                                       {{{3
+    if empty(l:issues)
+        if !l:startup | echon 'references ok' | endif
+        return
+    endif
+    for l:type in sort(l:types)
+        if !has_key(l:issues, l:type) | continue | endif
+        let l:Name = s:numbered_types[l:type]['Name']
+        for l:id in keys(l:issues[l:type])
+            let l:report = []
+            for l:class in ['warning', 'error']
+                if !has_key(l:issues[l:type][l:id], l:class) | continue | endif
+                for l:item in l:issues[l:type][l:id][l:class]
+                    let l:msg = l:item . ' (' . l:class . ')'
+                    call add(l:report, l:msg)
+                endfor
+            endfor
+            let l:title  = l:Name . ' ' . l:id . ': '
+            let l:hang   = len(l:title)
+            let l:indent = repeat(' ', l:hang)
+            for l:msg in l:report[0:0]
+                call s:_say(l:hang, l:title, l:msg)
+            endfor
+            for l:msg in l:report[1:]
+                call s:_say(l:hang, l:indent, l:msg)
+            endfor
+        endfor
+    endfor                                                               " }}}3
+endfunction
+
+" s:_check_refs_issue(issues, type, id, class, msg)                        {{{2
+" does:   add to issues with structured type
+" params: issues - variable holding issues [Dict, required]
+"         type   - id type [String, required, 'equation'|'figure'|table']
+"         id     - id string [String, required]
+"         class  - issue class [String, required, 'warning'|'error']
+"         msg    - message [String, required]
+" prints: nil
+" return: boolean, whether operation successful
+function! s:_check_refs_issue(issues, type, id, class, msg) abort
+    " check params
+    if empty(a:msg) | call dn#util#error('No message') | return | endif
+    if empty(a:class) | call dn#util#error('No issue class') | return | endif
+    if !has_key({'warning': 1, 'error': 1}, a:class)
+        call dn#util#error("Invalid issue class: '" . a:class . "'")
+        return
+    endif
+    if empty(a:id) | call dn#util#error('No id') | return | endif
+    if empty(a:type) | call dn#util#error('No id type') | return | endif
+    if !has_key(s:numbered_types, a:type)
+        call dn#util#error("Invalid id type: '" . a:type . "'")
+        return
+    endif
+    if empty(a:issues) | call dn#util#error('No issues') | return | endif
+    if type(a:issues) != type({})
+        let l:msg = 'Expected issues to be dict, got '
+                    \ . dn#util#varType(a:issues)
+        call dn#util#error(l:msg)
+        return
+    endif
+    " add issue
+    " - issues -> type
+    if !has_key(a:issues, a:type)
+        let a:issues[a:type] = {}
+    endif
+    " - issues -> type -> id
+    if !has_key(a:issues[a:type], a:id)
+        let a:issues[a:type][a:id] = {}
+    endif
+    " - issues -> type -> id -> class
+    if !has_key(a:issues[a:type][a:id], a:class)
+        let a:issues[a:type][a:id][a:class] = []
+    endif
+    " - issues -> type -> id -> class -> msg
+    call add(a:issues[a:type][a:id][a:class], a:msg)
+    " guess we succeeded!
+    return g:dn_true
 endfunction
 
 " s:_display_value(value, setting)                                         {{{2
@@ -1054,7 +1182,7 @@ function! s:_execute_shell_command(cmd, ...) abort
             call dn#util#error(l:line)
         endfor
         echo '--------------------------------------'
-        call s:_say(l:shell_feedback)
+        call s:_say(s:hang, l:shell_feedback)
         echo '--------------------------------------'
         return g:dn_false
     else
@@ -1154,9 +1282,9 @@ function! s:_generator (format) abort
     endif
     " save file to incorporate any changes                                 {{{3
     silent update
-    call s:_say('Target format:', a:format)
+    call s:_say(s:hang, 'Target format:', a:format)
     let l:pandoc_exe = b:dn_md_settings.exe_pandoc.value
-    call s:_say('Converter:', l:pandoc_exe)
+    call s:_say(s:hang, 'Converter:', l:pandoc_exe)
     " generate output
     " - note: some output options are displayed explicitly,
     "         one per line, while other are added to l:opts
@@ -1174,7 +1302,8 @@ function! s:_generator (format) abort
         " requires pandoc-fignos filter be installed
         if l:use_fignos && !executable('pandoc-fignos')
             let l:use_fignos = g:dn_false
-            call s:_say('Figure xref:', 'pandoc-fignos filter not installed')
+            call s:_say(s:hang, 'Figure xref:',
+                        \ 'pandoc-fignos filter not installed')
         endif
         if l:use_fignos
             call add(l:cmd, '--filter pandoc-fignos')
@@ -1189,7 +1318,8 @@ function! s:_generator (format) abort
         " requires pandoc-eqnos filter be installed
         if l:use_eqnos && !executable('pandoc-eqnos')
             let l:use_eqnos = g:dn_false
-            call s:_say('Equation xref:', 'pandoc-eqnos filter not installed')
+            call s:_say(s:hang, 'Equation xref:',
+                        \ 'pandoc-eqnos filter not installed')
         endif
         if l:use_eqnos
             call add(l:cmd, '--filter pandoc-eqnos')
@@ -1204,7 +1334,8 @@ function! s:_generator (format) abort
         " requires pandoc-tablenos filter be installed
         if l:use_tablenos && !executable('pandoc-tablenos')
             let l:use_tablenos = g:dn_false
-            call s:_say('Table xref:', 'pandoc-tablenos filter not installed')
+            call s:_say(s:hang, 'Table xref:',
+                        \ 'pandoc-tablenos filter not installed')
         endif
         if l:use_tablenos
             call add(l:cmd, '--filter pandoc-tablenos')
@@ -1222,7 +1353,7 @@ function! s:_generator (format) abort
             return
         endif
         call add(l:cmd, '--latex-engine=' . l:engine)
-        call s:_say('Latex engine:', l:engine)
+        call s:_say(s:hang, 'Latex engine:', l:engine)
     endif
     " make links visible                                                   {{{3
     if count(l:params, 'latexlinks') > 0                   " latex links
@@ -1239,7 +1370,7 @@ function! s:_generator (format) abort
         call add(l:cmd, '--variable citecolor=' . l:link_color)
         call add(l:cmd, '--variable toccolor='  . l:link_color)
         call add(l:cmd, '--variable urlcolor='  . l:link_color)
-        call s:_say('Link colour:', l:link_color)
+        call s:_say(s:hang, 'Link colour:', l:link_color)
     endif
     if count(l:params, 'contextlinks') > 0                 " context links
         " available colours are:
@@ -1255,16 +1386,16 @@ function! s:_generator (format) abort
         " if colour is changed here, update documentation
         let l:link_color = b:dn_md_settings.linkcolor_print.value
         call add(l:cmd, '--variable linkcolor=' . l:link_color)
-        call s:_say('Link colour:', l:link_color)
+        call s:_say(s:hang, 'Link colour:', l:link_color)
     endif
     " custom font size                                                     {{{3
     if count(l:params, 'fontsize') > 0                     " font size
         let l:font_size = b:dn_md_settings.fontsize_print.value
         if empty(l:font_size)
-            call s:_say('Font size:', 'default')
+            call s:_say(s:hang, 'Font size:', 'default')
         else
             let l:font_size .= 'pt'
-            call s:_say('Font size:', l:font_size)
+            call s:_say(s:hang, 'Font size:', l:font_size)
             call add(l:cmd, '--variable fontsize=' . l:font_size)
         endif
     endif
@@ -1272,9 +1403,9 @@ function! s:_generator (format) abort
     if count(l:params, 'papersize') > 0                    " paper size
         let l:paper_size = b:dn_md_settings.papersize_print.value
         if empty(l:paper_size)
-            call s:_say('Paper size:', 'default')
+            call s:_say(s:hang, 'Paper size:', 'default')
         else
-            call s:_say('Paper size:', l:paper_size)
+            call s:_say(s:hang, 'Paper size:', l:paper_size)
             call add(l:cmd, '--variable papersize=' . l:paper_size)
         endif
     endif
@@ -1306,7 +1437,7 @@ function! s:_generator (format) abort
         let l:style_html = b:dn_md_settings.stylesheet_html.value
         if !empty(l:style_html)
             call add(l:cmd, '--css=' . shellescape(l:style_html))
-            call s:_say('Stylesheet:', l:style_html)
+            call s:_say(s:hang, 'Stylesheet:', l:style_html)
         endif
     endif
     " use css stylesheet for epub                                          {{{3
@@ -1315,7 +1446,7 @@ function! s:_generator (format) abort
         if !empty(l:style_epub)
             call add(l:cmd, '--epub-stylesheet='
                         \ . shellescape(l:style_epub))
-            call s:_say('Stylesheet:', l:style_epub)
+            call s:_say(s:hang, 'Stylesheet:', l:style_epub)
         endif
     endif
     " use cover image for epub                                             {{{3
@@ -1330,7 +1461,7 @@ function! s:_generator (format) abort
         if !empty(l:cover_epub)
             call add(l:cmd, '--epub-cover-image='
                         \ . shellescape(l:cover_epub))
-            call s:_say('Cover image:', l:cover_epub)
+            call s:_say(s:hang, 'Cover image:', l:cover_epub)
         endif
     endif
     " use docx stylesheet                                                  {{{3
@@ -1340,7 +1471,7 @@ function! s:_generator (format) abort
         if !empty(l:style_docx)
             call add(l:cmd, '--reference-docx='
                         \ . shellescape(l:style_docx))
-            call s:_say('Style doc:', l:style_docx)
+            call s:_say(s:hang, 'Style doc:', l:style_docx)
         endif
     endif
     " use custom template                                                  {{{3
@@ -1350,9 +1481,9 @@ function! s:_generator (format) abort
         if !empty(l:template)
             call add(l:cmd, '--template='
                         \ . shellescape(l:template))
-            call s:_say('Template:', l:template)
+            call s:_say(s:hang, 'Template:', l:template)
         else
-            call s:_say('Template:', '[default]')
+            call s:_say(s:hang, 'Template:', '[default]')
         endif
     endif
     " input option                                                         {{{3
@@ -1367,7 +1498,7 @@ function! s:_generator (format) abort
     " output file                                                          {{{3
     let l:ext    = s:pandoc_params[a:format]['after_ext']  " output file
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
-    call s:_say('Output file:', l:output)
+    call s:_say(s:hang, 'Output file:', l:output)
     " - if postprocessing this output, i.e., it is an intermediate file,
     "   may want to munge output file name to prevent overwriting of a
     "   final output file of the same format -- in cases where
@@ -1389,10 +1520,10 @@ function! s:_generator (format) abort
     let l:source = expand('%')                             " input file
     call add(l:cmd, shellescape(l:source))
     " generate pandoc output                                               {{{3
-    call s:_say('Options:', join(l:opts, ', '))
+    call s:_say(s:hang, 'Options:', join(l:opts, ', '))
     let l:errmsg = ["Error occurred during '"
                 \ . a:format . "' generation"]
-    call s:_say('Generating output... ')
+    call s:_say(s:hang, 'Generating output... ')
     let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
     " do post-pandoc conversion where required                             {{{3
     if l:post_processing && l:retval
@@ -1581,26 +1712,25 @@ function! s:_reference_insert(type) abort
     call dn#util#insertString(l:ref)
 endfunction
 
-" s:_say(msg1, [msg2])                                                     {{{2
+" s:_say(hang, msg1, [msg2])                                               {{{2
 " does:   echo line of output with wrapping and hanging indent
-" params: msg1 - message to display [string, required]
+" params: hang - width of hanging indent [integer, required]
+"         msg1 - message to display [string, required]
 "         msg2 - message to display [string, optional]
 " return: nil
 " note:   if only msg1 is present, then treat output as a single string
 " note:   if msg2 is present, right-pad msg1 with spaces to the width
 "         of the hanging indent before concatenating msg1 and msg2
-function! s:_say(msg1, ...) abort
-    " hanging indent
-    let l:hang = 15
+function! s:_say(hang, msg1, ...) abort
     " if msg2 present, right-pad msg1
     let l:msg = a:msg1
     if a:0 > 0
         let l:msg2 = a:1
-        while len(l:msg) < l:hang | let l:msg .= ' ' | endwhile
+        while len(l:msg) < a:hang | let l:msg .= ' ' | endwhile
         let l:msg .= l:msg2
     endif
     " print wrapped output
-    call dn#util#wrap(l:msg, l:hang)
+    call dn#util#wrap(l:msg, a:hang)
 endfunction
 
 " s:_select_format(prompt)                                                 {{{2
