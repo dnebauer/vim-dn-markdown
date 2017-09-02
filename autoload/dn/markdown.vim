@@ -1777,7 +1777,7 @@ function! s:_update_ids(...) abort
     " - assume no more than one match per line
     for l:type in l:types
         let l:prefix = s:numbered_types[l:type]['prefix']
-        let l:re = '{#' . l:prefix . ':\p\+}'  " \p\+ is ID
+        let l:re = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
                     \ '!empty(v:val)')
         " extract id strings
