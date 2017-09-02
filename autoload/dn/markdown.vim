@@ -1955,9 +1955,8 @@ function! s:_update_refs() abort
     " - looking for pattern >> {@PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    let l:labels = []
-    for l:type in ['table', 'figure']  " DELETE
-    "for l:type in keys(s:numbered_types)
+    for l:type in keys(s:numbered_types)
+        let l:labels = []
         let l:prefix = s:numbered_types[l:type]['prefix']
         let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         for l:line in l:lines
@@ -1969,16 +1968,12 @@ function! s:_update_refs() abort
                 let l:count += 1
             endwhile
         endfor
-echo l:labels  | " DELETE
-call dn#util#prompt()  " DELETE
         " extract ref strings
         let l:start = len(l:prefix) + 3  " the 3 is for '{', '@' and ':'
         let l:refs = map(l:labels,
                     \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
         " update refs
         let b:dn_md_refs[l:type] = {}
-echo l:refs  | " DELETE
-call dn#util#prompt()  " DELETE
         for l:ref in l:refs
             call s:_increment_ref_count(l:type, l:ref)
         endfor
