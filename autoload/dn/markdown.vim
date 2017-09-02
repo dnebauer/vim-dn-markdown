@@ -1974,6 +1974,8 @@ function! s:_update_refs() abort
                     \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
         " update refs
         let b:dn_md_refs[l:type] = {}
+echo b:dn_md_refs
+call dn#util#prompt()
         for l:ref in l:refs
             call s:_increment_ref_count(l:type, l:ref)
         endfor
