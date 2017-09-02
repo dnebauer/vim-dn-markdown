@@ -671,6 +671,28 @@ function! dn#markdown#initialise() abort
     silent call s:_update_ids('equation', 'figure', 'table')
 endfunction
 
+" dn#markdown#refsCheck([insert])                                          {{{2
+" does:   check all references
+" params: insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#refsCheck(...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    " check for previous output
+    let l:more = &more
+    set nomore
+    call s:_update_refs()
+    call dn#util#prompt()
+    redraw!
+    let &more = l:more
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
 " dn#markdown#regenerate([insert])                                         {{{2
 " does:   regenerate all previously outputted files
 " params: insert - whether entered from insert mode
