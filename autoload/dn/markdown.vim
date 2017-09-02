@@ -1836,7 +1836,7 @@ endfunction
 function! s:_settings_configure() abort
     " set parameters from configuration variables where available,
     " otherwise set to their default values
-    for l:setting in keys(b:dn_md_settings)
+    for l:setting in sort(keys(b:dn_md_settings))
         let l:default = b:dn_md_settings[l:setting]['default']
         let l:config  = b:dn_md_settings[l:setting]['config']
         let l:allowed = b:dn_md_settings[l:setting]['allowed']
