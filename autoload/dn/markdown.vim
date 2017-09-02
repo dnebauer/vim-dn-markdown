@@ -940,6 +940,7 @@ endfunction
 function! s:_check_refs(...) abort
     " variables                                                            {{{3
     let l:startup = (a:0 > 1 && a:1)
+    echo 'Startup param: ' . l:startup
     let l:types   = keys(s:numbered_types)
     let l:issues  = {}
     " update ref and id indices                                            {{{3
