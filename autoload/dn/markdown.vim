@@ -685,7 +685,7 @@ function! dn#markdown#refsCheck(...) abort
     " check for previous output
     let l:more = &more
     set nomore
-    call s:_update_refs()
+    call s:_check_refs()
     call dn#util#prompt()
     redraw!
     let &more = l:more
@@ -919,6 +919,20 @@ function! dn#markdown#view(...) abort
 endfunction
 
 " Private functions                                                        {{{1
+
+" s:_check_refs([startup])                                                 {{{2
+" does:   check equation, figure and table references
+" params: startup - whether being run at startup
+"                   [boolean, optional, default=false]
+" prints: feedback on errors and warnings
+" return: nil
+function! s:_check_refs(...) abort
+    " check params
+    let l:startup = (a:0 > 1 && a:1) ? g:dn_true : g:dn_false
+    " update ref and id indices
+    call s:_update_ids('equation', 'figure', 'table')
+    call s:_update_refs()
+endfunction
 
 " s:_display_value(value, setting)                                         {{{2
 " does:   get the display value for a setting value
