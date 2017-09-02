@@ -324,7 +324,8 @@ let b:dn_md_settings = {
 "         (because ftplugin includes a default html stylesheet)
 " pandoc parameters to set (s:pandoc_params)                               {{{2
 "
-" ---- format: human-readable description of format
+" ---- format: human-readable description of format (must be unique
+"              for function s:_select_format to work)
 " ---- depend: executables required for conversion
 " - pandoc_to: value to provide to pandoc's '--to' option
 " - after_ext: extension of pandoc's output file
@@ -441,7 +442,7 @@ let s:pandoc_params = {
             \   'params'    : '***copy from |context| format ***',
             \   },
             \ 'pdf_html' : {
-            \   'format'    : 'HyperText Markup Language (html)',
+            \   'format'    : 'Portable Document Format (pdf) via HTML',
             \   'depend'    : ['pandoc', 'wkhtmltopdf'],
             \   'pandoc_to' : 'html5',
             \   'after_ext' : '.pdf',
@@ -1759,6 +1760,7 @@ endfunction
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
 " return: output format (a key to s:pandoc_params)
+" *warn*: relies on s:pandoc_params.*.format values being unique
 function! s:_select_format (...) abort
     let l:prompt = (a:0 > 0 && a:1) ? a:1 : 'Select output format:'
     " create dict with format names as keys, format codes as values
