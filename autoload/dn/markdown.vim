@@ -1016,7 +1016,6 @@ function! s:_check_refs(...) abort
                 endfor
             endfor
             let l:title  = l:Name . ' ' . l:id . ': '
-            let l:hang   = len(l:title)
             let l:indent = repeat(' ', l:hang)
             for l:msg in l:report[0:0]
                 call s:_say(l:hang, l:title, l:msg)
