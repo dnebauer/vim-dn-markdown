@@ -967,7 +967,7 @@ function! s:_check_refs(...) abort
                 endif
             endif
         endfor
-        for l:ref in keys(b:dn_md_ref[l:type])
+        for l:ref in keys(b:dn_md_refs[l:type])
             if has_key(b:dn_md_ids[l:type][l:id])
                 " check for multiple definitions (error)
                 let l:count = b:dn_md_ids[l:type][l:id]
