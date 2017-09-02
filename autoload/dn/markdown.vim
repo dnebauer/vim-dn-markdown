@@ -1013,8 +1013,7 @@ function! s:_check_refs(...) abort
                 call s:_say(l:hang, l:indent, l:msg)
             endfor
         endfor
-    endfor
-    if l:startup | call dn#util#prompt() | endif                         " }}}3
+    endfor                                                               " }}}3
 endfunction
 
 " s:_check_refs_issue(issues, type, id, class, msg)                        {{{2
