@@ -671,7 +671,7 @@ function! dn#markdown#initialise() abort
     " otherwise set to their default values
     silent call s:_settings_configure()
     " check equation, table and figure refs (and update indices
-    call s:_check_refs(g:dn_true)
+    debug call s:_check_refs(g:dn_true)
 endfunction
 
 " dn#markdown#refsCheck([insert])                                          {{{2
@@ -940,7 +940,6 @@ endfunction
 function! s:_check_refs(...) abort
     " variables                                                            {{{3
     let l:startup = (a:0 > 1 && a:1)
-    echo 'Startup param: ' . l:startup
     let l:types   = keys(s:numbered_types)
     let l:issues  = {}
     " update ref and id indices                                            {{{3
