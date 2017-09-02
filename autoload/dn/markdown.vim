@@ -991,6 +991,16 @@ function! s:_check_refs(...) abort
         if !l:startup | echon 'references ok' | endif
         return
     endif
+    " - get max length of structure + name
+    let l:hang = 0
+    for l:type in sort(l:types)
+        if !has_key(l:issues, l:type) | continue | endif
+        for l:id in keys(l:issues[l:type])
+            let l:title_length = len(l:type . ' ' . l:id . ': ')
+            if l:title_length > l:hang | let l:title_length = l:hang | endif
+        endfor
+    endfor
+    " - output issues
     for l:type in sort(l:types)
         if !has_key(l:issues, l:type) | continue | endif
         let l:Name = s:numbered_types[l:type]['Name']
@@ -999,7 +1009,9 @@ function! s:_check_refs(...) abort
             for l:class in ['warning', 'error']
                 if !has_key(l:issues[l:type][l:id], l:class) | continue | endif
                 for l:item in l:issues[l:type][l:id][l:class]
-                    let l:msg = l:class . ': ' . l:item
+                    let l:msg = l:class . ': '
+                    let l:msg = dn#util#rightPad(l:class, 9)  " 9 = 'warning: '
+                    let l:msg .= l:item
                     call add(l:report, l:msg)
                 endfor
             endfor
