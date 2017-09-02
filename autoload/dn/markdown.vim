@@ -997,7 +997,7 @@ function! s:_check_refs(...) abort
         if !has_key(l:issues, l:type) | continue | endif
         for l:id in keys(l:issues[l:type])
             let l:title_length = len(l:type . ' ' . l:id . ': ')
-            if l:title_length > l:hang | let l:title_length = l:hang | endif
+            if l:title_length > l:hang | let l:hang = l:title_length | endif
         endfor
     endfor
     " - output issues
