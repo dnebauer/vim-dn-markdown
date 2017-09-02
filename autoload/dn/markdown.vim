@@ -1956,8 +1956,8 @@ function! s:_update_refs() abort
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
     let l:labels = []
-    "for l:type in ['figure']  " DELETE
-    for l:type in keys(s:numbered_types)
+    for l:type in ['table', 'figure']  " DELETE
+    "for l:type in keys(s:numbered_types)
         let l:prefix = s:numbered_types[l:type]['prefix']
         let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         for l:line in l:lines
