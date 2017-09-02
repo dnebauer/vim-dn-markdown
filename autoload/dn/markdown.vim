@@ -978,7 +978,7 @@ function! s:_check_refs(...) abort
                     endif
                 endif
             else  " reference is to non-existant structure (error)
-                let l:msg = 'is referenced but is not defined anywhere'
+                let l:msg = 'is referenced but not defined anywhere'
                 if !s:_check_refs_issue(l:issues, l:type, l:ref, 'error',
                             \ l:msg)
                     return
