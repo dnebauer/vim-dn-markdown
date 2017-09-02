@@ -1969,6 +1969,8 @@ function! s:_update_refs() abort
                 let l:count += 1
             endwhile
         endfor
+echo l:labels  | " DELETE
+call dn#util#prompt()  " DELETE
         " extract ref strings
         let l:start = len(l:prefix) + 3  " the 3 is for '{', '@' and ':'
         let l:refs = map(l:labels,
