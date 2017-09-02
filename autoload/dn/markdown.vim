@@ -670,7 +670,7 @@ function! dn#markdown#initialise() abort
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     silent call s:_settings_configure()
-    " check equation, table and figure refs (and update indices
+    " check equation, table and figure refs (and update indices)
     call s:_check_refs(g:dn_true)
 endfunction
 
@@ -1013,7 +1013,8 @@ function! s:_check_refs(...) abort
                 call s:_say(l:hang, l:indent, l:msg)
             endfor
         endfor
-    endfor                                                               " }}}3
+    endfor
+    if l:startup | call dn#util#prompt() | endif                         " }}}3
 endfunction
 
 " s:_check_refs_issue(issues, type, id, class, msg)                        {{{2
