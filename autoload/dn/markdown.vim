@@ -950,7 +950,7 @@ function! s:_check_refs(...) abort
     if !l:startup | echon 'analysing... ' | endif
     for l:type in l:types
         for l:id in keys(b:dn_md_ids[l:type])
-            if has_key(b:dn_md_refs[l:type][l:id])
+            if has_key(b:dn_md_refs[l:type], l:id)
                 " check for multiple references to id (warning)
                 let l:count = b:dn_md_refs[l:type][l:id]
                 if l:count > 1
@@ -959,8 +959,7 @@ function! s:_check_refs(...) abort
                         return
                     endif
                 endif
-            else
-                " check if no references to id (warning)
+            else  " no references to id (warning)
                 if !s:_check_refs_issue(l:issues, l:type, l:id, 'warning',
                             \ 'not referenced')
                     return
@@ -968,7 +967,7 @@ function! s:_check_refs(...) abort
             endif
         endfor
         for l:ref in keys(b:dn_md_refs[l:type])
-            if has_key(b:dn_md_ids[l:type][l:id])
+            if has_key(b:dn_md_ids[l:type], l:id)
                 " check for multiple definitions (error)
                 let l:count = b:dn_md_ids[l:type][l:id]
                 if l:count > 1
@@ -978,8 +977,7 @@ function! s:_check_refs(...) abort
                         return
                     endif
                 endif
-            else
-                " check if reference is to non-existant structure (error)
+            else  " reference is to non-existant structure (error)
                 let l:msg = 'is referenced but is not defined anywhere'
                 if !s:_check_refs_issue(l:issues, l:type, l:ref, 'error',
                             \ l:msg)
