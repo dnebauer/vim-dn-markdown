@@ -1811,7 +1811,7 @@ function! s:_update_refs() abort
     let l:labels = []
     for l:type in keys(s:numbered_types)
         let l:prefix = s:numbered_types[l:type]['prefix']
-        let l:re = '{@' . l:prefix . ':\p\+}'  " \p\+ is ID
+        let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         for l:line in l:lines
             let l:count = 1
             while 1
