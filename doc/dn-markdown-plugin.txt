@@ -234,16 +234,18 @@ distributions. All other settings affect pandoc options used in output
 generation.
 
 All pandoc options used in output generation are listed in
-|dn-markdown-pandoc-options|. Those marked with an asterisk are affected by
-a corresponding ftplugin setting. Each ftplugin setting has a default
+|dn-markdown-pandoc-options|. Those marked with an asterisk are affected
+by a corresponding ftplugin setting. Each ftplugin setting has a default
 value. Each ftplugin has a corresponding global configuration variable
 which can be set by the user, for example, in |vimrc|. These variables
 override the default value. (These user configuration variables are read
-once, when the ftplugin is first used.) All ftplugin settings can be
-altered by calling the dn#markdown#settings() function. This function
-enables the user to select a setting from a series of menus; once
-selected the setting can be altered by selecting from a series of
-alternative values or by directly entering the value.
+once, when the ftplugin is loaded, so they must be set in |vimrc| before
+this ftplugin is loaded.) All ftplugin settings, except for those that
+take effect at plugin initialisation, can be altered by calling the
+|dn#markdown#settings()| function. This function enables the user to
+select a setting from a series of menus; once selected the setting can
+be altered by selecting from a series of alternative values or by
+directly entering the value.
 
 In summary then, there are three ways to assign a value to a setting:
     - a default value; which can be overridden by...

@@ -669,7 +669,7 @@ function! dn#markdown#initialise() abort
     silent call s:_set_default_html_stylesheet()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
-    debug call s:_settings_configure()
+    silent call s:_settings_configure()
     " check equation, table and figure refs (and update indices)
     if b:dn_md_settings.number_start_check.value
         call s:_check_refs(g:dn_true)
