@@ -1016,7 +1016,7 @@ function! s:_check_refs(...) abort
     endfor                                                               " }}}3
     " during startup last line of output can be
     " overwritten by vim status line
-    if l:startup | echo "\n" | endif
+    if l:startup | echo ' ' | endif
 endfunction
 
 " s:_check_refs_issue(issues, type, id, class, msg)                        {{{2
