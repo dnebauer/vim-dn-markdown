@@ -543,7 +543,7 @@ function! dn#markdown#equationInsert(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " insert image
     call s:_equation_insert()
     redraw!
@@ -562,7 +562,7 @@ function! dn#markdown#equationRef(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " insert image
     call s:_reference_insert('equation')
     redraw!
@@ -580,7 +580,7 @@ function! dn#markdown#figureInsert(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " insert image
     call s:_figure_insert()
     redraw!
@@ -599,7 +599,7 @@ function! dn#markdown#figureRef(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " insert image
     call s:_reference_insert('figure')
     redraw!
@@ -645,7 +645,7 @@ function! dn#markdown#idsUpdate(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " update ids
     call s:_update_ids('equation', 'figure', 'table')
     echo 'Updates lists of equation, figure and table ids'
@@ -681,7 +681,7 @@ function! dn#markdown#refsCheck(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " check for previous output
     let l:more = &more
     set nomore
@@ -703,7 +703,7 @@ function! dn#markdown#regenerate(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " check for previous output
     let l:more = &more
     set nomore
@@ -804,7 +804,7 @@ function! dn#markdown#tableInsert(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " insert image
     call s:_table_insert()
     redraw!
@@ -823,7 +823,7 @@ function! dn#markdown#tableRef(...) abort
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " params
-    let l:insert = (a:0 > 0 && a:1) ? g:dn_true : g:dn_false
+    let l:insert = (a:0 > 0 && a:1)
     " insert image
     call s:_reference_insert('table')
     redraw!
@@ -922,13 +922,18 @@ endfunction
 
 " s:_check_refs([startup])                                                 {{{2
 " does:   check equation, figure and table references
-" params: startup - whether being run at startup
+" params: startup - whether being run at startup, because suppress
+"                   non-error and non-warning output at startup
 "                   [boolean, optional, default=false]
 " prints: feedback on errors and warnings
 " return: nil
+" note:   warnings - eq/fig/tbl not referenced
+"                  - duplicate references to same eq/fig/tbl
+"         errors   - reference to non-existant eq/fig/tbl
+"                  - duplicate eq/fig/tbl id
 function! s:_check_refs(...) abort
     " check params
-    let l:startup = (a:0 > 1 && a:1) ? g:dn_true : g:dn_false
+    let l:startup = (a:0 > 1 && a:1)
     " update ref and id indices
     call s:_update_ids('equation', 'figure', 'table')
     call s:_update_refs()
@@ -1034,11 +1039,12 @@ endfunction
 function! s:_execute_shell_command(cmd, ...) abort
     echo '' | " clear command line
     " variables
-    if a:0 > 0
-        let l:errmsg = a:1
-    else
-        let l:errmsg = ['Error occurred:']
-    endif
+    let l:errmsg = (a:0 > 0) ? a:1 : ['Error occurred:']
+    "if a:0 > 0
+    "    let l:errmsg = a:1
+    "else
+    "    let l:errmsg = ['Error occurred:']
+    "endif
     " run command
     let l:shell_feedback = system(a:cmd)
     " if failed display error message and shell feedback
@@ -1429,7 +1435,7 @@ function! s:_increment_id_count(type, id) abort
         return
     endif
     if !has_key(s:numbered_types, a:type)  " script error
-        call dn#util#error("Invalid type: " . a:type)
+        call dn#util#error('Invalid type: ' . a:type)
         return
     endif
     " update id count
@@ -1454,7 +1460,7 @@ function! s:_increment_ref_count(type, ref) abort
         return
     endif
     if !has_key(s:numbered_types, a:type)  " script error
-        call dn#util#error("Invalid type: " . a:type)
+        call dn#util#error('Invalid type: ' . a:type)
         return
     endif
     " update ref count
