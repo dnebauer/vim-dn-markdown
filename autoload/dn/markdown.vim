@@ -967,9 +967,9 @@ function! s:_check_refs(...) abort
             endif
         endfor
         for l:ref in keys(b:dn_md_refs[l:type])
-            if has_key(b:dn_md_ids[l:type], l:id)
+            if has_key(b:dn_md_ids[l:type], l:ref)
                 " check for multiple definitions (error)
-                let l:count = b:dn_md_ids[l:type][l:id]
+                let l:count = b:dn_md_ids[l:type][l:ref]
                 if l:count > 1
                     let l:msg = 'defined ' . l:count . ' times'
                     if !s:_check_refs_issue(l:issues, l:type, l:ref, 'error',
