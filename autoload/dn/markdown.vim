@@ -39,7 +39,6 @@ let s:menu_items = {
             \   {'Figures'        : 'number_figures'},
             \   {'Tables'         : 'number_tables'},
             \   {'Equations'      : 'number_equations'},
-            \   {'Check at start' : 'number_start_check'},
             \   ],
             \ 'Print only' : [
             \   {'Font size (print)'    : 'fontsize_print'},

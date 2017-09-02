@@ -278,14 +278,14 @@ setting.
 
 One setting determines whether equation, figure and table references are
 checked for correctness at startup. (See |dn#markdown#refsCheck()| for
-details). Here is the corresponding user configuration variable, allowable
-values, the default value, and the settings menu option that alters the
+details). This setting can not be changed using the settings menu because
+the setting has its effect before the settings menu can be called. Here is
+the corresponding user configuration variable and default value for this
 setting.
 
         variable: g:DN_markdown_number_start_check
          allowed: boolean
          default: 1
-            menu: Number cross-references (all formats) > Check at start
 
 Here is a list of each pandoc option and extension affected by ftplugin
 settings, the corresponding user configuration variable, allowable
