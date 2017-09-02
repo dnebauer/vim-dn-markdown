@@ -994,7 +994,7 @@ function! s:_check_refs(...) abort
     for l:type in sort(l:types)
         if !has_key(l:issues, l:type) | continue | endif
         let l:Name = s:numbered_types[l:type]['Name']
-        for l:id in keys(l:issues[l:type])
+        for l:id in sort(keys(l:issues[l:type]))
             let l:report = []
             for l:class in ['warning', 'error']
                 if !has_key(l:issues[l:type][l:id], l:class) | continue | endif
