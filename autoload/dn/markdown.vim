@@ -999,7 +999,7 @@ function! s:_check_refs(...) abort
             for l:class in ['warning', 'error']
                 if !has_key(l:issues[l:type][l:id], l:class) | continue | endif
                 for l:item in l:issues[l:type][l:id][l:class]
-                    let l:msg = l:item . ' (' . l:class . ')'
+                    let l:msg = l:class . ': ' . l:item
                     call add(l:report, l:msg)
                 endfor
             endfor
