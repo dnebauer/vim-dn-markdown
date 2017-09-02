@@ -443,7 +443,7 @@ let s:pandoc_params = {
             \   'params'    : '***copy from |context| format ***',
             \   },
             \ 'pdf_html' : {
-            \   'format'    : 'Portable Document Format (pdf) via HTML',
+            \   'format'    : 'HyperText Markup Language (html)',
             \   'depend'    : ['pandoc', 'wkhtmltopdf'],
             \   'pandoc_to' : 'html5',
             \   'after_ext' : '.pdf',
@@ -1761,13 +1761,19 @@ endfunction
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
 " return: output format (a key to s:pandoc_params)
+"         '' if error or no format selected
 " *warn*: relies on s:pandoc_params.*.format values being unique
 function! s:_select_format (...) abort
     let l:prompt = (a:0 > 0 && a:1) ? a:1 : 'Select output format:'
     " create dict with format names as keys, format codes as values
     let l:formats = {}
     for [l:key, l:val] in items(s:pandoc_params)
-        let l:formats[l:val['format']] = l:key
+        let l:format = l:val['format']
+        if has_key(l:formats, l:format)
+            call dn#util#error("Fatal: duplicate format '" . l:format . "'")
+            return
+        endif
+        let l:formats[l:format] = l:key
     endfor
     " put into list sorted bv format names
     let l:options = []
