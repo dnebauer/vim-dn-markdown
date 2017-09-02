@@ -443,7 +443,7 @@ let s:pandoc_params = {
             \   'params'    : '***copy from |context| format ***',
             \   },
             \ 'pdf_html' : {
-            \   'format'    : 'HyperText Markup Language (html)',
+            \   'format'    : 'Portable Document Format (pdf) via HTML',
             \   'depend'    : ['pandoc', 'wkhtmltopdf'],
             \   'pandoc_to' : 'html5',
             \   'after_ext' : '.pdf',
