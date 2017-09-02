@@ -324,8 +324,9 @@ let b:dn_md_settings = {
 "         (because ftplugin includes a default html stylesheet)
 " pandoc parameters to set (s:pandoc_params)                               {{{2
 "
-" ---- format: human-readable description of format (must be unique
-"              for function s:_select_format to work)
+" ---- format: human-readable description of format;
+"              ***warning*** formats must be unique
+"              for function s:_select_format to work
 " ---- depend: executables required for conversion
 " - pandoc_to: value to provide to pandoc's '--to' option
 " - after_ext: extension of pandoc's output file
