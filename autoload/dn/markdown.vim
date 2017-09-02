@@ -156,6 +156,15 @@ let b:dn_md_settings = {
             \   'config'  : 'g:DN_markdown_number_start_check',
             \   'prompt'  : 'Check eq/fig/tbl references at startup?',
             \   },
+            \ 'number_tables' : {
+            \   'label'   : 'Number tables and table references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_tables',
+            \   'prompt'  : 'Number tables and table references?',
+            \   },
             \ 'papersize_print' : {
             \   'label'   : 'Paper size [print only]',
             \   'value'   : '',
