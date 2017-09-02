@@ -670,8 +670,8 @@ function! dn#markdown#initialise() abort
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     silent call s:_settings_configure()
-    " extract equation, table and figure ids
-    silent call s:_update_ids('equation', 'figure', 'table')
+    " check equation, table and figure refs (and update indices
+    call s:_check_refs(g:dn_true)
 endfunction
 
 " dn#markdown#refsCheck([insert])                                          {{{2
