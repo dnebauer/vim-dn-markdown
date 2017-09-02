@@ -1770,7 +1770,8 @@ function! s:_select_format (...) abort
     for [l:key, l:val] in items(s:pandoc_params)
         let l:format = l:val['format']
         if has_key(l:formats, l:format)
-            call dn#util#error("Fatal: duplicate format '" . l:format . "'")
+            let l:msg = "Script error: duplicate format '" . l:format . "'"
+            call dn#util#error(l:msg)
             return
         endif
         let l:formats[l:format] = l:key
