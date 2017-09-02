@@ -484,6 +484,8 @@ let s:numbered_types = {
 let b:dn_md_ids = {}
 for b:type in keys(s:numbered_types) | let b:dn_md_ids[b:type] = {} | endfor
 unlet b:type
+" - refs
+let b:dn_md_refs = deepcopy(b:dn_md_ids)
 
 " Public functions                                                         {{{1
 
@@ -1402,6 +1404,31 @@ function! s:_increment_id_count(type, id) abort
     endif
 endfunction
 
+" s:_increment_ref_count(type, ref)                                        {{{2
+" does:   increase ref count by one
+" params: type - ref type
+"                [string, required, can be 'equation'|'table'|'figure']
+"         ref  - ref to increment count for [string, required]
+" return: nil
+function! s:_increment_ref_count(type, ref) abort
+    " check params
+    if empty(a:ref) || empty (a:type)  " script error
+        call dn#util#error("Did not get both ref ('"
+                    \ . a:ref . "') and type ('" . a:type . "')")
+        return
+    endif
+    if !has_key(s:numbered_types, a:type)  " script error
+        call dn#util#error("Invalid type: " . a:type)
+        return
+    endif
+    " update ref count
+    if has_key(b:dn_md_refs[a:type], a:ref)
+        let b:dn_md_refs[a:type][a:ref] += 1
+    else
+        let b:dn_md_refs[a:type][a:ref] = 1
+    endif
+endfunction
+
 " s:_process_dict_params(params)                                           {{{2
 " does:   process dict param used by dn#markdown#{view,output}
 " params: params - List that may contain a parameters dictionary
@@ -1694,7 +1721,7 @@ endfunction
 
 " s:_update_ids(type, [type, [type]])                                      {{{2
 " does:   update ids for figures, tables or equations in current file 
-" params: type - id types, duplicates ignored
+" params: type - id types
 "                [string, required, can be 'equation'|'table'|'figure']
 " return: n/a
 " note:   follows basic style of
@@ -1715,16 +1742,16 @@ function! s:_update_ids(...) abort
         endif
     endfor
     if !empty(l:invalid)
-        let l:msg = 'Invalid reference type(s): ' . join(l:invalid, ', ')
+        let l:msg = 'Invalid id type(s): ' . join(l:invalid, ', ')
         call dn#util#error(l:msg)
         return
     endif
     " get file contents (and exit if file is empty)
     let l:lines = getline(1, '$')
     if len(l:lines) == 1 && empty(l:lines[0]) | return | endif
-    " extract references from file contents
+    " extract labels from file contents
     " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
-    "   by reference type and ID is a unique value entered by the user
+    "   by id type and ID is a unique value entered by the user
     " - assume no more than one match per line
     for l:type in l:types
         let l:prefix = s:numbered_types[l:type]['prefix']
@@ -1739,6 +1766,47 @@ function! s:_update_ids(...) abort
         let b:dn_md_ids[l:type] = {}
         for l:id in l:ids
             call s:_increment_id_count(l:type, l:id)
+        endfor
+    endfor
+endfunction
+
+" s:_update_refs()                                                         {{{2
+" does:   update references for figures, tables or equations in current file 
+" params: nil
+" return: n/a
+" note:   follows basic style of
+"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
+"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
+"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
+function! s:_update_refs() abort
+    " get file contents (and exit if file is empty)
+    let l:lines = getline(1, '$')
+    if len(l:lines) == 1 && empty(l:lines[0]) | return | endif
+    " extract references from file contents
+    " - looking for pattern >> {@PREFIX:ID} << where PREFIX is determined
+    "   by reference type and ID is a unique value entered by the user
+    " - assume no more than one match per line
+    let l:labels = []
+    for l:type in keys(s:numbered_types)
+        let l:prefix = s:numbered_types[l:type]['prefix']
+        let l:re = '{@' . l:prefix . ':\p\+}'  " \p\+ is ID
+        for l:line in l:lines
+            let l:count = 1
+            while 1
+                let l:match = matchstr(l:line, l:re, 0, l:count)
+                if empty(l:match) | break | endif
+                call add(l:labels, l:match)
+                let l:count += 1
+            endwhile
+        endfor
+        " extract ref strings
+        let l:start = len(l:prefix) + 3  " the 3 is for '{', '@' and ':'
+        let l:refs = map(l:labels,
+                    \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+        " update refs
+        let b:dn_md_refs[l:type] = {}
+        for l:ref in l:refs
+            call s:_increment_ref_count(l:type, l:ref)
         endfor
     endfor
 endfunction
