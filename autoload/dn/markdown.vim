@@ -1013,10 +1013,10 @@ function! s:_check_refs(...) abort
                 call s:_say(l:hang, l:indent, l:msg)
             endfor
         endfor
-    endfor                                                               " }}}3
+    endfor
     " during startup last line of output can be
     " overwritten by vim status line
-    if l:startup | echo ' ' | endif
+    if l:startup | echo ' ' | endif                                      " }}}3
 endfunction
 
 " s:_check_refs_issue(issues, type, id, class, msg)                        {{{2
