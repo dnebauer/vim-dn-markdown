@@ -276,6 +276,17 @@ setting.
          default: ebook-convert
             menu: Converters > ebook-convert
 
+One setting determines whether equation, figure and table references are
+checked for correctness at startup. (See |dn#markdown#refsCheck()| for
+details). Here is the corresponding user configuration variable, allowable
+values, the default value, and the settings menu option that alters the
+setting.
+
+        variable: g:DN_markdown_number_start_check
+         allowed: boolean
+         default: 1
+            menu: Number cross-references (all formats) > Check at start
+
 Here is a list of each pandoc option and extension affected by ftplugin
 settings, the corresponding user configuration variable, allowable
 values, the default value, and the settings menu option that alters the
@@ -570,7 +581,7 @@ The following conditions are reported as errors:
 
 This function is run automatically when the plugin is loaded, i.e., when
 a markdown file is loaded into the buffer. When run at initialisation the
-funtion reports warnings and errors, but does not print any other
+function reports warnings and errors, but does not print any other
 messages.
 
                                       *dn-markdown-command-CheckReferences*

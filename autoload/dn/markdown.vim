@@ -36,9 +36,10 @@ let s:menu_items = {
             \   {'ebook-convert' : 'exe_ebook_convert'},
             \   ],
             \ 'Number cross-references (all formats)' : [
-            \   {'Figures'   : 'number_figures'},
-            \   {'Tables'    : 'number_tables'},
-            \   {'Equations' : 'number_equations'},
+            \   {'Figures'        : 'number_figures'},
+            \   {'Tables'         : 'number_tables'},
+            \   {'Equations'      : 'number_equations'},
+            \   {'Check at start' : 'number_start_check'},
             \   ],
             \ 'Print only' : [
             \   {'Font size (print)'    : 'fontsize_print'},
@@ -67,7 +68,7 @@ let s:menu_items = {
             \   {'Template (pdf via latex)'    : 'template_pdf_latex'},
             \   ],
             \ }
-" pandoc settings values (b:dn_md_settings)                                {{{2
+" settings values (b:dn_md_settings)                                       {{{2
 " - keep b:dn_md_settings.stylesheet_html.default = '' as it is set by
 "   function dn#markdown#initialise to the stylesheet provided by this
 "   plugin (unless it is set by the corresponding config variable)
@@ -147,14 +148,14 @@ let b:dn_md_settings = {
             \   'config'  : 'g:DN_markdown_number_figures',
             \   'prompt'  : 'Number figures and figure references?',
             \   },
-            \ 'number_tables' : {
-            \   'label'   : 'Number tables and table references',
+            \ 'number_start_check' : {
+            \   'label'   : 'Check eq/fig/tbl references at startup',
             \   'value'   : '',
             \   'default' : 1,
             \   'source'  : '',
             \   'allowed' : 'boolean',
-            \   'config'  : 'g:DN_markdown_number_tables',
-            \   'prompt'  : 'Number tables and table references?',
+            \   'config'  : 'g:DN_markdown_number_start_check',
+            \   'prompt'  : 'Check eq/fig/tbl references at startup?',
             \   },
             \ 'papersize_print' : {
             \   'label'   : 'Paper size [print only]',
@@ -671,7 +672,9 @@ function! dn#markdown#initialise() abort
     " otherwise set to their default values
     silent call s:_settings_configure()
     " check equation, table and figure refs (and update indices)
-    call s:_check_refs(g:dn_true)
+    if b:dn_md_settings.number_start_check.value
+        call s:_check_refs(g:dn_true)
+    endif
 endfunction
 
 " dn#markdown#refsCheck([insert])                                          {{{2
