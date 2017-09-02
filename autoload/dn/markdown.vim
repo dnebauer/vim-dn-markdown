@@ -1956,7 +1956,8 @@ function! s:_update_refs() abort
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
     let l:labels = []
-    for l:type in keys(s:numbered_types)
+    for l:type in ['figure']  " DELETE
+    "for l:type in keys(s:numbered_types)
         let l:prefix = s:numbered_types[l:type]['prefix']
         let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         for l:line in l:lines
@@ -1974,8 +1975,8 @@ function! s:_update_refs() abort
                     \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
         " update refs
         let b:dn_md_refs[l:type] = {}
-echo l:refs
-call dn#util#prompt()
+echo l:refs  | " DELETE
+call dn#util#prompt()  " DELETE
         for l:ref in l:refs
             call s:_increment_ref_count(l:type, l:ref)
         endfor
