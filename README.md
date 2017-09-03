@@ -1,7 +1,13 @@
 # vim-dn-markdown #
 
-A vim markdown ftplugin providing some output (re)generation and viewing
-options. Can generate and view the following formats:
+A vim markdown ftplugin.
+
+## Features ##
+
+### Output support ###
+
+The ftplugin provides some output (re)generation and viewing options. It can
+generate and view the following formats:
 
 * Kindle Format 8 (azw3)
 * ConTeXt (tex)
@@ -11,15 +17,26 @@ options. Can generate and view the following formats:
 * LaTeX (tex)
 * Mobipocket e-book (mobi)
 * OpenDocument Text (odt)
-* Portable Document Format (pdf)
+* Portable Document Format (pdf), via LaTeX, ConTeXt or html.
 
-Also enable inserting images.
+### Equations, figures and tables ###
+
+The ftplugin supports the equation, figure and table labelling and referencing
+schema supported by the pandoc filters [pandoc-eqnos][eq], [pandoc-fignos][fig]
+and [pandoc-tblnos][tbl].
+
+   [eq]:  https://github.com/tomduck/pandoc-eqnos
+   [fig]: https://github.com/tomduck/pandoc-fignos
+   [tbl]: https://github.com/tomduck/pandoc-tablenos
 
 ## Requires ##
 
 Pandoc: To generate output files.
 
-LaTeX, ConTeXt or wkhtmltopdf: To generate pdf output files. If using LaTeX can use XeLaTeX (default), LuaLaTeX or pdfLaTeX engines.
+Pandoc filters as above.
+
+LaTeX, ConTeXt or wkhtmltopdf: To generate pdf output files. If using LaTeX can
+use XeLaTeX (default), LuaLaTeX or pdfLaTeX engines.
 
 Ebook-convert: To generate azw3 or mobi output.
 
