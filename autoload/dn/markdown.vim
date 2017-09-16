@@ -1520,9 +1520,13 @@ function! s:_generator (format) abort
     call extend(l:to, l:pandoc_extensions.writer)
     call extend(l:cmd, ['-t', join(l:to, '+')])
     " output file                                                          {{{3
-    let l:ext    = s:pandoc_params[a:format]['after_ext']  " output file
+    " - display final output file
+    let l:ext    = s:pandoc_params[a:format]['final_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     call s:_say(s:hang, 'Output file:', l:output)
+    " - pandoc output file (may not be final output file)
+    let l:ext    = s:pandoc_params[a:format]['after_ext']  " output file
+    let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     " - if postprocessing this output, i.e., it is an intermediate file,
     "   may want to munge output file name to prevent overwriting of a
     "   final output file of the same format -- in cases where
