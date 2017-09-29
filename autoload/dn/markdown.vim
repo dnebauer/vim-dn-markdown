@@ -12,11 +12,10 @@ set cpoptions&vim
 
 " Variables                                                                {{{1
 " operating system (s:dn#markdown#os)                                      {{{2
-if has('win32') || has ('win64')
-    let s:dn#markdown#os = 'win'
-elseif has('unix')
-    let s:dn#markdown#os = 'nix'
-endif
+let s:dn#markdown#os
+            \ = (has('win32') || has ('win64')) ? 'win'
+            \ : has('unix') ? 'nix'
+            \ : ''
 
 " outputted formats (b:dn#markdown#outputted_formats)                      {{{2
 let b:dn#markdown#outputted_formats = {}
@@ -497,11 +496,12 @@ let s:dn#markdown#numbered_types = {
             \   },
             \ }
 " - ids and refs                                                           {{{3
-let b:dn#markdown#ids = {}
-for b:type in keys(s:dn#markdown#numbered_types)
-    let b:dn#markdown#ids[b:type] = {}
-endfor
-unlet b:type
+"let b:dn#markdown#ids = {}
+"for b:type in keys(s:dn#markdown#numbered_types)
+"    let b:dn#markdown#ids[b:type] = {}
+"endfor
+"unlet b:type
+let b:dn#markdown#ids  = map(copy(s:dn#markdown#numbered_types), {key -> '{}'})
 let b:dn#markdown#refs = deepcopy(b:dn#markdown#ids)
 
 " hanging indent                                                           {{{2
