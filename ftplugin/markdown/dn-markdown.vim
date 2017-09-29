@@ -11,7 +11,8 @@ let b:did_dnm_markdown_pandoc = 1
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-" Help variables                                                           {{{1
+" Variables                                                                {{{1
+" help variables                                                           {{{2
 if !exists('g:dn_help_plugins')
     let g:dn_help_plugins = []
 endif
