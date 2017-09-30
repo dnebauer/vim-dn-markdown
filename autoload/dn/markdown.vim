@@ -11,24 +11,20 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 " Variables                                                                {{{1
-" operating system (s:dn_markdown_os)                                      {{{2
-let s:dn_markdown_os
-            \ = (has('win32') || has ('win64')) ? 'win'
-            \ : has('unix') ? 'nix'
-            \ : ''
+" operating system (dn#markdown#os)                                        {{{2
+let dn#markdown#os = (has('win32') || has ('win64')) ? 'win'
+            \      : has('unix') ? 'nix'
+            \      : ''
 
-" outputted formats (b:dn_markdown_outputted_formats)                      {{{2
-let b:dn_markdown_outputted_formats = {}
-
-" pandoc settings menu (s:dn_markdown_menu_{items,prompt})                 {{{2
+" pandoc settings menu (dn#markdown#menu_{items,prompt})                   {{{2
 " - returns one of:
 "   . citeproc_all
 "   . {fontsize,linkcolor,latexengine}_pdf
 "   . stylesheet_{docx,epub,html}
 "   . template_{docx,epub,html,pdf}
 "   . '' (if no item selected)
-let s:dn_markdown_menu_prompt = 'Select setting to modify:'
-let s:dn_markdown_menu_items = {
+let dn#markdown#menu_prompt = 'Select setting to modify:'
+let dn#markdown#menu_items = {
             \ 'Citeproc (all formats)'   : 'citeproc_all',
             \ 'Converters (all formats)' : [
             \   {'pandoc'        : 'exe_pandoc'},
@@ -66,262 +62,7 @@ let s:dn_markdown_menu_items = {
             \   {'Template (pdf via latex)'    : 'template_pdf_latex'},
             \   ],
             \ }
-" settings values (b:dn_markdown_settings)                                 {{{2
-" - keep b:dn_md_settings.stylesheet_html.default = '' as it is set by
-"   function dn#markdown#initialise to the stylesheet provided by this
-"   plugin (unless it is set by the corresponding config variable)
-let b:dn_markdown_settings = {
-            \ 'citeproc_all' : {
-            \   'label'   : 'Use pandoc-citeproc filter [all formats]',
-            \   'value'   : '',
-            \   'default' : 0,
-            \   'source'  : '',
-            \   'allowed' : 'boolean',
-            \   'config'  : 'g:DN_markdown_citeproc_all',
-            \   'prompt'  : 'Use the pandoc-citeproc filter?',
-            \   },
-            \ 'exe_pandoc' : {
-            \   'label'   : 'Name of pandoc executable',
-            \   'value'   : '',
-            \   'default' : 'pandoc',
-            \   'source'  : '',
-            \   'allowed' : 'executable',
-            \   'config'  : 'g:DN_markdown_exe_pandoc',
-            \   'prompt'  : 'Enter name of pandoc executable:',
-            \   },
-            \ 'exe_ebook_convert' : {
-            \   'label'   : 'Name of ebook-convert executable',
-            \   'value'   : '',
-            \   'default' : 'ebook-convert',
-            \   'source'  : '',
-            \   'allowed' : 'executable',
-            \   'config'  : 'g:DN_markdown_exe_ebook_convert',
-            \   'prompt'  : 'Enter name of ebook-convert executable:',
-            \   },
-            \ 'fontsize_print' : {
-            \   'label'   : 'Output font size (pts) [print only]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : [11, 12, 13, 14],
-            \   'config'  : 'g:DN_markdown_fontsize_print',
-            \   'prompt'  : 'Select font size (points):',
-            \   },
-            \ 'latexengine_print' : {
-            \   'label'   : 'Latex engine for pdf generation [print only]',
-            \   'value'   : '',
-            \   'default' : 'xelatex',
-            \   'source'  : '',
-            \   'allowed' : ['xelatex', 'lualatex', 'pdflatex'],
-            \   'config'  : 'g:DN_markdown_latexengine_print',
-            \   'prompt'  : 'Select latex engine:',
-            \   },
-            \ 'linkcolor_print' : {
-            \   'label'   : 'Select color for hyperlinks [print only]',
-            \   'value'   : '',
-            \   'default' : 'gray',
-            \   'source'  : '',
-            \   'allowed' : ['black',     'blue',    'cyan',
-            \                'darkgray',  'gray',    'green',
-            \                'lightgray', 'magenta', 'red',
-            \                'yellow'],
-            \   'config'  : 'g:DN_markdown_linkcolor_print',
-            \   'prompt'  : 'Select pdf hyperlink colour:',
-            \   },
-            \ 'number_equations' : {
-            \   'label'   : 'Number equations and equation references',
-            \   'value'   : '',
-            \   'default' : 1,
-            \   'source'  : '',
-            \   'allowed' : 'boolean',
-            \   'config'  : 'g:DN_markdown_number_equations',
-            \   'prompt'  : 'Number equations and equation references?',
-            \   },
-            \ 'number_figures' : {
-            \   'label'   : 'Number figures and figure references',
-            \   'value'   : '',
-            \   'default' : 1,
-            \   'source'  : '',
-            \   'allowed' : 'boolean',
-            \   'config'  : 'g:DN_markdown_number_figures',
-            \   'prompt'  : 'Number figures and figure references?',
-            \   },
-            \ 'number_start_check' : {
-            \   'label'   : 'Check eq/fig/tbl references at startup',
-            \   'value'   : '',
-            \   'default' : 1,
-            \   'source'  : '',
-            \   'allowed' : 'boolean',
-            \   'config'  : 'g:DN_markdown_number_start_check',
-            \   'prompt'  : 'Check eq/fig/tbl references at startup?',
-            \   },
-            \ 'number_tables' : {
-            \   'label'   : 'Number tables and table references',
-            \   'value'   : '',
-            \   'default' : 1,
-            \   'source'  : '',
-            \   'allowed' : 'boolean',
-            \   'config'  : 'g:DN_markdown_number_tables',
-            \   'prompt'  : 'Number tables and table references?',
-            \   },
-            \ 'papersize_print' : {
-            \   'label'   : 'Paper size [print only]',
-            \   'value'   : '',
-            \   'default' : 'A4',
-            \   'source'  : '',
-            \   'allowed' : ['A4', 'letter'],
-            \   'config'  : 'g:DN_markdown_papersize_print',
-            \   'prompt'  : 'Select paper size:',
-            \   },
-            \ 'stylesheet_docx' : {
-            \   'label'   : 'Pandoc stylesheet file [docx]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'path_url',
-            \   'config'  : 'g:DN_markdown_stylesheet_docx',
-            \   'prompt'  : 'Enter the path/url to the docx stylesheet:',
-            \   },
-            \ 'stylesheet_epub' : {
-            \   'label'   : 'Pandoc stylesheet file [epub]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'path_url',
-            \   'config'  : 'g:DN_markdown_stylesheet_epub',
-            \   'prompt'  : 'Enter the path/url to the epub stylesheet:',
-            \   },
-            \ 'stylesheet_html' : {
-            \   'label'   : 'Pandoc stylesheet file [html]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'path_url',
-            \   'config'  : 'g:DN_markdown_stylesheet_html',
-            \   'prompt'  : 'Enter the path/url to the html stylesheet:',
-            \   },
-            \ 'stylesheet_odt' : {
-            \   'label'   : 'Pandoc stylesheet file [odt]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'path_url',
-            \   'config'  : 'g:DN_markdown_stylesheet_odt',
-            \   'prompt'  : 'Enter the path/url to the odt stylesheet:',
-            \   },
-            \ 'template_azw3' : {
-            \   'label'   : 'Pandoc template file [azw3]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_azw3',
-            \   'prompt'  : 'Specify the azw3 (epub) template:',
-            \   },
-            \ 'template_context' : {
-            \   'label'   : 'Pandoc template file [context]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_context',
-            \   'prompt'  : 'Specify the context template:',
-            \   },
-            \ 'template_docbook' : {
-            \   'label'   : 'Pandoc template file [docbook]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_docbook',
-            \   'prompt'  : 'Specify the docbook template:',
-            \   },
-            \ 'template_docx' : {
-            \   'label'   : 'Pandoc template file [docx]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_docx',
-            \   'prompt'  : 'Specify the docx template:',
-            \   },
-            \ 'template_epub' : {
-            \   'label'   : 'Pandoc template file [epub]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_epub',
-            \   'prompt'  : 'Specify the epub template:',
-            \   },
-            \ 'template_html' : {
-            \   'label'   : 'Pandoc template file [html]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_html',
-            \   'prompt'  : 'Specify the html template:',
-            \   },
-            \ 'template_latex' : {
-            \   'label'   : 'Pandoc template file [latex]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_latex',
-            \   'prompt'  : 'Specify the latex template:',
-            \   },
-            \ 'template_mobi' : {
-            \   'label'   : 'Pandoc template file [mobi]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_mobi',
-            \   'prompt'  : 'Specify the mobi (epub) template:',
-            \   },
-            \ 'template_odt' : {
-            \   'label'   : 'Pandoc template file [odt]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_odt',
-            \   'prompt'  : 'Specify the odt template:',
-            \   },
-            \ 'template_pdf_context' : {
-            \   'label'   : 'Pandoc template file [pdf via context]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_pdf_context',
-            \   'prompt'  : 'Specify the context template for pdf generation:',
-            \   },
-            \ 'template_pdf_html' : {
-            \   'label'   : 'Pandoc template file [pdf via html]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_pdf_html',
-            \   'prompt'  : 'Specify the html template for pdf generation:',
-            \   },
-            \ 'template_pdf_latex' : {
-            \   'label'   : 'Pandoc template file [pdf via latex]',
-            \   'value'   : '',
-            \   'default' : '',
-            \   'source'  : '',
-            \   'allowed' : 'template_file',
-            \   'config'  : 'g:DN_markdown_template_pdf_latex',
-            \   'prompt'  : 'Specify the latex template for pdf generation:',
-            \   },
-            \ }
-" - note: initialisation process will call s:_set_default_html_stylesheet()
-"         to set b:dn_markdown_settings.stylesheet_html as a special case
-"         (because ftplugin includes a default html stylesheet)
-" pandoc parameters to set (s:dn_markdown_pandoc_params)                   {{{2
+" pandoc parameters to set (dn#markdown#pandoc_params)                     {{{2
 "
 " ---- format: human-readable description of format;
 "              ***warning*** formats must be unique
@@ -335,7 +76,7 @@ let b:dn_markdown_settings = {
 "              is no post-pandoc processing is the same as 'after_ext'
 " ---- params: refers to keywords that each signify a parameter/option
 "              to add to pandoc command
-let s:dn_markdown_pandoc_params = {
+let dn#markdown#pandoc_params = {
             \ 'azw3' : {
             \   'format'    : 'Kindle Format 8 (azw3) via ePub',
             \   'depend'    : ['pandoc', 'ebook-convert'],
@@ -461,21 +202,21 @@ let s:dn_markdown_pandoc_params = {
             \   },
             \ }
 " - azw3 and mobi are produced by first creating an epub output file
-let s:dn_markdown_pandoc_params.azw3.params
-            \ = s:dn_markdown_pandoc_params.epub.params
-let s:dn_markdown_pandoc_params.mobi.params
-            \ = s:dn_markdown_pandoc_params.epub.params
+let dn#markdown#pandoc_params.azw3.params
+            \ = dn#markdown#pandoc_params.epub.params
+let dn#markdown#pandoc_params.mobi.params
+            \ = dn#markdown#pandoc_params.epub.params
 " - pdf creation is based on context, html or latex
-let s:dn_markdown_pandoc_params.pdf_context.params
-            \ = s:dn_markdown_pandoc_params.context.params
-let s:dn_markdown_pandoc_params.pdf_html.params
-            \ = s:dn_markdown_pandoc_params.html.params
-let s:dn_markdown_pandoc_params.pdf_latex.params
-            \ = s:dn_markdown_pandoc_params.latex.params
+let dn#markdown#pandoc_params.pdf_context.params
+            \ = dn#markdown#pandoc_params.context.params
+let dn#markdown#pandoc_params.pdf_html.params
+            \ = dn#markdown#pandoc_params.html.params
+let dn#markdown#pandoc_params.pdf_latex.params
+            \ = dn#markdown#pandoc_params.latex.params
 
-" numbered structures (s:dn_md_numbered_types, b:dn_md_{ids,refs})         {{{2
+" numbered structures (dn#markdown#numbered_types)                         {{{2
 " - types                                                                  {{{3
-let s:dn_markdown_numbered_types = {
+let dn#markdown#numbered_types = {
             \ 'equation' : {
             \   'prefix'   : 'eq',
             \   'name'     : 'equation',
@@ -495,18 +236,9 @@ let s:dn_markdown_numbered_types = {
             \   'complete' : 'dn#markdown#completeIdTable',
             \   },
             \ }
-" - ids and refs                                                           {{{3
-"let b:dn_markdown_ids = {}
-"for b:type in keys(s:dn_markdown_numbered_types)
-"    let b:dn_markdown_ids[b:type] = {}
-"endfor
-"unlet b:type
-let b:dn_markdown_ids  = map(copy(s:dn_markdown_numbered_types), {key -> '{}'})
-let b:dn_markdown_refs = deepcopy(b:dn_markdown_ids)
-
 " hanging indent                                                           {{{2
 " - default hanging indent
-let s:dn_markdown_hang = 15
+let dn#markdown#hang = 15
 
 " Public functions                                                         {{{1
 
@@ -517,7 +249,7 @@ let s:dn_markdown_hang = 15
 "         CursorPos - see help for |command-completion-custom|
 " return: List of output formats
 function! dn#markdown#completeFormat(A, L, P) abort
-    let l:formats = sort(keys(s:dn_markdown_pandoc_params))
+    let l:formats = sort(keys(dn#markdown#pandoc_params))
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
@@ -635,7 +367,7 @@ endfunction
 "                             [optional, default=<false>, boolean]
 "                  'format' - output format
 "                             [optional, no default,
-"                              must be a key of s:dn_markdown_pandoc_params]
+"                              must be a key of dn#markdown#pandoc_params]
 " return: nil
 function! dn#markdown#generate(...) abort
     " universal tasks
@@ -761,8 +493,8 @@ function! dn#markdown#settings() abort
     " get setting to edit
     let l:more = &more
     set nomore
-    let l:setting = dn#util#menuSelect(s:dn_markdown_menu_items,
-                \                      s:dn_markdown_menu_prompt)
+    let l:setting = dn#util#menuSelect(dn#markdown#menu_items,
+                \                      dn#markdown#menu_prompt)
     while count(keys(b:dn_markdown_settings), l:setting) == 1
         let l:label   = b:dn_markdown_settings[l:setting]['label']
         let l:value   = b:dn_markdown_settings[l:setting]['value']
@@ -816,8 +548,8 @@ function! dn#markdown#settings() abort
             call dn#util#error('Error: Not a valid value')
         endif
         " get next setting to change
-        let l:setting = dn#util#menuSelect(s:dn_markdown_menu_items,
-                    \                      s:dn_markdown_menu_prompt)
+        let l:setting = dn#util#menuSelect(dn#markdown#menu_items,
+                    \                      dn#markdown#menu_prompt)
     endwhile
     let &more = l:more
 endfunction
@@ -866,7 +598,7 @@ endfunction
 "                             [optional, default=<false>, boolean]
 "                  'format' - output format
 "                             [optional, no default,
-"                              must be a key of s:dn_markdown_pandoc_params]
+"                              must be a key of dn#markdown#pandoc_params]
 " return: nil
 " note:   output is always (re)generated before viewing
 function! dn#markdown#view(...) abort
@@ -887,13 +619,13 @@ function! dn#markdown#view(...) abort
             throw 'Output (re)generation failed' |
         endif
         " check for output file to view                                    {{{3
-        let l:ext    = s:dn_markdown_pandoc_params[l:format]['final_ext']
+        let l:ext    = dn#markdown#pandoc_params[l:format]['final_ext']
         let l:output = substitute(expand('%'), '\.md$', l:ext, '')
         if !filereadable(l:output)
             throw 'No ' . l:format . ' file to view'
         endif
         " view output                                                      {{{3
-        if s:dn_markdown_os ==# 'win'
+        if dn#markdown#os ==# 'win'
             let l:win_view_direct = ['docx', 'epub', 'html']
             let l:win_view_cmd    = ['pdf']
             if     count(l:win_view_direct, l:format) > 0
@@ -919,7 +651,7 @@ function! dn#markdown#view(...) abort
             else  " script error - does l:win_view_{direct,cmd} = all formats?
                 throw 'Invalid format: ' . l:format
             endif
-        elseif s:dn_markdown_os ==# 'nix'
+        elseif dn#markdown#os ==# 'nix'
             echo '' | " clear command line
             let l:opener = 'xdg-open'
             if executable(l:opener) == g:dn_true
@@ -962,7 +694,7 @@ endfunction
 function! s:_check_refs(...) abort
     " variables                                                            {{{3
     let l:startup = (a:0 > 0 && a:1)
-    let l:types   = keys(s:dn_markdown_numbered_types)
+    let l:types   = keys(dn#markdown#numbered_types)
     let l:issues  = {}
     " update ref and id indices                                            {{{3
     if !l:startup | echo 'Updating... ' | endif
@@ -1025,7 +757,7 @@ function! s:_check_refs(...) abort
     " - output issues
     for l:type in sort(l:types)
         if !has_key(l:issues, l:type) | continue | endif
-        let l:Name = s:dn_markdown_numbered_types[l:type]['Name']
+        let l:Name = dn#markdown#numbered_types[l:type]['Name']
         for l:id in sort(keys(l:issues[l:type]))
             let l:report = []
             for l:class in ['warning', 'error']
@@ -1071,7 +803,7 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     endif
     if empty(a:id) | call dn#util#error('No id') | return | endif
     if empty(a:type) | call dn#util#error('No id type') | return | endif
-    if !has_key(s:dn_markdown_numbered_types, a:type)
+    if !has_key(dn#markdown#numbered_types, a:type)
         call dn#util#error("Invalid id type: '" . a:type . "'")
         return
     endif
@@ -1139,15 +871,15 @@ endfunction
 "         except allows only the characters: a-z, 0-9, _ and -
 function! s:_enter_id(type, ...) abort
     " check params
-    if !has_key(s:dn_markdown_numbered_types, a:type)
+    if !has_key(dn#markdown#numbered_types, a:type)
         call dn#util#error("Invalid reference type '" . a:type . "'")
         return ''
     endif
     let l:base = (a:0 > 0 && !empty(a:1)) ? tolower(a:1) : ''
     " set variables
-    let l:prefix  = s:dn_markdown_numbered_types[a:type]['prefix']
-    let l:name    = s:dn_markdown_numbered_types[a:type]['name']
-    let l:Name    = s:dn_markdown_numbered_types[a:type]['Name']
+    let l:prefix  = dn#markdown#numbered_types[a:type]['prefix']
+    let l:name    = dn#markdown#numbered_types[a:type]['name']
+    let l:Name    = dn#markdown#numbered_types[a:type]['Name']
     let l:default = substitute(l:base, '[^a-z0-9_-]', '-', 'g')
     let l:default = substitute(l:default, '^-\+', '', '')
     let l:default = substitute(l:default, '-\+$', '', '')
@@ -1269,13 +1001,13 @@ endfunction
 " s:_generator(format)                                                     {{{2
 " does:   generate output
 " params: format - output format
-"                  [required, must be s:dn_markdown_pandoc_params key]
+"                  [required, must be dn#markdown#pandoc_params key]
 " return: whether output completed without error
 function! s:_generator (format) abort
     " requirements                                                         {{{3
     " - apps
     "   . get list of apps on which conversion depends
-    let l:depends = s:dn_markdown_pandoc_params[a:format]['depend']
+    let l:depends = dn#markdown#pandoc_params[a:format]['depend']
     "   . replace 'latex' with specific latex engine
     let l:index = index(l:depends, 'latex')
     if l:index >= 0
@@ -1305,7 +1037,7 @@ function! s:_generator (format) abort
         return
     endif
     " - that operating system is supported
-    if s:dn_markdown_os !~# '^win$\|^nix$'  " currently only windows and unix
+    if dn#markdown#os !~# '^win$\|^nix$'  " currently only windows and unix
         call dn#util#error('Operating system not supported')
         return
     endif
@@ -1323,7 +1055,7 @@ function! s:_generator (format) abort
     " - note: some output options are displayed explicitly,
     "         one per line, while other are added to l:opts
     "         and displayed in a single line
-    let l:params = s:dn_markdown_pandoc_params[a:format]['params']
+    let l:params = dn#markdown#pandoc_params[a:format]['params']
     let l:opts   = []
     " variables                                                            {{{3
     let l:cmd = [l:pandoc_exe]
@@ -1527,23 +1259,23 @@ function! s:_generator (format) abort
     " output format                                                        {{{3
                                                            " output format
                                                            " + extensions
-    let l:to = [s:dn_markdown_pandoc_params[a:format]['pandoc_to']]
+    let l:to = [dn#markdown#pandoc_params[a:format]['pandoc_to']]
     call extend(l:opts, l:to)
     call extend(l:to, l:pandoc_extensions.writer)
     call extend(l:cmd, ['-t', join(l:to, '+')])
     " output file                                                          {{{3
     " - display final output file
-    let l:ext    = s:dn_markdown_pandoc_params[a:format]['final_ext']
+    let l:ext    = dn#markdown#pandoc_params[a:format]['final_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     call s:_say({'msg': ['Output file:', l:output]})
     " - pandoc output file (may not be final output file)
-    let l:ext    = s:dn_markdown_pandoc_params[a:format]['after_ext']
+    let l:ext    = dn#markdown#pandoc_params[a:format]['after_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     " - if postprocessing this output, i.e., it is an intermediate file,
     "   may want to munge output file name to prevent overwriting of a
     "   final output file of the same format -- in cases where
     "   different templates are used for each case
-    let l:post_processing = s:dn_markdown_pandoc_params[a:format]['postproc']
+    let l:post_processing = dn#markdown#pandoc_params[a:format]['postproc']
     if l:post_processing
         if s:_ebook_post_processing(a:format)  " azw3, mobi
             let l:epub_output = l:output
@@ -1569,7 +1301,7 @@ function! s:_generator (format) abort
     if l:post_processing && l:retval
         if s:_ebook_post_processing(a:format)  " azw3, mobi
             let l:input  = l:output
-            let l:ext    = s:dn_markdown_pandoc_params[a:format]['final_ext']
+            let l:ext    = dn#markdown#pandoc_params[a:format]['final_ext']
             let l:output = substitute(expand('%'), '\.md$', l:ext, '')
             let l:exe    = b:dn_markdown_settings.exe_ebook_convert.value
             let l:cmd    = [l:exe, shellescape(l:input),
@@ -1605,7 +1337,7 @@ function! s:_increment_id_count(type, id) abort
                     \ . a:id . "') and type ('" . a:type . "')")
         return
     endif
-    if !has_key(s:dn_markdown_numbered_types, a:type)  " script error
+    if !has_key(dn#markdown#numbered_types, a:type)  " script error
         call dn#util#error('Invalid type: ' . a:type)
         return
     endif
@@ -1630,7 +1362,7 @@ function! s:_increment_ref_count(type, ref) abort
                     \ . a:ref . "') and type ('" . a:type . "')")
         return
     endif
-    if !has_key(s:dn_markdown_numbered_types, a:type)  " script error
+    if !has_key(dn#markdown#numbered_types, a:type)  " script error
         call dn#util#error('Invalid type: ' . a:type)
         return
     endif
@@ -1650,7 +1382,7 @@ endfunction
 "                             [optional, default=<false>, boolean]
 "                  'format' - output format
 "                             [optional, no default,
-"                              must be a key of s:dn_markdown_pandoc_params]
+"                              must be a key of dn#markdown#pandoc_params]
 " return: List [insert, format]
 function! s:_process_dict_params(...) abort
     " universal tasks
@@ -1720,16 +1452,16 @@ endfunction
 " return: String, reference
 function! s:_reference_insert(type) abort
     " check params
-    if empty (a:type) || !has_key(s:dn_markdown_numbered_types, a:type)
+    if empty (a:type) || !has_key(dn#markdown#numbered_types, a:type)
         " script error
         call dn#util#error("Invalid type '" . a:type . "' provided")
         return
     endif
     " get id
-    let l:name     = s:dn_markdown_numbered_types[a:type]['name']
+    let l:name     = dn#markdown#numbered_types[a:type]['name']
     let l:prompt   = 'Enter ' . l:name . ' id (empty to abort): '
     let l:complete = 'customlist,'
-                \  . s:dn_markdown_numbered_types[a:type]['complete']
+                \  . dn#markdown#numbered_types[a:type]['complete']
     let l:id       = input(l:prompt, '', l:complete)
     " check id value
     if empty(l:id) | return | endif
@@ -1749,7 +1481,7 @@ function! s:_reference_insert(type) abort
         endif
     endif
     " insert reference, i.e., label
-    let l:prefix = s:dn_markdown_numbered_types[a:type]['prefix']
+    let l:prefix = dn#markdown#numbered_types[a:type]['prefix']
     let l:ref    = '{@' . l:prefix . ':' . l:id . '}'
     call dn#util#insertString(l:ref)
 endfunction
@@ -1760,7 +1492,7 @@ endfunction
 "         keys: msg  - width of hanging indent
 "                      [List, required, string]
 "               hang - one, optionally two, messages to display
-"                      [integer, options, default=s:dn_markdown_hang]
+"                      [integer, options, default=dn#markdown#hang]
 " return: nil
 " note:   if only one msg is present, then treat output as
 "         a single string
@@ -1790,7 +1522,7 @@ function! s:_say(args) abort
         call dn#util#error(l:err)
         return
     endif
-    let l:hang = has_key(a:args, 'hang') ? a:args.hang : s:dn_markdown_hang
+    let l:hang = has_key(a:args, 'hang') ? a:args.hang : dn#markdown#hang
     " if msg2 present, right-pad msg1
     let l:msg = l:msgs[0]
     if l:count == 2
@@ -1804,14 +1536,14 @@ endfunction
 " s:_select_format(prompt)                                                 {{{2
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
-" return: output format (a key to s:dn_markdown_pandoc_params)
+" return: output format (a key to dn#markdown#pandoc_params)
 "         '' if error or no format selected
-" *warn*: relies on s:dn_markdown_pandoc_params.*.format values being unique
+" *warn*: relies on dn#markdown#pandoc_params.*.format values being unique
 function! s:_select_format (...) abort
     let l:prompt = (a:0 > 0 && a:1) ? a:1 : 'Select output format:'
     " create dict with format names as keys, format codes as values
     let l:formats = {}
-    for [l:key, l:val] in items(s:dn_markdown_pandoc_params)
+    for [l:key, l:val] in items(dn#markdown#pandoc_params)
         let l:format = l:val['format']
         if has_key(l:formats, l:format)
             let l:msg = "Script error: duplicate format '" . l:format . "'"
@@ -1986,7 +1718,7 @@ function! s:_update_ids(...) abort
     endif
     let l:invalid = []
     for l:type in l:types
-        if !has_key(s:dn_markdown_numbered_types, l:type)
+        if !has_key(dn#markdown#numbered_types, l:type)
             call add(l:invalid, l:type)
         endif
     endfor
@@ -2003,7 +1735,7 @@ function! s:_update_ids(...) abort
     "   by id type and ID is a unique value entered by the user
     " - assume no more than one match per line
     for l:type in l:types
-        let l:prefix  = s:dn_markdown_numbered_types[l:type]['prefix']
+        let l:prefix  = dn#markdown#numbered_types[l:type]['prefix']
         let l:re      = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
                     \ '!empty(v:val)')
@@ -2035,9 +1767,9 @@ function! s:_update_refs() abort
     " - looking for pattern >> {@PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    for l:type in keys(s:dn_markdown_numbered_types)
+    for l:type in keys(dn#markdown#numbered_types)
         let l:labels = []
-        let l:prefix = s:dn_markdown_numbered_types[l:type]['prefix']
+        let l:prefix = dn#markdown#numbered_types[l:type]['prefix']
         let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         for l:line in l:lines
             let l:count = 1
@@ -2080,7 +1812,7 @@ endfunction
 " params: format - format code to test [any, required]
 " return: whether format code is valid - boolean
 function! s:_valid_format(format) abort
-    return has_key(s:dn_markdown_pandoc_params, a:format)
+    return has_key(dn#markdown#pandoc_params, a:format)
 endfunction
 
 " s:_valid_setting_name(setting)                                           {{{2
@@ -2138,7 +1870,7 @@ function! s:_valid_setting_value(value, setting, ...) abort
         " also, the name of each template setting
         " has the form 'template_FORMAT', where
         " 'FORMAT' is the output format, i.e.,
-        " a key of s:dn_markdown_pandoc_params
+        " a key of dn#markdown#pandoc_params
         if !filereadable(resolve(expand(a:value)))
             let l:format = strpart(a:setting, len('template_'))
             let l:msgs = [

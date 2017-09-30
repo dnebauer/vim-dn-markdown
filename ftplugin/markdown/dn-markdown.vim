@@ -11,7 +11,8 @@ let b:did_dnm_markdown_pandoc = 1
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-" Help variables                                                           {{{1
+" Variables                                                                {{{1
+" help system                                                              {{{2
 if !exists('g:dn_help_plugins')
     let g:dn_help_plugins = []
 endif
@@ -46,6 +47,269 @@ if count(g:dn_help_plugins, 'dn-markdown') == 0
         \ 'display pdf output     \vp      ViewPDF',
         \ ]
 endif
+
+" outputted formats (b:dn_markdown_outputted_formats)                      {{{2
+let b:dn_markdown_outputted_formats = {}
+
+" settings values (b:dn_markdown_settings)                                 {{{2
+" - keep b:dn_md_settings.stylesheet_html.default = '' as it is set by
+"   function dn#markdown#initialise to the stylesheet provided by this
+"   plugin (unless it is set by the corresponding config variable)
+let b:dn_markdown_settings = {
+            \ 'citeproc_all' : {
+            \   'label'   : 'Use pandoc-citeproc filter [all formats]',
+            \   'value'   : '',
+            \   'default' : 0,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_citeproc_all',
+            \   'prompt'  : 'Use the pandoc-citeproc filter?',
+            \   },
+            \ 'exe_pandoc' : {
+            \   'label'   : 'Name of pandoc executable',
+            \   'value'   : '',
+            \   'default' : 'pandoc',
+            \   'source'  : '',
+            \   'allowed' : 'executable',
+            \   'config'  : 'g:DN_markdown_exe_pandoc',
+            \   'prompt'  : 'Enter name of pandoc executable:',
+            \   },
+            \ 'exe_ebook_convert' : {
+            \   'label'   : 'Name of ebook-convert executable',
+            \   'value'   : '',
+            \   'default' : 'ebook-convert',
+            \   'source'  : '',
+            \   'allowed' : 'executable',
+            \   'config'  : 'g:DN_markdown_exe_ebook_convert',
+            \   'prompt'  : 'Enter name of ebook-convert executable:',
+            \   },
+            \ 'fontsize_print' : {
+            \   'label'   : 'Output font size (pts) [print only]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : [11, 12, 13, 14],
+            \   'config'  : 'g:DN_markdown_fontsize_print',
+            \   'prompt'  : 'Select font size (points):',
+            \   },
+            \ 'latexengine_print' : {
+            \   'label'   : 'Latex engine for pdf generation [print only]',
+            \   'value'   : '',
+            \   'default' : 'xelatex',
+            \   'source'  : '',
+            \   'allowed' : ['xelatex', 'lualatex', 'pdflatex'],
+            \   'config'  : 'g:DN_markdown_latexengine_print',
+            \   'prompt'  : 'Select latex engine:',
+            \   },
+            \ 'linkcolor_print' : {
+            \   'label'   : 'Select color for hyperlinks [print only]',
+            \   'value'   : '',
+            \   'default' : 'gray',
+            \   'source'  : '',
+            \   'allowed' : ['black',     'blue',    'cyan',
+            \                'darkgray',  'gray',    'green',
+            \                'lightgray', 'magenta', 'red',
+            \                'yellow'],
+            \   'config'  : 'g:DN_markdown_linkcolor_print',
+            \   'prompt'  : 'Select pdf hyperlink colour:',
+            \   },
+            \ 'number_equations' : {
+            \   'label'   : 'Number equations and equation references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_equations',
+            \   'prompt'  : 'Number equations and equation references?',
+            \   },
+            \ 'number_figures' : {
+            \   'label'   : 'Number figures and figure references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_figures',
+            \   'prompt'  : 'Number figures and figure references?',
+            \   },
+            \ 'number_start_check' : {
+            \   'label'   : 'Check eq/fig/tbl references at startup',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_start_check',
+            \   'prompt'  : 'Check eq/fig/tbl references at startup?',
+            \   },
+            \ 'number_tables' : {
+            \   'label'   : 'Number tables and table references',
+            \   'value'   : '',
+            \   'default' : 1,
+            \   'source'  : '',
+            \   'allowed' : 'boolean',
+            \   'config'  : 'g:DN_markdown_number_tables',
+            \   'prompt'  : 'Number tables and table references?',
+            \   },
+            \ 'papersize_print' : {
+            \   'label'   : 'Paper size [print only]',
+            \   'value'   : '',
+            \   'default' : 'A4',
+            \   'source'  : '',
+            \   'allowed' : ['A4', 'letter'],
+            \   'config'  : 'g:DN_markdown_papersize_print',
+            \   'prompt'  : 'Select paper size:',
+            \   },
+            \ 'stylesheet_docx' : {
+            \   'label'   : 'Pandoc stylesheet file [docx]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'path_url',
+            \   'config'  : 'g:DN_markdown_stylesheet_docx',
+            \   'prompt'  : 'Enter the path/url to the docx stylesheet:',
+            \   },
+            \ 'stylesheet_epub' : {
+            \   'label'   : 'Pandoc stylesheet file [epub]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'path_url',
+            \   'config'  : 'g:DN_markdown_stylesheet_epub',
+            \   'prompt'  : 'Enter the path/url to the epub stylesheet:',
+            \   },
+            \ 'stylesheet_html' : {
+            \   'label'   : 'Pandoc stylesheet file [html]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'path_url',
+            \   'config'  : 'g:DN_markdown_stylesheet_html',
+            \   'prompt'  : 'Enter the path/url to the html stylesheet:',
+            \   },
+            \ 'stylesheet_odt' : {
+            \   'label'   : 'Pandoc stylesheet file [odt]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'path_url',
+            \   'config'  : 'g:DN_markdown_stylesheet_odt',
+            \   'prompt'  : 'Enter the path/url to the odt stylesheet:',
+            \   },
+            \ 'template_azw3' : {
+            \   'label'   : 'Pandoc template file [azw3]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_azw3',
+            \   'prompt'  : 'Specify the azw3 (epub) template:',
+            \   },
+            \ 'template_context' : {
+            \   'label'   : 'Pandoc template file [context]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_context',
+            \   'prompt'  : 'Specify the context template:',
+            \   },
+            \ 'template_docbook' : {
+            \   'label'   : 'Pandoc template file [docbook]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_docbook',
+            \   'prompt'  : 'Specify the docbook template:',
+            \   },
+            \ 'template_docx' : {
+            \   'label'   : 'Pandoc template file [docx]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_docx',
+            \   'prompt'  : 'Specify the docx template:',
+            \   },
+            \ 'template_epub' : {
+            \   'label'   : 'Pandoc template file [epub]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_epub',
+            \   'prompt'  : 'Specify the epub template:',
+            \   },
+            \ 'template_html' : {
+            \   'label'   : 'Pandoc template file [html]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_html',
+            \   'prompt'  : 'Specify the html template:',
+            \   },
+            \ 'template_latex' : {
+            \   'label'   : 'Pandoc template file [latex]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_latex',
+            \   'prompt'  : 'Specify the latex template:',
+            \   },
+            \ 'template_mobi' : {
+            \   'label'   : 'Pandoc template file [mobi]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_mobi',
+            \   'prompt'  : 'Specify the mobi (epub) template:',
+            \   },
+            \ 'template_odt' : {
+            \   'label'   : 'Pandoc template file [odt]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_odt',
+            \   'prompt'  : 'Specify the odt template:',
+            \   },
+            \ 'template_pdf_context' : {
+            \   'label'   : 'Pandoc template file [pdf via context]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_pdf_context',
+            \   'prompt'  : 'Specify the context template for pdf generation:',
+            \   },
+            \ 'template_pdf_html' : {
+            \   'label'   : 'Pandoc template file [pdf via html]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_pdf_html',
+            \   'prompt'  : 'Specify the html template for pdf generation:',
+            \   },
+            \ 'template_pdf_latex' : {
+            \   'label'   : 'Pandoc template file [pdf via latex]',
+            \   'value'   : '',
+            \   'default' : '',
+            \   'source'  : '',
+            \   'allowed' : 'template_file',
+            \   'config'  : 'g:DN_markdown_template_pdf_latex',
+            \   'prompt'  : 'Specify the latex template for pdf generation:',
+            \   },
+            \ }
+" - note: initialisation process will call s:_set_default_html_stylesheet()
+"         to set b:dn_markdown_settings.stylesheet_html as a special case
+"         (because ftplugin includes a default html stylesheet)
+
+" numbered types ids and refs (b:dn_markdown_{ids,refs})                   {{{3
+let b:dn_markdown_ids  = map(copy(dn#markdown#numbered_types), {key -> '{}'})
+let b:dn_markdown_refs = deepcopy(b:dn_markdown_ids)
 
 " Mappings                                                                 {{{1
 
