@@ -510,7 +510,6 @@ command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ call dn#markdown#view({'format': '<args>'})
                                                                          " }}}2
 " Initialise                                                               {{{1
-echo b:dn_markdown_ids
 call dn#markdown#initialise()
 
 " Restore cpoptions                                                        {{{1
