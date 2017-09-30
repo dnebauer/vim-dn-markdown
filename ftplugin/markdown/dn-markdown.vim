@@ -308,7 +308,7 @@ let b:dn_markdown_settings = {
 "         (because ftplugin includes a default html stylesheet)
 
 " numbered types ids and refs (b:dn_markdown_{ids,refs})                   {{{3
-let b:dn_markdown_ids  = map(dn#markdown#numbered_types(), {key -> '{}'})
+let b:dn_markdown_ids  = map(dn#markdown#numbered_types(), {key -> {}})
 let b:dn_markdown_refs = deepcopy(b:dn_markdown_ids)
 
 " Mappings                                                                 {{{1
