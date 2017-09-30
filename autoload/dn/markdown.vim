@@ -11,6 +11,15 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 " Variables                                                                {{{1
+" buffer variables are defined in the main ftplugin file                   {{{2
+" - brute force solution to some difficult-to-resolve initialisation
+"   errors when opening new markdown files in new buffers in a vim
+"   instance that already has a markdown file open
+" - buffer variables are:
+"   * b:dn_markdown_outputted_formats
+"   * b:dn_markdown_settings
+"   * b:dn_markdown_ids
+"   * b:dn_markdown_refs
 " operating system (s:dn_markdown_os)                                      {{{2
 let s:dn_markdown_os = (has('win32') || has ('win64')) ? 'win'
             \      : has('unix') ? 'nix'
@@ -215,7 +224,6 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
             \ = s:dn_markdown_pandoc_params.latex.params
 
 " numbered structures (s:dn_markdown_numbered_types)                       {{{2
-" - types                                                                  {{{3
 let s:dn_markdown_numbered_types = {
             \ 'equation' : {
             \   'prefix'   : 'eq',

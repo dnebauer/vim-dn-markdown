@@ -11,8 +11,7 @@ let b:did_dnm_markdown_pandoc = 1
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-" Variables                                                                {{{1
-" help system                                                              {{{2
+" Add system help                                                          {{{1
 if !exists('g:dn_help_plugins')
     let g:dn_help_plugins = []
 endif
@@ -48,6 +47,7 @@ if count(g:dn_help_plugins, 'dn-markdown') == 0
         \ ]
 endif
 
+" Variables                                                                {{{1
 " outputted formats (b:dn_markdown_outputted_formats)                      {{{2
 let b:dn_markdown_outputted_formats = {}
 
@@ -307,7 +307,7 @@ let b:dn_markdown_settings = {
 "         to set b:dn_markdown_settings.stylesheet_html as a special case
 "         (because ftplugin includes a default html stylesheet)
 
-" numbered types ids and refs (b:dn_markdown_{ids,refs})                   {{{3
+" numbered types ids and refs (b:dn_markdown_{ids,refs})                   {{{2
 " - can't use one-liner because lambda confuses the vint syntax checker
 "let b:dn_markdown_ids = map(dn#markdown#numbered_types(), {key -> {}})
 let b:dn_markdown_ids = {}
