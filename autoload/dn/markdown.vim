@@ -11,20 +11,20 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 
 " Variables                                                                {{{1
-" operating system (dn#markdown#os)                                        {{{2
-let dn#markdown#os = (has('win32') || has ('win64')) ? 'win'
+" operating system (s:dn_markdown_os)                                      {{{2
+let s:dn_markdown_os = (has('win32') || has ('win64')) ? 'win'
             \      : has('unix') ? 'nix'
             \      : ''
 
-" pandoc settings menu (dn#markdown#menu_{items,prompt})                   {{{2
+" pandoc settings menu (s:dn_markdown_menu_{items,prompt})                 {{{2
 " - returns one of:
 "   . citeproc_all
 "   . {fontsize,linkcolor,latexengine}_pdf
 "   . stylesheet_{docx,epub,html}
 "   . template_{docx,epub,html,pdf}
 "   . '' (if no item selected)
-let dn#markdown#menu_prompt = 'Select setting to modify:'
-let dn#markdown#menu_items = {
+let s:dn_markdown_menu_prompt = 'Select setting to modify:'
+let s:dn_markdown_menu_items = {
             \ 'Citeproc (all formats)'   : 'citeproc_all',
             \ 'Converters (all formats)' : [
             \   {'pandoc'        : 'exe_pandoc'},
@@ -62,7 +62,7 @@ let dn#markdown#menu_items = {
             \   {'Template (pdf via latex)'    : 'template_pdf_latex'},
             \   ],
             \ }
-" pandoc parameters to set (dn#markdown#pandoc_params)                     {{{2
+" pandoc parameters to set (s:dn_markdown_pandoc_params)                   {{{2
 "
 " ---- format: human-readable description of format;
 "              ***warning*** formats must be unique
@@ -76,7 +76,7 @@ let dn#markdown#menu_items = {
 "              is no post-pandoc processing is the same as 'after_ext'
 " ---- params: refers to keywords that each signify a parameter/option
 "              to add to pandoc command
-let dn#markdown#pandoc_params = {
+let s:dn_markdown_pandoc_params = {
             \ 'azw3' : {
             \   'format'    : 'Kindle Format 8 (azw3) via ePub',
             \   'depend'    : ['pandoc', 'ebook-convert'],
@@ -202,17 +202,17 @@ let dn#markdown#pandoc_params = {
             \   },
             \ }
 " - azw3 and mobi are produced by first creating an epub output file
-let dn#markdown#pandoc_params.azw3.params
-            \ = dn#markdown#pandoc_params.epub.params
-let dn#markdown#pandoc_params.mobi.params
-            \ = dn#markdown#pandoc_params.epub.params
+let s:dn_markdown_pandoc_params.azw3.params
+            \ = s:dn_markdown_pandoc_params.epub.params
+let s:dn_markdown_pandoc_params.mobi.params
+            \ = s:dn_markdown_pandoc_params.epub.params
 " - pdf creation is based on context, html or latex
-let dn#markdown#pandoc_params.pdf_context.params
-            \ = dn#markdown#pandoc_params.context.params
-let dn#markdown#pandoc_params.pdf_html.params
-            \ = dn#markdown#pandoc_params.html.params
-let dn#markdown#pandoc_params.pdf_latex.params
-            \ = dn#markdown#pandoc_params.latex.params
+let s:dn_markdown_pandoc_params.pdf_context.params
+            \ = s:dn_markdown_pandoc_params.context.params
+let s:dn_markdown_pandoc_params.pdf_html.params
+            \ = s:dn_markdown_pandoc_params.html.params
+let s:dn_markdown_pandoc_params.pdf_latex.params
+            \ = s:dn_markdown_pandoc_params.latex.params
 
 " numbered structures (s:dn_markdown_numbered_types)                       {{{2
 " - types                                                                  {{{3
@@ -242,7 +242,7 @@ endfunction
 
 " hanging indent                                                           {{{2
 " - default hanging indent
-let dn#markdown#hang = 15
+let s:dn_markdown_hang = 15
 
 " Public functions                                                         {{{1
 
@@ -253,7 +253,7 @@ let dn#markdown#hang = 15
 "         CursorPos - see help for |command-completion-custom|
 " return: List of output formats
 function! dn#markdown#completeFormat(A, L, P) abort
-    let l:formats = sort(keys(dn#markdown#pandoc_params))
+    let l:formats = sort(keys(s:dn_markdown_pandoc_params))
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
@@ -371,7 +371,7 @@ endfunction
 "                             [optional, default=<false>, boolean]
 "                  'format' - output format
 "                             [optional, no default,
-"                              must be a key of dn#markdown#pandoc_params]
+"                              must be a key of s:dn_markdown_pandoc_params]
 " return: nil
 function! dn#markdown#generate(...) abort
     " universal tasks
@@ -497,8 +497,8 @@ function! dn#markdown#settings() abort
     " get setting to edit
     let l:more = &more
     set nomore
-    let l:setting = dn#util#menuSelect(dn#markdown#menu_items,
-                \                      dn#markdown#menu_prompt)
+    let l:setting = dn#util#menuSelect(s:dn_markdown_menu_items,
+                \                      s:dn_markdown_menu_prompt)
     while count(keys(b:dn_markdown_settings), l:setting) == 1
         let l:label   = b:dn_markdown_settings[l:setting]['label']
         let l:value   = b:dn_markdown_settings[l:setting]['value']
@@ -552,8 +552,8 @@ function! dn#markdown#settings() abort
             call dn#util#error('Error: Not a valid value')
         endif
         " get next setting to change
-        let l:setting = dn#util#menuSelect(dn#markdown#menu_items,
-                    \                      dn#markdown#menu_prompt)
+        let l:setting = dn#util#menuSelect(s:dn_markdown_menu_items,
+                    \                      s:dn_markdown_menu_prompt)
     endwhile
     let &more = l:more
 endfunction
@@ -602,7 +602,7 @@ endfunction
 "                             [optional, default=<false>, boolean]
 "                  'format' - output format
 "                             [optional, no default,
-"                              must be a key of dn#markdown#pandoc_params]
+"                              must be a key of s:dn_markdown_pandoc_params]
 " return: nil
 " note:   output is always (re)generated before viewing
 function! dn#markdown#view(...) abort
@@ -623,13 +623,13 @@ function! dn#markdown#view(...) abort
             throw 'Output (re)generation failed' |
         endif
         " check for output file to view                                    {{{3
-        let l:ext    = dn#markdown#pandoc_params[l:format]['final_ext']
+        let l:ext    = s:dn_markdown_pandoc_params[l:format]['final_ext']
         let l:output = substitute(expand('%'), '\.md$', l:ext, '')
         if !filereadable(l:output)
             throw 'No ' . l:format . ' file to view'
         endif
         " view output                                                      {{{3
-        if dn#markdown#os ==# 'win'
+        if s:dn_markdown_os ==# 'win'
             let l:win_view_direct = ['docx', 'epub', 'html']
             let l:win_view_cmd    = ['pdf']
             if     count(l:win_view_direct, l:format) > 0
@@ -655,7 +655,7 @@ function! dn#markdown#view(...) abort
             else  " script error - does l:win_view_{direct,cmd} = all formats?
                 throw 'Invalid format: ' . l:format
             endif
-        elseif dn#markdown#os ==# 'nix'
+        elseif s:dn_markdown_os ==# 'nix'
             echo '' | " clear command line
             let l:opener = 'xdg-open'
             if executable(l:opener) == g:dn_true
@@ -1005,13 +1005,13 @@ endfunction
 " s:_generator(format)                                                     {{{2
 " does:   generate output
 " params: format - output format
-"                  [required, must be dn#markdown#pandoc_params key]
+"                  [required, must be s:dn_markdown_pandoc_params key]
 " return: whether output completed without error
 function! s:_generator (format) abort
     " requirements                                                         {{{3
     " - apps
     "   . get list of apps on which conversion depends
-    let l:depends = dn#markdown#pandoc_params[a:format]['depend']
+    let l:depends = s:dn_markdown_pandoc_params[a:format]['depend']
     "   . replace 'latex' with specific latex engine
     let l:index = index(l:depends, 'latex')
     if l:index >= 0
@@ -1041,7 +1041,7 @@ function! s:_generator (format) abort
         return
     endif
     " - that operating system is supported
-    if dn#markdown#os !~# '^win$\|^nix$'  " currently only windows and unix
+    if s:dn_markdown_os !~# '^win$\|^nix$'  " currently only windows and unix
         call dn#util#error('Operating system not supported')
         return
     endif
@@ -1059,7 +1059,7 @@ function! s:_generator (format) abort
     " - note: some output options are displayed explicitly,
     "         one per line, while other are added to l:opts
     "         and displayed in a single line
-    let l:params = dn#markdown#pandoc_params[a:format]['params']
+    let l:params = s:dn_markdown_pandoc_params[a:format]['params']
     let l:opts   = []
     " variables                                                            {{{3
     let l:cmd = [l:pandoc_exe]
@@ -1263,23 +1263,23 @@ function! s:_generator (format) abort
     " output format                                                        {{{3
                                                            " output format
                                                            " + extensions
-    let l:to = [dn#markdown#pandoc_params[a:format]['pandoc_to']]
+    let l:to = [s:dn_markdown_pandoc_params[a:format]['pandoc_to']]
     call extend(l:opts, l:to)
     call extend(l:to, l:pandoc_extensions.writer)
     call extend(l:cmd, ['-t', join(l:to, '+')])
     " output file                                                          {{{3
     " - display final output file
-    let l:ext    = dn#markdown#pandoc_params[a:format]['final_ext']
+    let l:ext    = s:dn_markdown_pandoc_params[a:format]['final_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     call s:_say({'msg': ['Output file:', l:output]})
     " - pandoc output file (may not be final output file)
-    let l:ext    = dn#markdown#pandoc_params[a:format]['after_ext']
+    let l:ext    = s:dn_markdown_pandoc_params[a:format]['after_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
     " - if postprocessing this output, i.e., it is an intermediate file,
     "   may want to munge output file name to prevent overwriting of a
     "   final output file of the same format -- in cases where
     "   different templates are used for each case
-    let l:post_processing = dn#markdown#pandoc_params[a:format]['postproc']
+    let l:post_processing = s:dn_markdown_pandoc_params[a:format]['postproc']
     if l:post_processing
         if s:_ebook_post_processing(a:format)  " azw3, mobi
             let l:epub_output = l:output
@@ -1305,7 +1305,7 @@ function! s:_generator (format) abort
     if l:post_processing && l:retval
         if s:_ebook_post_processing(a:format)  " azw3, mobi
             let l:input  = l:output
-            let l:ext    = dn#markdown#pandoc_params[a:format]['final_ext']
+            let l:ext    = s:dn_markdown_pandoc_params[a:format]['final_ext']
             let l:output = substitute(expand('%'), '\.md$', l:ext, '')
             let l:exe    = b:dn_markdown_settings.exe_ebook_convert.value
             let l:cmd    = [l:exe, shellescape(l:input),
@@ -1386,7 +1386,7 @@ endfunction
 "                             [optional, default=<false>, boolean]
 "                  'format' - output format
 "                             [optional, no default,
-"                              must be a key of dn#markdown#pandoc_params]
+"                              must be a key of s:dn_markdown_pandoc_params]
 " return: List [insert, format]
 function! s:_process_dict_params(...) abort
     " universal tasks
@@ -1496,7 +1496,7 @@ endfunction
 "         keys: msg  - width of hanging indent
 "                      [List, required, string]
 "               hang - one, optionally two, messages to display
-"                      [integer, options, default=dn#markdown#hang]
+"                      [integer, options, default=s:dn_markdown_hang]
 " return: nil
 " note:   if only one msg is present, then treat output as
 "         a single string
@@ -1526,7 +1526,7 @@ function! s:_say(args) abort
         call dn#util#error(l:err)
         return
     endif
-    let l:hang = has_key(a:args, 'hang') ? a:args.hang : dn#markdown#hang
+    let l:hang = has_key(a:args, 'hang') ? a:args.hang : s:dn_markdown_hang
     " if msg2 present, right-pad msg1
     let l:msg = l:msgs[0]
     if l:count == 2
@@ -1540,14 +1540,14 @@ endfunction
 " s:_select_format(prompt)                                                 {{{2
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
-" return: output format (a key to dn#markdown#pandoc_params)
+" return: output format (a key to s:dn_markdown_pandoc_params)
 "         '' if error or no format selected
-" *warn*: relies on dn#markdown#pandoc_params.*.format values being unique
+" *warn*: relies on s:dn_markdown_pandoc_params.*.format values being unique
 function! s:_select_format (...) abort
     let l:prompt = (a:0 > 0 && a:1) ? a:1 : 'Select output format:'
     " create dict with format names as keys, format codes as values
     let l:formats = {}
-    for [l:key, l:val] in items(dn#markdown#pandoc_params)
+    for [l:key, l:val] in items(s:dn_markdown_pandoc_params)
         let l:format = l:val['format']
         if has_key(l:formats, l:format)
             let l:msg = "Script error: duplicate format '" . l:format . "'"
@@ -1816,7 +1816,7 @@ endfunction
 " params: format - format code to test [any, required]
 " return: whether format code is valid - boolean
 function! s:_valid_format(format) abort
-    return has_key(dn#markdown#pandoc_params, a:format)
+    return has_key(s:dn_markdown_pandoc_params, a:format)
 endfunction
 
 " s:_valid_setting_name(setting)                                           {{{2
@@ -1874,7 +1874,7 @@ function! s:_valid_setting_value(value, setting, ...) abort
         " also, the name of each template setting
         " has the form 'template_FORMAT', where
         " 'FORMAT' is the output format, i.e.,
-        " a key of dn#markdown#pandoc_params
+        " a key of s:dn_markdown_pandoc_params
         if !filereadable(resolve(expand(a:value)))
             let l:format = strpart(a:setting, len('template_'))
             let l:msgs = [

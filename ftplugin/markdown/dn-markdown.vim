@@ -308,7 +308,13 @@ let b:dn_markdown_settings = {
 "         (because ftplugin includes a default html stylesheet)
 
 " numbered types ids and refs (b:dn_markdown_{ids,refs})                   {{{3
-let b:dn_markdown_ids  = map(dn#markdown#numbered_types(), {key -> {}})
+" - can't use one-liner because lambda confuses the vint syntax checker
+"let b:dn_markdown_ids = map(dn#markdown#numbered_types(), {key -> {}})
+let b:dn_markdown_ids = {}
+for s:type in keys(dn#markdown#numbered_types())
+    let b:dn_markdown_ids[s:type] = {}
+endfor
+unlet s:type
 let b:dn_markdown_refs = deepcopy(b:dn_markdown_ids)
 
 " Mappings                                                                 {{{1
