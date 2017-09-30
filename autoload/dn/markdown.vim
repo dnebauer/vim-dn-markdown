@@ -706,7 +706,10 @@ function! s:_check_refs(...) abort
     call s:_update_refs()
     " check for problems                                                   {{{3
     if !l:startup | echon 'analysing... ' | endif
+echo 'b:dn_markdown_ids: ' . b:dn_markdown_ids
     for l:type in l:types
+echo 'l:type: ' . l:type
+echo 'b:dn_markdown_ids[l:type]: ' . b:dn_markdown_ids[l:type]
         for l:id in keys(b:dn_markdown_ids[l:type])
             if has_key(b:dn_markdown_refs[l:type], l:id)
                 " check for multiple references to id (warning)
