@@ -189,7 +189,7 @@ The |dn#markdown#regenerate()| function can be called using the mapping
                                                        *dn#markdown#view()*
 Output files can be opened for viewing in the default application defined
 for that file type. On windows systems the operating system handles file
-associations. On *nix systems it the ftplugin uses the freedesktop.org
+associations. On *nix systems the ftplugin uses the freedesktop.org
 utility "xdg-open" to open output files. What happens when output files
 are regenerated, or the ftplugin attempts to open for viewing an output
 file that is already open in the associated viewing application, depends
