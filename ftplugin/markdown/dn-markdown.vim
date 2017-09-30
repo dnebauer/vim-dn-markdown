@@ -511,8 +511,8 @@ command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
                                                                          " }}}2
 " Initialise                                                               {{{1
 echo dn#markdown#numbered_types
-echo dn#markdown#ids
-echo dn#markdown#refs
+echo b:dn_markdown_ids
+echo b:dn_markdown_refs
 call dn#markdown#initialise()
 
 " Restore cpoptions                                                        {{{1
