@@ -713,6 +713,8 @@ echo 'l:type: '
 echo l:type
 echo 'b:dn_markdown_ids[l:type]: '
 echo b:dn_markdown_ids[l:type]
+echo 'keys(b:dn_markdown_ids[l:type]): '
+echo keys(b:dn_markdown_ids[l:type])
         for l:id in keys(b:dn_markdown_ids[l:type])
             if has_key(b:dn_markdown_refs[l:type], l:id)
                 " check for multiple references to id (warning)
