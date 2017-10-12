@@ -2,16 +2,16 @@
 " Last Change: 2017-07-08
 " Maintainer:  David Nebauer <david@nebauer.org>
 
-" Load only once                                                           {{{1
+" Load only once    {{{1
 if exists('b:did_dnm_markdown_pandoc') | finish | endif
 let b:did_dnm_markdown_pandoc = 1
 
-" Save cpoptions                                                           {{{1
+" Save cpoptions    {{{1
 " - avoids unpleasantness from customised 'compatible' settings
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-" Add system help                                                          {{{1
+" Add system help    {{{1
 if !exists('g:dn_help_plugins')
     let g:dn_help_plugins = []
 endif
@@ -47,11 +47,11 @@ if count(g:dn_help_plugins, 'dn-markdown') == 0
         \ ]
 endif
 
-" Variables                                                                {{{1
-" outputted formats (b:dn_markdown_outputted_formats)                      {{{2
+" Variables    {{{1
+" outputted formats (b:dn_markdown_outputted_formats)    {{{2
 let b:dn_markdown_outputted_formats = {}
 
-" settings values (b:dn_markdown_settings)                                 {{{2
+" settings values (b:dn_markdown_settings)    {{{2
 " - keep b:dn_md_settings.stylesheet_html.default = '' as it is set by
 "   function dn#markdown#initialise to the stylesheet provided by this
 "   plugin (unless it is set by the corresponding config variable)
@@ -307,7 +307,7 @@ let b:dn_markdown_settings = {
 "         to set b:dn_markdown_settings.stylesheet_html as a special case
 "         (because ftplugin includes a default html stylesheet)
 
-" numbered types ids and refs (b:dn_markdown_{ids,refs})                   {{{2
+" numbered types ids and refs (b:dn_markdown_{ids,refs})    {{{2
 " - can't use one-liner because lambda confuses the vint syntax checker
 "let b:dn_markdown_ids = map(dn#markdown#numbered_types(), {key -> {}})
 let b:dn_markdown_ids = {}
@@ -317,9 +317,9 @@ endfor
 unlet s:type
 let b:dn_markdown_refs = deepcopy(b:dn_markdown_ids)
 
-" Mappings                                                                 {{{1
+" Mappings    {{{1
 
-" \ei : insert equation label                                              {{{2
+" \ei : insert equation label    {{{2
 if !hasmapto('<Plug>DnEII')
     imap <buffer> <unique> <LocalLeader>ei <Plug>DnEII
 endif
@@ -331,7 +331,7 @@ endif
 nmap <buffer> <unique> <Plug>DnEIN
             \ :call dn#markdown#equationInsert()<CR>
 
-" \er : insert equation reference                                          {{{2
+" \er : insert equation reference    {{{2
 if !hasmapto('<Plug>DnERI')
     imap <buffer> <unique> <LocalLeader>er <Plug>DnERI
 endif
@@ -343,7 +343,7 @@ endif
 nmap <buffer> <unique> <Plug>DnERN
             \ :call dn#markdown#equationRef()<CR>
 
-" \fi : insert figure                                                      {{{2
+" \fi : insert figure    {{{2
 if !hasmapto('<Plug>DnFII')
     imap <buffer> <unique> <LocalLeader>fi <Plug>DnFII
 endif
@@ -355,7 +355,7 @@ endif
 nmap <buffer> <unique> <Plug>DnFIN
             \ :call dn#markdown#figureInsert()<CR>
 
-" \fr : insert figure reference                                            {{{2
+" \fr : insert figure reference    {{{2
 if !hasmapto('<Plug>DnFRI')
     imap <buffer> <unique> <LocalLeader>fr <Plug>DnFRI
 endif
@@ -367,7 +367,7 @@ endif
 nmap <buffer> <unique> <Plug>DnFRN
             \ :call dn#markdown#figureRef()<CR>
 
-" \iu : update lists of ids                                                {{{2
+" \iu : update lists of ids    {{{2
 if !hasmapto('<Plug>DnIUI')
     imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
 endif
@@ -379,7 +379,7 @@ endif
 nmap <buffer> <unique> <Plug>DnIUN
             \ :call dn#markdown#idsUpdate()<CR>
 
-" \og : output generation                                                  {{{2
+" \og : output generation    {{{2
 if !hasmapto('<Plug>DnOGI')
     imap <buffer> <unique> <LocalLeader>og <Plug>DnOGI
 endif
@@ -391,7 +391,7 @@ endif
 nmap <buffer> <unique> <Plug>DnOGN
             \ :call dn#markdown#generate()<CR>
 
-" \or : output regeneration                                                {{{2
+" \or : output regeneration    {{{2
 if !hasmapto('<Plug>DnORI')
     imap <buffer> <unique> <LocalLeader>or <Plug>DnORI
 endif
@@ -403,7 +403,7 @@ endif
 nmap <buffer> <unique> <Plug>DnORN
             \ :call dn#markdown#regenerate()<CR>
 
-" \ov : output viewing                                                     {{{2
+" \ov : output viewing    {{{2
 if !hasmapto('<Plug>DnOVI')
     imap <buffer> <unique> <LocalLeader>ov <Plug>DnOVI
 endif
@@ -415,7 +415,7 @@ endif
 nmap <buffer> <unique> <Plug>DnOVN
             \ :call dn#markdown#view()<CR>
 
-" \rc : check references                                                   {{{2
+" \rc : check references    {{{2
 if !hasmapto('<Plug>DnRCI')
     imap <buffer> <unique> <LocalLeader>rc <Plug>DnRCI
 endif
@@ -427,7 +427,7 @@ endif
 nmap <buffer> <unique> <Plug>DnRCN
             \ :call dn#markdown#refsCheck()<CR>
 
-" \se : settings edit                                                      {{{2
+" \se : settings edit    {{{2
 if !hasmapto('<Plug>DnSEI')
     imap <buffer> <unique> <LocalLeader>se <Plug>DnSEI
 endif
@@ -439,7 +439,7 @@ endif
 nmap <buffer> <unique> <Plug>DnSEN
             \ :call dn#markdown#settings()<CR>
 
-" \ti : insert table title                                                 {{{2
+" \ti : insert table title    {{{2
 if !hasmapto('<Plug>DnTII')
     imap <buffer> <unique> <LocalLeader>ti <Plug>DnTII
 endif
@@ -451,7 +451,7 @@ endif
 nmap <buffer> <unique> <Plug>DnTIN
             \ :call dn#markdown#tableInsert()<CR>
 
-" \tr : insert table reference                                             {{{2
+" \tr : insert table reference    {{{2
 if !hasmapto('<Plug>DnTRI')
     imap <buffer> <unique> <LocalLeader>tr <Plug>DnTRI
 endif
@@ -462,63 +462,63 @@ if !hasmapto('<Plug>DnTRN')
 endif
 nmap <buffer> <unique> <Plug>DnTRN
             \ :call dn#markdown#tableRef()<CR>
-                                                                         " }}}2
-" Commands                                                                 {{{1
+" }}}2
+" Commands    {{{1
 
-" CheckReferences   : check references                                     {{{2
+" CheckReferences   : check references    {{{2
 command! -buffer CheckReferences
             \ call dn#markdown#refsCheck()
 
-" EquationInsert    : insert image                                         {{{2
+" EquationInsert    : insert image    {{{2
 command! -buffer EquationInsert
             \ call dn#markdown#equationInsert()
 
-" EquationReference : insert image reference                               {{{2
+" EquationReference : insert image reference    {{{2
 command! -buffer EquationReference
             \ call dn#markdown#equationRef()
 
-" Generate          : generate output                                      {{{2
+" Generate          : generate output    {{{2
 command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ Generate
             \ call dn#markdown#generate({'format': '<args>'})
 
-" FigureInsert      : insert image                                         {{{2
+" FigureInsert      : insert image    {{{2
 command! -buffer FigureInsert
             \ call dn#markdown#figureInsert()
 
-" FigureReference   : insert image reference                               {{{2
+" FigureReference   : insert image reference    {{{2
 command! -buffer FigureReference
             \ call dn#markdown#figureRef()
 
-" Regenerate        : regenerate all previous output                       {{{2
+" Regenerate        : regenerate all previous output    {{{2
 command! -buffer Regenerate
             \ call dn#markdown#regenerate()
 
-" Settings          : edit settings                                        {{{2
+" Settings          : edit settings    {{{2
 command! -buffer Settings
             \ call dn#markdown#settings()
 
-" TableInsert       : insert image                                         {{{2
+" TableInsert       : insert image    {{{2
 command! -buffer TableInsert
             \ call dn#markdown#tableInsert()
 
-" TableReference    : insert image reference                               {{{2
+" TableReference    : insert image reference    {{{2
 command! -buffer TableReference
             \ call dn#markdown#tableRef()
 
-" UpdateIDs         : update id lists                                      {{{2
+" UpdateIDs         : update id lists    {{{2
 command! -buffer UpdateIDs
             \ call dn#markdown#idsUpdate()
 
-" View              : view output                                          {{{2
+" View              : view output    {{{2
 command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
             \ View
             \ call dn#markdown#view({'format': '<args>'})
-                                                                         " }}}2
-" Initialise                                                               {{{1
+" }}}2
+" Initialise    {{{1
 call dn#markdown#initialise()
 
-" Restore cpoptions                                                        {{{1
+" Restore cpoptions    {{{1
 let &cpoptions = s:save_cpo
 unlet s:save_cpo                                                         " }}}1
 

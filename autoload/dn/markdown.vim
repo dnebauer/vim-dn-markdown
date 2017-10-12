@@ -2,16 +2,16 @@
 " Author:  David Nebauer
 " URL:     https://github.com/dnebauer/vim-dn-markdown
 
-" Load only once                                                           {{{1
+" Load only once    {{{1
 if exists('g:loaded_dn_markdown_autoload') | finish | endif
 let g:loaded_dn_markdown_autoload = 1
 
-" Save coptions                                                            {{{1
+" Save coptions    {{{1
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-" Variables                                                                {{{1
-" buffer variables are defined in the main ftplugin file                   {{{2
+" Variables    {{{1
+" buffer variables are defined in the main ftplugin file    {{{2
 " - brute force solution to some difficult-to-resolve initialisation
 "   errors when opening new markdown files in new buffers in a vim
 "   instance that already has a markdown file open
@@ -20,12 +20,12 @@ set cpoptions&vim
 "   * b:dn_markdown_settings
 "   * b:dn_markdown_ids
 "   * b:dn_markdown_refs
-" operating system (s:dn_markdown_os)                                      {{{2
+" operating system (s:dn_markdown_os)    {{{2
 let s:dn_markdown_os = (has('win32') || has ('win64')) ? 'win'
             \      : has('unix') ? 'nix'
             \      : ''
 
-" pandoc settings menu (s:dn_markdown_menu_{items,prompt})                 {{{2
+" pandoc settings menu (s:dn_markdown_menu_{items,prompt})    {{{2
 " - returns one of:
 "   . citeproc_all
 "   . {fontsize,linkcolor,latexengine}_pdf
@@ -71,7 +71,7 @@ let s:dn_markdown_menu_items = {
             \   {'Template (pdf via latex)'    : 'template_pdf_latex'},
             \   ],
             \ }
-" pandoc parameters to set (s:dn_markdown_pandoc_params)                   {{{2
+" pandoc parameters to set (s:dn_markdown_pandoc_params)    {{{2
 "
 " ---- format: human-readable description of format;
 "              ***warning*** formats must be unique
@@ -223,7 +223,7 @@ let s:dn_markdown_pandoc_params.pdf_html.params
 let s:dn_markdown_pandoc_params.pdf_latex.params
             \ = s:dn_markdown_pandoc_params.latex.params
 
-" numbered structures (s:dn_markdown_numbered_types)                       {{{2
+" numbered structures (s:dn_markdown_numbered_types)    {{{2
 let s:dn_markdown_numbered_types = {
             \ 'equation' : {
             \   'prefix'   : 'eq',
@@ -248,13 +248,13 @@ function! dn#markdown#numbered_types() abort
     return copy(s:dn_markdown_numbered_types)
 endfunction
 
-" hanging indent                                                           {{{2
+" hanging indent    {{{2
 " - default hanging indent
 let s:dn_markdown_hang = 15
 
-" Public functions                                                         {{{1
+" Public functions    {{{1
 
-" dn#markdown#completeFormat(A, L, P)                                      {{{2
+" dn#markdown#completeFormat(A, L, P)    {{{2
 " does:   return completion candidates for output formats
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -265,7 +265,7 @@ function! dn#markdown#completeFormat(A, L, P) abort
     return filter(l:formats, 'v:val =~# "^' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdEquation(A, L, P)                                  {{{2
+" dn#markdown#completeIdEquation(A, L, P)    {{{2
 " does:   perform completion on equation ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -276,7 +276,7 @@ function! dn#markdown#completeIdEquation(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdFigure(A, L, P)                                    {{{2
+" dn#markdown#completeIdFigure(A, L, P)    {{{2
 " does:   perform completion on figure ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -287,7 +287,7 @@ function! dn#markdown#completeIdFigure(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#completeIdTable(A, L, P)                                     {{{2
+" dn#markdown#completeIdTable(A, L, P)    {{{2
 " does:   perform completion on table ids
 " params: ArgLead   - see help for |command-completion-custom|
 "         CmdLine   - see help for |command-completion-custom|
@@ -298,7 +298,7 @@ function! dn#markdown#completeIdTable(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#equationInsert([insert])                                     {{{2
+" dn#markdown#equationInsert([insert])    {{{2
 " does:   insert equation at cursor location
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -316,7 +316,7 @@ function! dn#markdown#equationInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#equationRef([insert])                                        {{{2
+" dn#markdown#equationRef([insert])    {{{2
 " does:   insert equation reference at cursor location
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -335,7 +335,7 @@ function! dn#markdown#equationRef(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#figureInsert([insert])                                       {{{2
+" dn#markdown#figureInsert([insert])    {{{2
 " does:   insert figure following current line
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -353,7 +353,7 @@ function! dn#markdown#figureInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#figureRef([insert])                                          {{{2
+" dn#markdown#figureRef([insert])    {{{2
 " does:   insert figure reference at cursor location
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -372,7 +372,7 @@ function! dn#markdown#figureRef(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#generate([params])                                           {{{2
+" dn#markdown#generate([params])    {{{2
 " does:   generate output
 " params: params - parameters dictionary with the following keys:
 "                  'insert' - whether entered from insert mode
@@ -400,7 +400,7 @@ function! dn#markdown#generate(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#idsUpdate([insert])                                          {{{2
+" dn#markdown#idsUpdate([insert])    {{{2
 " does:   update id lists for equations, figures and tables
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -420,7 +420,7 @@ function! dn#markdown#idsUpdate(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#initialise()                                                 {{{2
+" dn#markdown#initialise()    {{{2
 " does:   initialise plugin
 " params: nil
 " return: nil
@@ -438,7 +438,7 @@ function! dn#markdown#initialise() abort
     endif
 endfunction
 
-" dn#markdown#refsCheck([insert])                                          {{{2
+" dn#markdown#refsCheck([insert])    {{{2
 " does:   check all references
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -460,7 +460,7 @@ function! dn#markdown#refsCheck(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#regenerate([insert])                                         {{{2
+" dn#markdown#regenerate([insert])    {{{2
 " does:   regenerate all previously outputted files
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -494,7 +494,7 @@ function! dn#markdown#regenerate(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#settings()                                                   {{{2
+" dn#markdown#settings()    {{{2
 " does:   change settings, e.g., b:dn_markdown_settings.<var>.value
 " params: nil
 " return: nil, edits b:dn_markdown_settings in place
@@ -566,7 +566,7 @@ function! dn#markdown#settings() abort
     let &more = l:more
 endfunction
 
-" dn#markdown#tableInsert([insert])                                        {{{2
+" dn#markdown#tableInsert([insert])    {{{2
 " does:   insert table title following current line
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -584,7 +584,7 @@ function! dn#markdown#tableInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#tableRef([insert])                                           {{{2
+" dn#markdown#tableRef([insert])    {{{2
 " does:   insert table reference at cursor location
 " params: insert - whether entered from insert mode
 "                  [default=<false>, optional, boolean]
@@ -603,7 +603,7 @@ function! dn#markdown#tableRef(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#view([params])                                               {{{2
+" dn#markdown#view([params])    {{{2
 " does:   view output of a specified format
 " params: params - parameters dictionary with the following keys:
 "                  'insert' - whether entered from insert mode
@@ -614,29 +614,29 @@ endfunction
 " return: nil
 " note:   output is always (re)generated before viewing
 function! dn#markdown#view(...) abort
-    " universal tasks                                                      {{{3
+    " universal tasks    {{{3
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif |  " requires dn-utils plugin
-    " process params                                                       {{{3
+    " process params    {{{3
     let [l:insert, l:format] = s:_process_dict_params(a:000)
     let l:more = &more
     set nomore
     try
         if empty(l:format) | let l:format = s:_select_format() | endif
         if empty(l:format) | return | endif
-        " (re)generate output                                              {{{3
+        " (re)generate output    {{{3
         let l:more = &more
         set nomore
         if !s:_generator(l:format) | 
             throw 'Output (re)generation failed' |
         endif
-        " check for output file to view                                    {{{3
+        " check for output file to view    {{{3
         let l:ext    = s:dn_markdown_pandoc_params[l:format]['final_ext']
         let l:output = substitute(expand('%'), '\.md$', l:ext, '')
         if !filereadable(l:output)
             throw 'No ' . l:format . ' file to view'
         endif
-        " view output                                                      {{{3
+        " view output    {{{3
         if s:dn_markdown_os ==# 'win'
             let l:win_view_direct = ['docx', 'epub', 'html']
             let l:win_view_cmd    = ['pdf']
@@ -685,14 +685,14 @@ function! dn#markdown#view(...) abort
         echohl ErrorMsg | echo v:exception | echohl None
     finally
         let &more = l:more
-        " return to calling mode                                           {{{3
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif |       " }}}3
+        " return to calling mode    {{{3
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif |    " }}}3
     endtry
 endfunction
 
-" Private functions                                                        {{{1
+" Private functions    {{{1
 
-" s:_check_refs([startup])                                                 {{{2
+" s:_check_refs([startup])    {{{2
 " does:   check equation, figure and table references
 " params: startup - whether being run at startup, because suppress
 "                   non-error and non-warning output at startup
@@ -704,15 +704,15 @@ endfunction
 "         errors   - reference to non-existant eq/fig/tbl
 "                  - eq/fig/tbl defined multiple times
 function! s:_check_refs(...) abort
-    " variables                                                            {{{3
+    " variables    {{{3
     let l:startup = (a:0 > 0 && a:1)
     let l:types   = keys(s:dn_markdown_numbered_types)
     let l:issues  = {}
-    " update ref and id indices                                            {{{3
+    " update ref and id indices    {{{3
     if !l:startup | echo 'Updating... ' | endif
     call s:_update_ids('equation', 'figure', 'table')
     call s:_update_refs()
-    " check for problems                                                   {{{3
+    " check for problems    {{{3
     if !l:startup | echon 'analysing... ' | endif
     for l:type in l:types
         for l:id in keys(b:dn_markdown_ids[l:type])
@@ -752,7 +752,7 @@ function! s:_check_refs(...) abort
             endif
         endfor
     endfor
-    " report results                                                       {{{3
+    " report results    {{{3
     if empty(l:issues)
         if !l:startup | echon 'references ok' | endif
         return
@@ -793,10 +793,10 @@ function! s:_check_refs(...) abort
     endfor
     " during startup last line of output can be
     " overwritten by vim status line
-    if l:startup | echo ' ' | endif                                      " }}}3
+    if l:startup | echo ' ' | endif    " }}}3
 endfunction
 
-" s:_check_refs_issue(issues, type, id, class, msg)                        {{{2
+" s:_check_refs_issue(issues, type, id, class, msg)    {{{2
 " does:   add to issues with structured type
 " params: issues - variable holding issues [Dict, required]
 "         type   - id type [String, required, 'equation'|'figure'|table']
@@ -844,7 +844,7 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     return g:dn_true
 endfunction
 
-" s:_display_value(value, setting)                                         {{{2
+" s:_display_value(value, setting)    {{{2
 " does:   get the display value for a setting value
 " params: value   - setting value to display [any, required]
 "         setting - name of setting [any, required]
@@ -860,7 +860,7 @@ function! s:_display_value(value, setting) abort
     return l:display_value
 endfunction
 
-" s:_ebook_post_processing(format)                                         {{{2
+" s:_ebook_post_processing(format)    {{{2
 " does:   determine whether this format requires ebook post-processing
 "         e.g., is it azw3 or mobi format?
 " params: format - output format [string, required]
@@ -869,7 +869,7 @@ function! s:_ebook_post_processing (format) abort
     return count(['mobi', 'azw3'], a:format) == 1
 endfunction
 
-" s:_enter_id(type, [base])                                                {{{2
+" s:_enter_id(type, [base])    {{{2
 " does:   get id for figure, table or equation 
 " params: type - id type
 "                [string, required, can be 'equation'|'table'|'figure']
@@ -917,7 +917,7 @@ function! s:_enter_id(type, ...) abort
     return l:id
 endfunction
 
-" s:_equation_insert()                                                     {{{2
+" s:_equation_insert()    {{{2
 " does:   insert equation at cursor location
 " params: nil
 " prints: user prompts and feedback
@@ -935,7 +935,7 @@ function! s:_equation_insert() abort
     return g:dn_true
 endfunction
 
-" s:_execute_shell_command(cmd,[err])                                      {{{2
+" s:_execute_shell_command(cmd,[err])    {{{2
 " does:   execute shell command
 " params: cmd - shell command [required, string]
 "         err - error message [optional, List, default='Error occured:']
@@ -967,7 +967,7 @@ function! s:_execute_shell_command(cmd, ...) abort
     endif
 endfunction
 
-" s:_figure_insert()                                                       {{{2
+" s:_figure_insert()    {{{2
 " does:   insert figure following current line
 " params: nil
 " prints: user prompts and feedback
@@ -1010,13 +1010,13 @@ function! s:_figure_insert() abort
     return g:dn_true
 endfunction
 
-" s:_generator(format)                                                     {{{2
+" s:_generator(format)    {{{2
 " does:   generate output
 " params: format - output format
 "                  [required, must be s:dn_markdown_pandoc_params key]
 " return: whether output completed without error
 function! s:_generator (format) abort
-    " requirements                                                         {{{3
+    " requirements    {{{3
     " - apps
     "   . get list of apps on which conversion depends
     let l:depends = s:dn_markdown_pandoc_params[a:format]['depend']
@@ -1053,12 +1053,12 @@ function! s:_generator (format) abort
         call dn#util#error('Operating system not supported')
         return
     endif
-    " process params                                                       {{{3
+    " process params    {{{3
     if !s:_valid_format(a:format)
         call dn#util#error("Invalid format '" . a:format . "'")
         return
     endif
-    " save file to incorporate any changes                                 {{{3
+    " save file to incorporate any changes    {{{3
     silent update
     call s:_say({'msg': ['Target format:', a:format]})
     let l:pandoc_exe = b:dn_markdown_settings.exe_pandoc.value
@@ -1069,10 +1069,10 @@ function! s:_generator (format) abort
     "         and displayed in a single line
     let l:params = s:dn_markdown_pandoc_params[a:format]['params']
     let l:opts   = []
-    " variables                                                            {{{3
+    " variables    {{{3
     let l:cmd = [l:pandoc_exe]
     let l:pandoc_extensions = {'reader': [], 'writer': []}
-    " number figures                                                       {{{3
+    " number figures    {{{3
     " - pandoc-fignos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
     if count(l:params, 'figures') > 0                      " number figures
@@ -1088,7 +1088,7 @@ function! s:_generator (format) abort
             call add(l:opts, 'pandoc-fignos')
         endif
     endif
-    " number equations                                                     {{{3
+    " number equations    {{{3
     " - pandoc-eqnos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
     if count(l:params, 'equations') > 0                    " number equations
@@ -1104,7 +1104,7 @@ function! s:_generator (format) abort
             call add(l:opts, 'pandoc-eqnos')
         endif
     endif
-    " number tables                                                        {{{3
+    " number tables    {{{3
     " - pandoc-tablenos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
     if count(l:params, 'tables') > 0                       " number tables
@@ -1120,7 +1120,7 @@ function! s:_generator (format) abort
             call add(l:opts, 'pandoc-tablenos')
         endif
     endif
-    " latex engine                                                         {{{3
+    " latex engine    {{{3
     if count(l:params, 'latexengine') > 0                  " latex engine
         " latex engine
         " - can be pdflatex, lualatex or xelatex (default)
@@ -1133,7 +1133,7 @@ function! s:_generator (format) abort
         call add(l:cmd, '--latex-engine=' . l:engine)
         call s:_say({'msg': ['Latex engine:', l:engine]})
     endif
-    " make links visible                                                   {{{3
+    " make links visible    {{{3
     if count(l:params, 'latexlinks') > 0                   " latex links
         " available colours are:
         "   black,    blue,    brown, cyan,
@@ -1166,7 +1166,7 @@ function! s:_generator (format) abort
         call add(l:cmd, '--variable linkcolor=' . l:link_color)
         call s:_say({'msg': ['Link colour:', l:link_color]})
     endif
-    " custom font size                                                     {{{3
+    " custom font size    {{{3
     if count(l:params, 'fontsize') > 0                     " font size
         let l:font_size = b:dn_markdown_settings.fontsize_print.value
         if empty(l:font_size)
@@ -1177,7 +1177,7 @@ function! s:_generator (format) abort
             call add(l:cmd, '--variable fontsize=' . l:font_size)
         endif
     endif
-    " custom paper size                                                    {{{3
+    " custom paper size    {{{3
     if count(l:params, 'papersize') > 0                    " paper size
         let l:paper_size = b:dn_markdown_settings.papersize_print.value
         if empty(l:paper_size)
@@ -1187,22 +1187,22 @@ function! s:_generator (format) abort
             call add(l:cmd, '--variable papersize=' . l:paper_size)
         endif
     endif
-    " add header and footer                                                {{{3
+    " add header and footer    {{{3
     if count(l:params, 'standalone') > 0                   " standalone
         call add(l:cmd, '--standalone')
         call add(l:opts, 'standalone')
     endif
-    " convert quotes, em|endash, ellipsis                                  {{{3
+    " convert quotes, em|endash, ellipsis    {{{3
     if count(l:params, 'smart') > 0                        " smart
         call add(l:pandoc_extensions.reader, 'smart')
         call add(l:opts, 'smart')
     endif
-    " incorporate external dependencies                                    {{{3
+    " incorporate external dependencies    {{{3
     if count(l:params, 'selfcontained') > 0                " self-contained
         call add(l:cmd, '--self-contained')
         call add(l:opts, 'self-contained')
     endif
-    " use citeproc if selected by user                                     {{{3
+    " use citeproc if selected by user    {{{3
     if count(l:params, 'citeproc') > 0                     " citeproc
         let l:use_citeproc = b:dn_markdown_settings.citeproc_all.value
         if l:use_citeproc
@@ -1210,7 +1210,7 @@ function! s:_generator (format) abort
             call add(l:opts, 'pandoc-citeproc')
         endif
     endif
-    " use css stylesheet for html                                          {{{3
+    " use css stylesheet for html    {{{3
     if count(l:params, 'style_html') > 0                   " style/html
         let l:style_html = b:dn_markdown_settings.stylesheet_html.value
         if !empty(l:style_html)
@@ -1218,7 +1218,7 @@ function! s:_generator (format) abort
             call s:_say({'msg': ['Stylesheet:', l:style_html]})
         endif
     endif
-    " use css stylesheet for epub                                          {{{3
+    " use css stylesheet for epub    {{{3
     if count(l:params, 'style_epub') > 0                   " style/epub
         let l:style_epub = b:dn_markdown_settings.stylesheet_epub.value
         if !empty(l:style_epub)
@@ -1227,7 +1227,7 @@ function! s:_generator (format) abort
             call s:_say({'msg': ['Stylesheet:', l:style_epub]})
         endif
     endif
-    " use cover image for epub                                             {{{3
+    " use cover image for epub    {{{3
     if count(l:params, 'cover_epub') > 0                   " cover/epub
         let l:cover_epub = ''
         for l:ext in ['gif', 'jpg', 'png']
@@ -1242,7 +1242,7 @@ function! s:_generator (format) abort
             call s:_say({'msg': ['Cover image:', l:cover_epub]})
         endif
     endif
-    " use docx stylesheet                                                  {{{3
+    " use docx stylesheet    {{{3
     if count(l:params, 'style_docx') > 0                   " style/docx
         let l:style_docx =
                     \ b:dn_markdown_settings.stylesheet_docx.value
@@ -1252,7 +1252,7 @@ function! s:_generator (format) abort
             call s:_say({'msg': ['Style doc:', l:style_docx]})
         endif
     endif
-    " use custom template                                                  {{{3
+    " use custom template    {{{3
     if count(l:params, 'template') > 0                     " template
         let l:setting  = 'template_' . a:format
         let l:template = b:dn_markdown_settings[l:setting]['value']
@@ -1264,18 +1264,18 @@ function! s:_generator (format) abort
             call s:_say({'msg': ['Template:', '[default]']})
         endif
     endif
-    " input option                                                         {{{3
+    " input option    {{{3
     let l:from = ['markdown']                              " input format
     call extend(l:from, l:pandoc_extensions.reader)        " + extensions
     call extend(l:cmd, ['-f', join(l:from, '+')])
-    " output format                                                        {{{3
+    " output format    {{{3
                                                            " output format
                                                            " + extensions
     let l:to = [s:dn_markdown_pandoc_params[a:format]['pandoc_to']]
     call extend(l:opts, l:to)
     call extend(l:to, l:pandoc_extensions.writer)
     call extend(l:cmd, ['-t', join(l:to, '+')])
-    " output file                                                          {{{3
+    " output file    {{{3
     " - display final output file
     let l:ext    = s:dn_markdown_pandoc_params[a:format]['final_ext']
     let l:output = substitute(expand('%'), '\.md$', l:ext, '')
@@ -1300,16 +1300,16 @@ function! s:_generator (format) abort
         endif
     endif
     call add(l:cmd, '--output=' . shellescape(l:output))
-    " input file                                                           {{{3
+    " input file    {{{3
     let l:source = expand('%')                             " input file
     call add(l:cmd, shellescape(l:source))
-    " generate pandoc output                                               {{{3
+    " generate pandoc output    {{{3
     call s:_say({'msg': ['Options:', join(l:opts, ', ')]})
     let l:errmsg = ["Error occurred during '"
                 \ . a:format . "' generation"]
     call s:_say({'msg': ['Generating output... ']})
     let l:retval = s:_execute_shell_command(join(l:cmd), l:errmsg)
-    " do post-pandoc conversion where required                             {{{3
+    " do post-pandoc conversion where required    {{{3
     if l:post_processing && l:retval
         if s:_ebook_post_processing(a:format)  " azw3, mobi
             let l:input  = l:output
@@ -1328,15 +1328,15 @@ function! s:_generator (format) abort
             endif
         endif
     endif
-    " update outputted formats                                             {{{3
+    " update outputted formats    {{{3
     if l:retval
         let b:dn_markdown_outputted_formats[a:format] = g:dn_true
     endif
-    " return outcome                                                       {{{3
-    return l:retval                                                      " }}}3
+    " return outcome    {{{3
+    return l:retval    " }}}3
 endfunction
 
-" s:_increment_id_count(type, id)                                          {{{2
+" s:_increment_id_count(type, id)    {{{2
 " does:   increase id count by one
 " params: type - id type
 "                [string, required, can be 'equation'|'table'|'figure']
@@ -1361,7 +1361,7 @@ function! s:_increment_id_count(type, id) abort
     endif
 endfunction
 
-" s:_increment_ref_count(type, ref)                                        {{{2
+" s:_increment_ref_count(type, ref)    {{{2
 " does:   increase ref count by one
 " params: type - ref type
 "                [string, required, can be 'equation'|'table'|'figure']
@@ -1386,7 +1386,7 @@ function! s:_increment_ref_count(type, ref) abort
     endif
 endfunction
 
-" s:_process_dict_params(params)                                           {{{2
+" s:_process_dict_params(params)    {{{2
 " does:   process dict param used by dn#markdown#{view,output}
 " params: params - List that may contain a parameters dictionary
 "                  with the following keys:
@@ -1457,7 +1457,7 @@ function! s:_process_dict_params(...) abort
     return [l:insert, l:format]
 endfunction
 
-" s:_reference_insert(type)                                                {{{2
+" s:_reference_insert(type)    {{{2
 " does:   insert equation, figure or table reference
 " params: type - reference type
 "                [string, required, can be 'equation'|'table'|'figure']
@@ -1498,7 +1498,7 @@ function! s:_reference_insert(type) abort
     call dn#util#insertString(l:ref)
 endfunction
 
-" s:_say(args)                                                             {{{2
+" s:_say(args)    {{{2
 " does:   echo line of output with wrapping and hanging indent
 " params: args [Dict, required]
 "         keys: msg  - width of hanging indent
@@ -1545,7 +1545,7 @@ function! s:_say(args) abort
     call dn#util#wrap(l:msg, l:hang)
 endfunction
 
-" s:_select_format(prompt)                                                 {{{2
+" s:_select_format(prompt)    {{{2
 " does:   select output format
 " params: prompt - prompt [string, optional, default='Select output format:']
 " return: output format (a key to s:dn_markdown_pandoc_params)
@@ -1577,7 +1577,7 @@ function! s:_select_format (...) abort
     return l:format
 endfunction
 
-" s:_set_default_html_stylesheet()                                         {{{2
+" s:_set_default_html_stylesheet()    {{{2
 " does:   set s:dn_md_settings.stylesheet_html.default
 "         to the stylesheet provided by this plugin
 " params: nil
@@ -1637,7 +1637,7 @@ function! s:_set_default_html_stylesheet() abort
     let b:dn_markdown_settings.stylesheet_html.default = l:stylesheet
 endfunction
 
-" s:_settings_configure()                                                  {{{2
+" s:_settings_configure()    {{{2
 " does:   configure settings variables
 " params: nil
 " return: nil
@@ -1683,7 +1683,7 @@ function! s:_settings_configure() abort
     let l:dn_md_outputted_formats = {}
 endfunction
 
-" s:_table_insert()                                                        {{{2
+" s:_table_insert()    {{{2
 " does:   insert table title following current line
 " params: nil
 " prints: user prompts and feedback
@@ -1712,7 +1712,7 @@ function! s:_table_insert() abort
     return g:dn_true
 endfunction
 
-" s:_update_ids(type, [type, [type]])                                      {{{2
+" s:_update_ids(type, [type, [type]])    {{{2
 " does:   update ids for figures, tables or equations in current file 
 " params: type - id types
 "                [string, required, can be 'equation'|'table'|'figure']
@@ -1763,7 +1763,7 @@ function! s:_update_ids(...) abort
     endfor
 endfunction
 
-" s:_update_refs()                                                         {{{2
+" s:_update_refs()    {{{2
 " does:   update references for figures, tables or equations in current file 
 " params: nil
 " return: n/a
@@ -1804,7 +1804,7 @@ function! s:_update_refs() abort
     endfor
 endfunction
 
-" s:_utils_missing()                                                       {{{2
+" s:_utils_missing()    {{{2
 " does:   determine whether dn-utils plugin is loaded
 " params: nil
 " prints: nil
@@ -1819,7 +1819,7 @@ function! s:_utils_missing() abort
     endif
 endfunction
 
-" s:_valid_format(format)                                                  {{{2
+" s:_valid_format(format)    {{{2
 " does:   determine whether a format value is valid
 " params: format - format code to test [any, required]
 " return: whether format code is valid - boolean
@@ -1827,7 +1827,7 @@ function! s:_valid_format(format) abort
     return has_key(s:dn_markdown_pandoc_params, a:format)
 endfunction
 
-" s:_valid_setting_name(setting)                                           {{{2
+" s:_valid_setting_name(setting)    {{{2
 " does:   determine whether a setting name is valid
 " params: setting - setting value to test [any, required]
 " return: whether setting name is valid - boolean
@@ -1835,7 +1835,7 @@ function! s:_valid_setting_name(setting) abort
     return has_key(b:dn_markdown_settings, a:setting)
 endfunction
 
-" s:_valid_setting_value(value, setting, [init])                           {{{2
+" s:_valid_setting_value(value, setting, [init])    {{{2
 " does:   determine whether a setting value is valid
 " params: value   - value to test [any, required]
 "         setting - setting being set [string, required]
@@ -1904,10 +1904,10 @@ function! s:_valid_setting_value(value, setting, ...) abort
     else
         return
     endif
-endfunction                                                              " }}}2
+endfunction    " }}}2
 
-" Restore cpoptions                                                        {{{1
+" Restore cpoptions    {{{1
 let &cpoptions = s:save_cpo
-unlet s:save_cpo                                                         " }}}1
+unlet s:save_cpo    " }}}1
 
 " vim: set foldmethod=marker :
