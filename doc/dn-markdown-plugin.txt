@@ -50,12 +50,17 @@ vim -> markdown ftplugin.
                                                        *dn-markdown-pandoc*
 Pandoc is used to generate output. It is not provided by this ftplugin. 
 
-This plugin is optimised for use with pandoc version 2.0. At the time of
-writing the production version is 1.19. The major incompatibility between
-these versions affecting this plugin is the "smart" feature:
+This plugin is designed for use with pandoc version 2.0. At the time of
+writing this is the development branch of pandoc, while the production
+version is 1.19. As the change in major version number suggests, the
+interfaces of these two versions of pandoc are incompatible. Hence, this
+plugin will not work with the current production version of pandoc.
 
-    version 1.19 uses the "smart" option: --smart
-    version 2.0 uses the "smart" extension: --from=markdown+smart
+The known incompatibilities between these versions that affect this plugin are:
+
+    feature          1.19 (production)    2.0 (development)~
+    smart            option: --smart      extension: --from=markdown+smart
+    latex engine     --latex-engine       --pdf-engine
 
                                                           *dn-markdown-pdf*
 PDF output can be generated via context, html or latex. The html method
