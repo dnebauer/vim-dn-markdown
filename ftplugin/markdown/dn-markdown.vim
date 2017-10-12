@@ -92,14 +92,14 @@ let b:dn_markdown_settings = {
             \   'config'  : 'g:DN_markdown_fontsize_print',
             \   'prompt'  : 'Select font size (points):',
             \   },
-            \ 'latexengine_print' : {
-            \   'label'   : 'Latex engine for pdf generation [print only]',
+            \ 'pdfengine_print' : {
+            \   'label'   : 'PDF engine [print only]',
             \   'value'   : '',
             \   'default' : 'xelatex',
             \   'source'  : '',
             \   'allowed' : ['xelatex', 'lualatex', 'pdflatex'],
-            \   'config'  : 'g:DN_markdown_latexengine_print',
-            \   'prompt'  : 'Select latex engine:',
+            \   'config'  : 'g:DN_markdown_pdfengine_print',
+            \   'prompt'  : 'Select pdf engine:',
             \   },
             \ 'linkcolor_print' : {
             \   'label'   : 'Select color for hyperlinks [print only]',

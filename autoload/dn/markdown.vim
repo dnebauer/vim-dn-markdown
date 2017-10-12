@@ -28,7 +28,7 @@ let s:dn_markdown_os = (has('win32') || has ('win64')) ? 'win'
 " pandoc settings menu (s:dn_markdown_menu_{items,prompt})    {{{2
 " - returns one of:
 "   . citeproc_all
-"   . {fontsize,linkcolor,latexengine}_pdf
+"   . {fontsize,linkcolor,pdfengine}_pdf
 "   . stylesheet_{docx,epub,html}
 "   . template_{docx,epub,html,pdf}
 "   . '' (if no item selected)
@@ -40,15 +40,15 @@ let s:dn_markdown_menu_items = {
             \   {'ebook-convert' : 'exe_ebook_convert'},
             \   ],
             \ 'Number cross-references (all formats)' : [
-            \   {'Figures'        : 'number_figures'},
-            \   {'Tables'         : 'number_tables'},
-            \   {'Equations'      : 'number_equations'},
+            \   {'Figures'   : 'number_figures'},
+            \   {'Tables'    : 'number_tables'},
+            \   {'Equations' : 'number_equations'},
             \   ],
             \ 'Print only' : [
-            \   {'Font size (print)'    : 'fontsize_print'},
-            \   {'Link colour (print)'  : 'linkcolor_print'},
-            \   {'Latex engine (print)' : 'latexengine_print'},
-            \   {'Paper size (print)'   : 'papersize_print'},
+            \   {'Font size (print)'   : 'fontsize_print'},
+            \   {'Link colour (print)' : 'linkcolor_print'},
+            \   {'PDF engine (print)'  : 'pdfengine_print'},
+            \   {'Paper size (print)'  : 'papersize_print'},
             \   ],
             \ 'Stylesheet file' : [
             \   {'Stylesheet (docx)' : 'stylesheet_docx'},
@@ -159,7 +159,7 @@ let s:dn_markdown_pandoc_params = {
             \   'final_ext' : '.tex',
             \   'params'    : ['figures',     'equations', 'tables',
             \                  'standalone',  'citeproc',  'smart',
-            \                  'latexengine', 'fontsize',  'latexlinks',
+            \                  'pdfengine', 'fontsize',  'latexlinks',
             \                  'papersize',   'template'],
             \   },
             \ 'mobi' : {
@@ -1023,7 +1023,7 @@ function! s:_generator (format) abort
     "   . replace 'latex' with specific latex engine
     let l:index = index(l:depends, 'latex')
     if l:index >= 0
-        let l:engine = b:dn_markdown_settings.latexengine_print.value
+        let l:engine = b:dn_markdown_settings.pdfengine_print.value
         let l:depends[l:index] = l:engine
     endif
     "   . replace 'pandoc' and 'ebook-convert' with executable names
@@ -1121,17 +1121,17 @@ function! s:_generator (format) abort
         endif
     endif
     " latex engine    {{{3
-    if count(l:params, 'latexengine') > 0                  " latex engine
+    if count(l:params, 'pdfengine') > 0                  " pdf engine
         " latex engine
         " - can be pdflatex, lualatex or xelatex (default)
         " - xelatex is better at handling exotic unicode
-        let l:engine = b:dn_markdown_settings.latexengine_print.value
+        let l:engine = b:dn_markdown_settings.pdfengine_print.value
         if !executable(l:engine)
             call dn#util#error('Install ' . l:engine)
             return
         endif
-        call add(l:cmd, '--latex-engine=' . l:engine)
-        call s:_say({'msg': ['Latex engine:', l:engine]})
+        call add(l:cmd, '--pdf-engine=' . l:engine)
+        call s:_say({'msg': ['PDF engine:', l:engine]})
     endif
     " make links visible    {{{3
     if count(l:params, 'latexlinks') > 0                   " latex links

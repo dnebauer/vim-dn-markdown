@@ -66,8 +66,8 @@ can be xelatex (default), lualatex or pdflatex.
 
 Each pdf generation method (context, html and latex, and xelatex,
 lualatex and pdflatex) produces an output file with the same name, so use
-of any pdf generation method will overwrite earlier pdf output generate
-d by any method.
+of any pdf generation method will overwrite earlier pdf output generated
+by any method.
 
                       *dn-markdown-ebook* *dn-markdown-azw3* *dn-markdown-mobi*
 Mobipocket (mobi) and Kindle Format 8 (azw3) output is generated from
@@ -148,7 +148,7 @@ details on these options.
 
     latex:
           +smart --standalone --filter pandoc-citeproc*
-          --latex-engine=?* --template=?* --variable fontsize=?*
+          --pdf-engine=?* --template=?* --variable fontsize=?*
           --variable citecolor=?* --variable linkcolor=?*
           --variable toccolor=?* --variable urlcolor=?*
           --variable papersize=?*
@@ -339,11 +339,11 @@ notation.
             note: requires installation of pandoc-eqnos filter
                   (see https://github.com/tomduck/pandoc-tablenos)
 
-    --latex-engine=?
-        variable: g:DN_markdown_latexengine_print
+    --pdf-engine=?
+        variable: g:DN_markdown_pdfengine_print
          allowed: xelatex, lualatex, pdflatex
          default: xelatex
-            menu: Print only > Latex engine (pdf)
+            menu: Print only > PDF engine (pdf)
 
     --reference-docx=?
         variable: g:DN_markdown_stylesheet_docx
