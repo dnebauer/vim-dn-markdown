@@ -639,7 +639,7 @@ function! dn#markdown#view(...) abort
         " view output    {{{3
         if s:dn_markdown_os ==# 'win'
             let l:win_view_direct = ['docx', 'epub', 'html']
-            let l:win_view_cmd    = ['pdf']
+            let l:win_view_cmd    = ['pdf_latex', 'pdf_context', 'pdf_html']
             if     count(l:win_view_direct, l:format) > 0
                 " execute as a direct shell (dos) command
                 let l:errmsg = [
