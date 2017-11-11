@@ -75,7 +75,7 @@ let s:dn_markdown_menu_items = {
 "
 " ---- format: human-readable description of format;
 "              ***warning*** formats must be unique
-"              for function s:_select_format to work
+"              for function s:_select_formats to work
 " ---- depend: executables required for conversion
 " - pandoc_to: value to provide to pandoc's '--to' option
 " - after_ext: extension of pandoc's output file
@@ -375,24 +375,25 @@ endfunction
 " dn#markdown#generate([params])    {{{2
 " does:   generate output
 " params: params - parameters dictionary with the following keys:
-"                  'insert' - whether entered from insert mode
-"                             [optional, default=<false>, boolean]
-"                  'format' - output format
-"                             [optional, no default,
-"                              must be a key of s:dn_markdown_pandoc_params]
+"                  'insert'  - whether entered from insert mode
+"                              [optional, default=<false>, boolean]
+"                  'formats' - output formats, space-delimited
+"                              [optional, no default,
+"                               must be a keys of s:dn_markdown_pandoc_params]
 " return: nil
 function! dn#markdown#generate(...) abort
     " universal tasks
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " process params
-    let [l:insert, l:format] = s:_process_dict_params(a:000)
-    if empty(l:format) | let l:format = s:_select_format() | endif
-    if empty(l:format) | return | endif
+    let [l:insert, l:formats] = s:_process_dict_params(a:000)
+    if empty(l:formats) | let l:formats = s:_select_formats() | endif
+    if empty(l:formats) | return | endif
     " generate output
     let l:more = &more
     set nomore
-    if s:_generator(l:format) | echo 'Done' | endif
+    for l:format in l:formats | call s:_generator(l:format) | endfor
+    echo 'Done'
     call dn#util#prompt()
     redraw!
     let &more = l:more
@@ -608,85 +609,92 @@ endfunction
 " params: params - parameters dictionary with the following keys:
 "                  'insert' - whether entered from insert mode
 "                             [optional, default=<false>, boolean]
-"                  'format' - output format
-"                             [optional, no default,
-"                              must be a key of s:dn_markdown_pandoc_params]
+"                  'formats' - output formats
+"                              [optional, no default,
+"                               must be keys of s:dn_markdown_pandoc_params]
 " return: nil
 " note:   output is always (re)generated before viewing
 function! dn#markdown#view(...) abort
     " universal tasks    {{{3
     echo '' |  " clear command line
-    if s:_utils_missing() | return | endif |  " requires dn-utils plugin
-    " process params    {{{3
-    let [l:insert, l:format] = s:_process_dict_params(a:000)
-    let l:more = &more
-    set nomore
+    if s:_utils_missing() | return | endif |  " requires dn-utils plugin }}}3
     try
-        if empty(l:format) | let l:format = s:_select_format() | endif
-        if empty(l:format) | return | endif
-        " (re)generate output    {{{3
+        " process params    {{{3
+        let [l:insert, l:formats] = s:_process_dict_params(a:000)
         let l:more = &more
         set nomore
-        if !s:_generator(l:format) | 
-            throw 'Output (re)generation failed' |
-        endif
-        " check for output file to view    {{{3
-        let l:ext    = s:dn_markdown_pandoc_params[l:format]['final_ext']
-        let l:output = substitute(expand('%'), '\.md$', l:ext, '')
-        if !filereadable(l:output)
-            throw 'No ' . l:format . ' file to view'
-        endif
-        " view output    {{{3
-        if s:dn_markdown_os ==# 'win'
-            let l:win_view_direct = ['docx', 'epub', 'html']
-            let l:win_view_cmd    = ['pdf_latex', 'pdf_context', 'pdf_html']
-            if     count(l:win_view_direct, l:format) > 0
-                " execute as a direct shell (dos) command
-                let l:errmsg = [
-                            \   'Unable to display ' . l:format . ' output',
-                            \   'Windows has no default ' . l:format
-                            \   . ' viewer',
-                            \   'Shell feedback:',
-                            \ ]
-                let l:cmd = shellescape(l:output)
-                let l:succeeded = s:_execute_shell_command(l:cmd, l:errmsg)
-                if l:succeeded | echo 'Done' | endif
-            elseif count(l:win_view_cmd, l:format) > 0
-                " execute in a cmd shell
-                try
-                    execute 'silent !start cmd /c "' l:output '"'
-                catch /.*/
-                    throw 'Unable to display ' . l:format . ' output' . "\n"
-                                \ . 'Windows has no default ' . l:format
-                                \ . ' viewer'
-                endtry
-            else  " script error - does l:win_view_{direct,cmd} = all formats?
-                throw 'Invalid format: ' . l:format
+        if empty(l:formats) | let l:formats = s:_select_formats() | endif
+        if empty(l:formats) | return | endif
+        for l:format in l:formats
+            " (re)generate output    {{{3
+            if !s:_generator(l:format)
+                throw 'Output (re)generation failed'
             endif
-        elseif s:dn_markdown_os ==# 'nix'
-            echo '' | " clear command line
-            let l:opener = 'xdg-open'
-            if executable(l:opener) == g:dn_true
-                let l:cmd = shellescape(l:opener) . ' ' . shellescape(l:output)
-                let l:errmsg = [
-                            \   'Unable to display ' . l:format . ' output',
-                            \   l:opener . ' is not configured for ' . l:format,
-                            \   'Shell feedback:',
-                            \ ]
-                call s:_execute_shell_command(l:cmd, l:errmsg)
+            " check for output file to view    {{{3
+            let l:ext    = s:dn_markdown_pandoc_params[l:format]['final_ext']
+            let l:output = substitute(expand('%'), '\.md$', l:ext, '')
+            if !filereadable(l:output)
+                throw 'No ' . l:format . ' file to view'
+            endif
+            " view output    {{{3
+            if s:dn_markdown_os ==# 'win'
+                let l:win_view_direct = ['docx', 'epub', 'html']
+                let l:win_view_cmd    = ['pdf_latex', 'pdf_context',
+                            \            'pdf_html']
+                if     count(l:win_view_direct, l:format) > 0
+                    " execute as a direct shell (dos) command
+                    let l:errmsg = [
+                                \   'Unable to display ' . l:format
+                                \   . ' output',
+                                \   'Windows has no default ' . l:format
+                                \   . ' viewer',
+                                \   'Shell feedback:',
+                                \ ]
+                    let l:cmd = shellescape(l:output)
+                    let l:succeeded = s:_execute_shell_command(l:cmd,
+                                \                              l:errmsg)
+                    if l:succeeded | echo 'Done' | endif
+                elseif count(l:win_view_cmd, l:format) > 0
+                    " execute in a cmd shell
+                    try
+                        execute 'silent !start cmd /c "' l:output '"'
+                    catch /.*/
+                        throw 'Unable to display ' . l:format . ' output'
+                                    \ . "\n" . 'Windows has no default '
+                                    \ . l:format . ' viewer'
+                    endtry
+                else  " script error
+                    " does l:win_view_{direct,cmd} = all formats?
+                    throw 'Invalid format: ' . l:format
+                endif
+            elseif s:dn_markdown_os ==# 'nix'
+                echo '' | " clear command line
+                let l:opener = 'xdg-open'
+                if executable(l:opener) == g:dn_true
+                    let l:cmd     = shellescape(l:opener) . ' '
+                                \ . shellescape(l:output)
+                    let l:errmsg = [
+                                \   'Unable to display ' . l:format
+                                \   . ' output',
+                                \   l:opener . ' is not configured for '
+                                \   . l:format,
+                                \   'Shell feedback:',
+                                \ ]
+                    call s:_execute_shell_command(l:cmd, l:errmsg)
+                else
+                    throw "Could not find '" . l:opener . "'"
+                endif
             else
-                throw "Could not find '" . l:opener . "'"
+                echo ''
+                throw 'Operating system not supported'
             endif
-        else
-            echo ''
-            throw 'Operating system not supported'
-        endif
+        endfor  " }}}3
     catch /.*/
         echohl ErrorMsg | echo v:exception | echohl None
     finally
+        " return to calling mode {{{3
         let &more = l:more
-        " return to calling mode    {{{3
-        if l:insert | call dn#util#insertMode(g:dn_true) | endif |    " }}}3
+        if l:insert | call dn#util#insertMode(g:dn_true) | endif | " }}}3
     endtry
 endfunction
 
@@ -1395,51 +1403,60 @@ endfunction
 "                  'format' - output format
 "                             [optional, no default,
 "                              must be a key of s:dn_markdown_pandoc_params]
-" return: List [insert, format]
+" prints: error message showing invalid formats
+" return: List [insert, [formats]] (where 'formats' is itself a List)
 function! s:_process_dict_params(...) abort
     " universal tasks
     echo '' |  " clear command line
     if s:_utils_missing() | return | endif  " requires dn-utils plugin
     " default params
-    let l:insert = g:dn_false | let l:format = '' |  " defaults
+    let l:insert = g:dn_false | let l:formats = [] |  " defaults
     " expecting a list containing a single dict
     if a:0 == 0
         call dn#util#error('No params provided')
-        return [l:insert, l:format]
+        return [l:insert, l:formats]
     endif
     if a:0 > 1  " script error
         call dn#util#error('Too many params provided')
-        return [l:insert, l:format]
+        return [l:insert, l:formats]
     endif
     if type(a:1) != type([])  " script error
-        let l:msg = 'Param var is wrong type: ' . dn#util#varType(a:1)
+        let l:msg = 'Expected List, got ' . dn#util#varType(a:1)
         call dn#util#error(l:msg)
-        return [l:insert, l:format]
+        return [l:insert, l:formats]
     endif
     if len(a:1) == 0  " original function called with no params, so okay
-        return [l:insert, l:format]
+        return [l:insert, l:formats]
     endif
     if len(a:1) > 1  " script error
-        let l:msg = 'Expected 1-element list, got ' . len(a:1)
+        let l:msg = 'Expected 1 element in List, got ' . len(a:1)
         call dn#util#error(l:msg)
-        return [l:insert, l:format]
+        return [l:insert, l:formats]
     endif
     if type(a:1[0]) != type({})  " script error
-        let l:msg = 'Expected dict in list, got ' . dn#util#varType(a:1[0])
+        let l:msg = 'Expected Dict in List, got ' . dn#util#varType(a:1[0])
         call dn#util#error(l:msg)
-        return [l:insert, l:format]
+        return [l:insert, l:formats]
     endif
     " have received param(s) in good order
     let l:params = deepcopy(a:1[0])
     for l:param in keys(l:params)
         if     l:param ==# 'insert'  " param 'insert'
             if l:param.insert | let l:insert = g:dn_true | endif
-        elseif l:param ==# 'format'  " param 'format'
-            if s:_valid_format(l:params.format)
-                let l:format = l:params.format
-            else
-                call dn#util#error("Invalid format '"
-                            \ . l:params.format . "'")
+        elseif l:param ==# 'formats'  " param 'formats'
+            call extend(l:formats, uniq(sort(split(l:params.formats))))
+            let l:invalid = []
+            for l:format in l:formats
+                if !s:_valid_format(l:format)
+                    call filter(l:formats, 'v:val !=# l:format')
+                    call add(l:invalid, l:format)
+                endif
+            endfor
+            if !empty(l:invalid)
+                let l:err     = 'Invalid format'
+                            \ . ((len(l:invalid) > 1) ? 's' : '')
+                            \ . ': ' . join(l:invalid, ', ')
+                call dn#util#error(l:err)
             endif
         else  " param invalid
             call dn#util#error("Invalid param key '" . l:param . "'")
@@ -1447,14 +1464,7 @@ function! s:_process_dict_params(...) abort
             return
         endif
     endfor
-    " select output format if not set by param
-    if empty(l:format)
-        let l:format = s:_select_format()
-    endif
-    if empty(l:format)
-        echo 'No output format selected'
-    endif
-    return [l:insert, l:format]
+    return [l:insert, l:formats]
 endfunction
 
 " s:_reference_insert(type)    {{{2
@@ -1545,36 +1555,60 @@ function! s:_say(args) abort
     call dn#util#wrap(l:msg, l:hang)
 endfunction
 
-" s:_select_format(prompt)    {{{2
-" does:   select output format
+" s:_select_formats(prompt)    {{{2
+" does:   select output formats
 " params: prompt - prompt [string, optional, default='Select output format:']
-" return: output format (a key to s:dn_markdown_pandoc_params)
-"         '' if error or no format selected
+" return: List of output formats (keys to s:dn_markdown_pandoc_params)
+"         [] if error or no format selected
 " *warn*: relies on s:dn_markdown_pandoc_params.*.format values being unique
-function! s:_select_format (...) abort
-    let l:prompt = (a:0 > 0 && a:1) ? a:1 : 'Select output format:'
-    " create dict with format names as keys, format codes as values
-    let l:formats = {}
-    for [l:key, l:val] in items(s:dn_markdown_pandoc_params)
-        let l:format = l:val['format']
-        if has_key(l:formats, l:format)
-            let l:msg = "Script error: duplicate format '" . l:format . "'"
-            call dn#util#error(l:msg)
-            return
-        endif
-        let l:formats[l:format] = l:key
-    endfor
-    " put into list sorted bv format names
-    let l:options = []
-    for l:name in sort(keys(l:formats))
-        call add(l:options, {l:name : l:formats[l:name]})
-    endfor
-    " select format name
-    let l:format = dn#util#menuSelect(l:options, l:prompt)
-    if empty(l:formats)
-        call dn#util#error('No valid output format selected')
+"         (referred to in function as 'labels'
+function! s:_select_formats (...) abort
+    " set prompt
+    let l:default_prompt = 'Select output formats (empty when done):'
+    let l:prompt = (a:0 > 0 && a:1) ? a:1 : l:default_prompt
+    " terminology:
+    " - the terminology here can be a bit confusing
+    " - here is how 'format' is used in variable s:dn_markdown_pandoc_params:
+    "    let s:dn_markdown_pandoc_params = {
+    "        \ 'azw3' : {
+    "        \   'format'    : 'Kindle Format 8 (azw3) via ePub',
+    " - to avoid confusion, in this function the 'format' values in this
+    "   variable are referred to as 'labels' (as in 'format labels')
+    " - to avoid confusion, in this function the keys in this variable,
+    "   like 'azw3', are referred to as 'codes' (as in 'format codes')
+    let l:selected_codes = []
+    while 1
+        " create dict with labels as keys, codes as values
+        let l:available_formats = {}
+        for [l:code, l:val] in items(s:dn_markdown_pandoc_params)
+            let l:label = l:val['format']
+            " ignore if already selected
+            if count(l:selected_codes, l:code) | continue | endif
+            " script error if same label used for multiple formats
+            if has_key(l:available_formats, l:label)
+                let l:err     = "Script error: duplicate format label '"
+                            \ . l:label . "'"
+                call dn#util#error(l:err)
+                return
+            endif
+            " if here then is an available format
+            let l:available_formats[l:label] = l:code
+        endfor
+        " put into list sorted by format labels
+        let l:options = []
+        for l:label in sort(keys(l:available_formats))
+            let l:code = l:available_formats[l:label]
+            call add(l:options, {l:label : l:code})
+        endfor
+        " select format name
+        let l:code = dn#util#menuSelect(l:options, l:prompt)
+        if empty(l:code) | break | endif |  " done selecting formats
+        call add(l:selected_codes, l:code)
+    endwhile
+    if empty(l:selected_codes)
+        call dn#util#error('No valid output formats selected')
     endif
-    return l:format
+    return l:selected_codes
 endfunction
 
 " s:_set_default_html_stylesheet()    {{{2

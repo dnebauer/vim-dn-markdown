@@ -478,9 +478,9 @@ command! -buffer EquationReference
             \ call dn#markdown#equationRef()
 
 " Generate          : generate output    {{{2
-command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
+command! -buffer -nargs=* -complete=customlist,dn#markdown#completeFormat
             \ Generate
-            \ call dn#markdown#generate({'format': '<args>'})
+            \ call dn#markdown#generate({'formats': '<args>'})
 
 " FigureInsert      : insert image    {{{2
 command! -buffer FigureInsert
@@ -511,9 +511,9 @@ command! -buffer UpdateIDs
             \ call dn#markdown#idsUpdate()
 
 " View              : view output    {{{2
-command! -buffer -nargs=? -complete=customlist,dn#markdown#completeFormat
+command! -buffer -nargs=* -complete=customlist,dn#markdown#completeFormat
             \ View
-            \ call dn#markdown#view({'format': '<args>'})
+            \ call dn#markdown#view({'formats': '<args>'})
 " }}}2
 " Initialise    {{{1
 call dn#markdown#initialise()
