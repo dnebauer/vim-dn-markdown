@@ -338,11 +338,11 @@ let b:dn_markdown_settings = {
 "         to set b:dn_markdown_settings.stylesheet_html as a special case
 "         (because ftplugin includes a default html stylesheet)
 
-" numbered types ids and refs (b:dn_markdown_{ids,refs})    {{{2
+" referenced types ids and refs (b:dn_markdown_{ids,refs})    {{{2
 " - can't use one-liner because lambda confuses the vint syntax checker
-"let b:dn_markdown_ids = map(dn#markdown#numbered_types(), {key -> {}})
+"let b:dn_markdown_ids = map(dn#markdown#referenced_types(), {key -> {}})
 let b:dn_markdown_ids = {}
-for s:type in keys(dn#markdown#numbered_types())
+for s:type in keys(dn#markdown#referenced_types())
     let b:dn_markdown_ids[s:type] = {}
 endfor
 unlet s:type

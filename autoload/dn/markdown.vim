@@ -226,8 +226,8 @@ let s:dn_markdown_pandoc_params.pdf_html.params
 let s:dn_markdown_pandoc_params.pdf_latex.params
             \ = s:dn_markdown_pandoc_params.latex.params
 
-" numbered structures (s:dn_markdown_numbered_types)    {{{2
-let s:dn_markdown_numbered_types = {
+" referenced structures (s:dn_markdown_referenced_types)    {{{2
+let s:dn_markdown_referenced_types = {
             \ 'equation' : {
             \   'prefix'   : 'eq',
             \   'name'     : 'equation',
@@ -247,8 +247,8 @@ let s:dn_markdown_numbered_types = {
             \   'complete' : 'dn#markdown#completeIdTable',
             \   },
             \ }
-function! dn#markdown#numbered_types() abort
-    return copy(s:dn_markdown_numbered_types)
+function! dn#markdown#referenced_types() abort
+    return copy(s:dn_markdown_referenced_types)
 endfunction
 
 " hanging indent    {{{2
@@ -717,7 +717,7 @@ endfunction
 function! s:_check_refs(...) abort
     " variables    {{{3
     let l:startup = (a:0 > 0 && a:1)
-    let l:types   = keys(s:dn_markdown_numbered_types)
+    let l:types   = keys(s:dn_markdown_referenced_types)
     let l:issues  = {}
     " update ref and id indices    {{{3
     if !l:startup | echo 'Updating... ' | endif
@@ -780,7 +780,7 @@ function! s:_check_refs(...) abort
     " - output issues
     for l:type in sort(l:types)
         if !has_key(l:issues, l:type) | continue | endif
-        let l:Name = s:dn_markdown_numbered_types[l:type]['Name']
+        let l:Name = s:dn_markdown_referenced_types[l:type]['Name']
         for l:id in sort(keys(l:issues[l:type]))
             let l:report = []
             for l:class in ['warning', 'error']
@@ -826,7 +826,7 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     endif
     if empty(a:id) | call dn#util#error('No id') | return | endif
     if empty(a:type) | call dn#util#error('No id type') | return | endif
-    if !s:_valid_num_type(a:type)
+    if !s:_valid_referenced_type(a:type)
         call dn#util#error("Invalid id type: '" . a:type . "'")
         return
     endif
@@ -894,15 +894,15 @@ endfunction
 "         except allows only the characters: a-z, 0-9, _ and -
 function! s:_enter_id(type, ...) abort
     " check params
-    if !s:_valid_num_type(a:type)
+    if !s:_valid_referenced_type(a:type)
         call dn#util#error("Invalid reference type '" . a:type . "'")
         return ''
     endif
     let l:base = (a:0 > 0 && !empty(a:1)) ? tolower(a:1) : ''
     " set variables
-    let l:prefix  = s:dn_markdown_numbered_types[a:type]['prefix']
-    let l:name    = s:dn_markdown_numbered_types[a:type]['name']
-    let l:Name    = s:dn_markdown_numbered_types[a:type]['Name']
+    let l:prefix  = s:dn_markdown_referenced_types[a:type]['prefix']
+    let l:name    = s:dn_markdown_referenced_types[a:type]['name']
+    let l:Name    = s:dn_markdown_referenced_types[a:type]['Name']
     let l:default = substitute(l:base, '[^a-z0-9_-]', '-', 'g')
     let l:default = substitute(l:default, '^-\+', '', '')
     let l:default = substitute(l:default, '-\+$', '', '')
@@ -1366,7 +1366,7 @@ function! s:_increment_id_count(type, id) abort
                     \ . a:id . "') and type ('" . a:type . "')")
         return
     endif
-    if !s:_valid_num_type(a:type)  " script error
+    if !s:_valid_referenced_type(a:type)  " script error
         call dn#util#error('Invalid type: ' . a:type)
         return
     endif
@@ -1391,7 +1391,7 @@ function! s:_increment_ref_count(type, ref) abort
                     \ . a:ref . "') and type ('" . a:type . "')")
         return
     endif
-    if !s:_valid_num_type(a:type)  " script error
+    if !s:_valid_referenced_type(a:type)  " script error
         call dn#util#error('Invalid type: ' . a:type)
         return
     endif
@@ -1483,16 +1483,16 @@ endfunction
 " return: String, reference
 function! s:_reference_insert(type) abort
     " check params
-    if empty (a:type) || !s:_valid_num_type(a:type)
+    if empty (a:type) || !s:_valid_referenced_type(a:type)
         " script error
         call dn#util#error("Invalid type '" . a:type . "' provided")
         return
     endif
     " get id
-    let l:name     = s:dn_markdown_numbered_types[a:type]['name']
+    let l:name     = s:dn_markdown_referenced_types[a:type]['name']
     let l:prompt   = 'Enter ' . l:name . ' id (empty to abort): '
     let l:complete = 'customlist,'
-                \  . s:dn_markdown_numbered_types[a:type]['complete']
+                \  . s:dn_markdown_referenced_types[a:type]['complete']
     let l:id       = input(l:prompt, '', l:complete)
     " check id value
     if empty(l:id) | return | endif
@@ -1512,7 +1512,7 @@ function! s:_reference_insert(type) abort
         endif
     endif
     " insert reference, i.e., label
-    let l:prefix = s:dn_markdown_numbered_types[a:type]['prefix']
+    let l:prefix = s:dn_markdown_referenced_types[a:type]['prefix']
     let l:ref    = '{@' . l:prefix . ':' . l:id . '}'
     call dn#util#insertString(l:ref)
 endfunction
@@ -1773,7 +1773,9 @@ function! s:_update_ids(...) abort
     endif
     let l:invalid = []
     for l:type in l:types
-        if !s:_valid_num_type(l:type) | call add(l:invalid, l:type) | endif
+        if !s:_valid_referenced_type(l:type)
+            call add(l:invalid, l:type)
+        endif
     endfor
     if !empty(l:invalid)
         let l:msg = 'Invalid id type(s): ' . join(l:invalid, ', ')
@@ -1788,7 +1790,7 @@ function! s:_update_ids(...) abort
     "   by id type and ID is a unique value entered by the user
     " - assume no more than one match per line
     for l:type in l:types
-        let l:prefix  = s:dn_markdown_numbered_types[l:type]['prefix']
+        let l:prefix  = s:dn_markdown_referenced_types[l:type]['prefix']
         let l:re      = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
                     \ '!empty(v:val)')
@@ -1820,9 +1822,9 @@ function! s:_update_refs() abort
     " - looking for pattern >> {@PREFIX:ID} << where PREFIX is determined
     "   by reference type and ID is a unique value entered by the user
     " - assume no more than one match per line
-    for l:type in keys(s:dn_markdown_numbered_types)
+    for l:type in keys(s:dn_markdown_referenced_types)
         let l:labels = []
-        let l:prefix = s:dn_markdown_numbered_types[l:type]['prefix']
+        let l:prefix = s:dn_markdown_referenced_types[l:type]['prefix']
         let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
         for l:line in l:lines
             let l:count = 1
@@ -1868,13 +1870,13 @@ function! s:_valid_format(format) abort
     return has_key(s:dn_markdown_pandoc_params, a:format)
 endfunction
 
-" s:_valid_num_type(type)    {{{2
-" does:   determine whether a numbered type value is valid
-" params: type - numbered type value to test [any, required]
-" return: whether numbered type is valid - boolean
-" note:   valid values are keys to s:dn_markdown_numbered_types
-function! s:_valid_num_type(type) abort
-    return has_key(s:dn_markdown_numbered_types, a:type)
+" s:_valid_referenced_type(type)    {{{2
+" does:   determine whether a referenced type value is valid
+" params: type - referenced type value to test [any, required]
+" return: whether referenced type is valid - boolean
+" note:   valid values are keys to s:dn_markdown_referenced_types
+function! s:_valid_referenced_type(type) abort
+    return has_key(s:dn_markdown_referenced_types, a:type)
 endfunction
 
 " s:_valid_setting_name(setting)    {{{2
