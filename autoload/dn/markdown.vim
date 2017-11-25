@@ -102,10 +102,10 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['figures',      'equations', 'tables',
-            \                  'standalone',   'smart',     'citeproc',
-            \                  'contextlinks', 'papersize', 'template',
-            \                  'fontsize'],
+            \   'params'    : ['figures',   'equations',    'tables',
+            \                  'footnotes', 'standalone',   'smart',
+            \                  'citeproc',  'contextlinks', 'papersize',
+            \                  'template',  'fontsize'],
             \   },
             \ 'docbook' : {
             \   'format'    : 'DocBook (xml)',
@@ -114,8 +114,9 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.xml',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.xml',
-            \   'params'    : ['figures',    'equations', 'tables',
-            \                  'standalone', 'template',  'citeproc'],
+            \   'params'    : ['figures',   'equations',  'tables',
+            \                  'footnotes', 'standalone', 'template',
+            \                  'citeproc'],
             \   },
             \ 'docx' : {
             \   'format'    : 'Microsoft Word (docx)',
@@ -124,9 +125,9 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.docx',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.docx',
-            \   'params'    : ['figures',    'equations', 'tables',
-            \                  'standalone', 'smart',     'citeproc',
-            \                  'style_docx', 'template'],
+            \   'params'    : ['figures',   'equations',  'tables',
+            \                  'footnotes', 'standalone', 'smart',
+            \                  'citeproc',  'style_docx', 'template'],
             \   },
             \ 'epub' : {
             \   'format'    : 'Electronic publication (ePub)',
@@ -135,9 +136,10 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.epub',
-            \   'params'    : ['figures',    'equations', 'tables',
-            \                  'standalone', 'smart',     'style_epub',
-            \                  'cover_epub', 'citeproc',  'template'],
+            \   'params'    : ['figures',    'equations',  'tables',
+            \                  'footnotes',  'standalone', 'smart',
+            \                  'style_epub', 'cover_epub', 'citeproc',
+            \                  'template'],
             \   },
             \ 'html' : {
             \   'format'    : 'HyperText Markup Language (html)',
@@ -146,9 +148,10 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.html',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.html',
-            \   'params'    : ['figures',    'equations',  'tables',
-            \                  'standalone', 'smart',      'selfcontained',
-            \                  'citeproc',   'style_html', 'template'],
+            \   'params'    : ['figures',       'equations',  'tables',
+            \                  'footnotes',     'standalone', 'smart',
+            \                  'selfcontained', 'citeproc',   'style_html',
+            \                  'template'],
             \   },
             \ 'latex' : {
             \   'format'    : 'LaTeX (tex)',
@@ -157,10 +160,10 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['figures',     'equations', 'tables',
-            \                  'standalone',  'citeproc',  'smart',
-            \                  'pdfengine', 'fontsize',  'latexlinks',
-            \                  'papersize',   'template'],
+            \   'params'    : ['figures',    'equations',  'tables',
+            \                  'footnotes',  'standalone', 'citeproc',
+            \                  'smart',      'pdfengine',  'fontsize',
+            \                  'latexlinks', 'papersize',  'template'],
             \   },
             \ 'mobi' : {
             \   'format'    : 'Mobipocket e-book (mobi) via ePub',
@@ -178,9 +181,9 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.odt',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.odt',
-            \   'params'    : ['figures',    'equations', 'tables',
-            \                  'standalone', 'smart',     'citeproc',
-            \                  'style_odt',  'template'],
+            \   'params'    : ['figures',   'equations',  'tables',
+            \                  'footnotes', 'standalone', 'smart',
+            \                  'citeproc',  'style_odt',  'template'],
             \   },
             \ 'pdf_context' : {
             \   'format'    : 'Portable Document Format (pdf) via ConTeXt',
@@ -1129,7 +1132,7 @@ function! s:_generator (format) abort
         endif
     endif
     " latex engine    {{{3
-    if count(l:params, 'pdfengine') > 0                  " pdf engine
+    if count(l:params, 'pdfengine') > 0                    " pdf engine
         " latex engine
         " - can be pdflatex, lualatex or xelatex (default)
         " - xelatex is better at handling exotic unicode
@@ -1204,6 +1207,11 @@ function! s:_generator (format) abort
     if count(l:params, 'smart') > 0                        " smart
         call add(l:pandoc_extensions.reader, 'smart')
         call add(l:opts, 'smart')
+    endif
+    " process footnotes    {{{3
+    if count(l:params, 'footnotes') > 0                    " footnotes
+        call add(l:pandoc_extensions.reader, 'footnotes')
+        call add(l:opts, 'footnotes')
     endif
     " incorporate external dependencies    {{{3
     if count(l:params, 'selfcontained') > 0                " self-contained

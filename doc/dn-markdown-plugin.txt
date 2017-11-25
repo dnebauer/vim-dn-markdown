@@ -132,29 +132,31 @@ indicated with an asterisk (*) -- see |dn-markdown-settings| for more
 details on these options.
 
     context:
-          +smart --standalone --filter pandoc-citeproc*
+          +smart +footnotes --standalone --filter pandoc-citeproc*
           --template=?* --variable fontsize=?*
           --variable linkcolor=?* --variable papersize=?*
 
     docbook:
-          --standalone --filter pandoc-citeproc* --template=?*
+          +footnotes --standalone --filter pandoc-citeproc*
+          --template=?*
 
-    docx: +smart --standalone --filter pandoc-citeproc*
+    docx: +footnotes +smart --standalone --filter pandoc-citeproc*
           --reference-docx=?* --template=?*
 
-    epub: --epub-cover-image=cover.{gif,jpg,png} +smart --standalone
-          --epub-stylesheet=?* --filter pandoc-citeproc* --template=?*
+    epub: --epub-cover-image=cover.{gif,jpg,png} +smart +footnotes
+          --standalone --epub-stylesheet=?* --filter pandoc-citeproc*
+          --template=?*
 
           note: option --epub-cover-image uses the file
                 "cover.{gif,jpg,png}" if present in |getcwd()|; if
                 multiple matches are available, ftplugin prefers png
                 over jpg over gif
 
-    html: --self-contained +smart --standalone --css=?*
+    html: --self-contained +smart +footnotes --standalone --css=?*
           --filter pandoc-citeproc* --template=?*
 
     latex:
-          +smart --standalone --filter pandoc-citeproc*
+          +smart +footnotes --standalone --filter pandoc-citeproc*
           --pdf-engine=?* --template=?* --variable fontsize=?*
           --variable citecolor=?* --variable linkcolor=?*
           --variable toccolor=?* --variable urlcolor=?*
@@ -582,7 +584,7 @@ The default |mapleader| is a backslash.
 Use the dn#markdown#refsCheck() function to check equation, figure and
 table definitions, and references to them. The following conditions will
 be reported as warnings:
-    an equation, figure or table is referenced not referenced
+    an equation, figure or table is not referenced
     an equation, figure or table is referenced multiple times
 
 The following conditions are reported as errors:
