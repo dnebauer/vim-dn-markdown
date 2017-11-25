@@ -826,7 +826,7 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     endif
     if empty(a:id) | call dn#util#error('No id') | return | endif
     if empty(a:type) | call dn#util#error('No id type') | return | endif
-    if !has_key(s:dn_markdown_numbered_types, a:type)
+    if !s:_valid_num_type(a:type)
         call dn#util#error("Invalid id type: '" . a:type . "'")
         return
     endif
@@ -894,7 +894,7 @@ endfunction
 "         except allows only the characters: a-z, 0-9, _ and -
 function! s:_enter_id(type, ...) abort
     " check params
-    if !has_key(s:dn_markdown_numbered_types, a:type)
+    if !s:_valid_num_type(a:type)
         call dn#util#error("Invalid reference type '" . a:type . "'")
         return ''
     endif
@@ -1366,7 +1366,7 @@ function! s:_increment_id_count(type, id) abort
                     \ . a:id . "') and type ('" . a:type . "')")
         return
     endif
-    if !has_key(s:dn_markdown_numbered_types, a:type)  " script error
+    if !s:_valid_num_type(a:type)  " script error
         call dn#util#error('Invalid type: ' . a:type)
         return
     endif
@@ -1391,7 +1391,7 @@ function! s:_increment_ref_count(type, ref) abort
                     \ . a:ref . "') and type ('" . a:type . "')")
         return
     endif
-    if !has_key(s:dn_markdown_numbered_types, a:type)  " script error
+    if !s:_valid_num_type(a:type)  " script error
         call dn#util#error('Invalid type: ' . a:type)
         return
     endif
@@ -1483,7 +1483,7 @@ endfunction
 " return: String, reference
 function! s:_reference_insert(type) abort
     " check params
-    if empty (a:type) || !has_key(s:dn_markdown_numbered_types, a:type)
+    if empty (a:type) || !s:_valid_num_type(a:type)
         " script error
         call dn#util#error("Invalid type '" . a:type . "' provided")
         return
@@ -1773,9 +1773,7 @@ function! s:_update_ids(...) abort
     endif
     let l:invalid = []
     for l:type in l:types
-        if !has_key(s:dn_markdown_numbered_types, l:type)
-            call add(l:invalid, l:type)
-        endif
+        if !s:_valid_num_type(l:type) | call add(l:invalid, l:type) | endif
     endfor
     if !empty(l:invalid)
         let l:msg = 'Invalid id type(s): ' . join(l:invalid, ', ')
@@ -1868,6 +1866,15 @@ endfunction
 " return: whether format code is valid - boolean
 function! s:_valid_format(format) abort
     return has_key(s:dn_markdown_pandoc_params, a:format)
+endfunction
+
+" s:_valid_num_type(type)    {{{2
+" does:   determine whether a numbered type value is valid
+" params: type - numbered type value to test [any, required]
+" return: whether numbered type is valid - boolean
+" note:   valid values are keys to s:dn_markdown_numbered_types
+function! s:_valid_num_type(type) abort
+    return has_key(s:dn_markdown_numbered_types, a:type)
 endfunction
 
 " s:_valid_setting_name(setting)    {{{2
