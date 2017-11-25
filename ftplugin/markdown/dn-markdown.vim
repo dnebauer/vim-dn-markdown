@@ -37,27 +37,27 @@ if count(g:dn_help_plugins, 'dn-markdown') == 0
         \ '',
         \ '-------------------------  -------  ----------',
         \ '',
-        \ 'generate output            \og      Generate',
+        \ 'generate output            \og      MDGenerate',
         \ '',
-        \ 'regenerate output          \or      Regenerate',
+        \ 'regenerate output          \or      MDRegenerate',
         \ '',
-        \ 'view output                \ov      View',
-        \ '',
-        \ '',
-        \ '',
-        \ 'insert equation            \ei      EquationInsert',
-        \ '',
-        \ 'insert figure              \fi      FigureInsert',
-        \ '',
-        \ 'insert table               \ti      TableInsert',
+        \ 'view output                \ov      MDView',
         \ '',
         \ '',
         \ '',
-        \ 'insert equation reference  \er      EquationReference',
+        \ 'insert equation            \ei      MDEquationInsert',
         \ '',
-        \ 'insert figure reference    \fr      FigureReference',
+        \ 'insert figure              \fi      MDFigureInsert',
         \ '',
-        \ 'insert table reference     \tr      TableReference',
+        \ 'insert table               \ti      MDTableInsert',
+        \ '',
+        \ '',
+        \ '',
+        \ 'insert equation reference  \er      MDEquationReference',
+        \ '',
+        \ 'insert figure reference    \fr      MDFigureReference',
+        \ '',
+        \ 'insert table reference     \tr      MDTableReference',
         \ ]
     let g:dn_help_topics['markdown ftplugin']['utilities']
                 \ = 'markdown_ftplugin_util'
@@ -70,11 +70,11 @@ if count(g:dn_help_plugins, 'dn-markdown') == 0
         \ '',
         \ '-------------------------  -------  ----------',
         \ '',
-        \ 'change plugin settings     \se      Settings',
+        \ 'change plugin settings     \se      MDSettings',
         \ '',
-        \ 'manually update id list    \iu      UpdateIDs',
+        \ 'manually update id list    \iu      MDUpdateIDs',
         \ '',
-        \ 'check references           \rc      CheckReferences',
+        \ 'check references           \rc      MDCheckReferences',
         \ ]
 endif
 
@@ -496,54 +496,54 @@ nmap <buffer> <unique> <Plug>DnTRN
 " }}}2
 " Commands    {{{1
 
-" CheckReferences   : check references    {{{2
-command! -buffer CheckReferences
+" MDCheckReferences   : check references    {{{2
+command! -buffer MDCheckReferences
             \ call dn#markdown#refsCheck()
 
-" EquationInsert    : insert image    {{{2
-command! -buffer EquationInsert
+" MDEquationInsert    : insert image    {{{2
+command! -buffer MDEquationInsert
             \ call dn#markdown#equationInsert()
 
-" EquationReference : insert image reference    {{{2
-command! -buffer EquationReference
+" MDEquationReference : insert image reference    {{{2
+command! -buffer MDEquationReference
             \ call dn#markdown#equationRef()
 
-" Generate          : generate output    {{{2
+" MDGenerate          : generate output    {{{2
 command! -buffer -nargs=* -complete=customlist,dn#markdown#completeFormat
-            \ Generate
+            \ MDGenerate
             \ call dn#markdown#generate({'formats': '<args>'})
 
-" FigureInsert      : insert image    {{{2
-command! -buffer FigureInsert
+" MDFigureInsert      : insert image    {{{2
+command! -buffer MDFigureInsert
             \ call dn#markdown#figureInsert()
 
-" FigureReference   : insert image reference    {{{2
-command! -buffer FigureReference
+" MDFigureReference   : insert image reference    {{{2
+command! -buffer MDFigureReference
             \ call dn#markdown#figureRef()
 
-" Regenerate        : regenerate all previous output    {{{2
-command! -buffer Regenerate
+" MDRegenerate        : regenerate all previous output    {{{2
+command! -buffer MDRegenerate
             \ call dn#markdown#regenerate()
 
-" Settings          : edit settings    {{{2
-command! -buffer Settings
+" MDSettings          : edit settings    {{{2
+command! -buffer MDSettings
             \ call dn#markdown#settings()
 
-" TableInsert       : insert image    {{{2
-command! -buffer TableInsert
+" MDTableInsert       : insert image    {{{2
+command! -buffer MDTableInsert
             \ call dn#markdown#tableInsert()
 
-" TableReference    : insert image reference    {{{2
-command! -buffer TableReference
+" MDTableReference    : insert image reference    {{{2
+command! -buffer MDTableReference
             \ call dn#markdown#tableRef()
 
-" UpdateIDs         : update id lists    {{{2
-command! -buffer UpdateIDs
+" MDUpdateIDs         : update id lists    {{{2
+command! -buffer MDUpdateIDs
             \ call dn#markdown#idsUpdate()
 
-" View              : view output    {{{2
+" MDView              : view output    {{{2
 command! -buffer -nargs=* -complete=customlist,dn#markdown#completeFormat
-            \ View
+            \ MDView
             \ call dn#markdown#view({'formats': '<args>'})
 " }}}2
 " Initialise    {{{1
