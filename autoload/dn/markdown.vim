@@ -1131,6 +1131,11 @@ function! s:_generator (format) abort
             call add(l:opts, 'pandoc-tablenos')
         endif
     endif
+    " process footnotes    {{{3
+    if count(l:params, 'footnotes') > 0                    " footnotes
+        call add(l:pandoc_extensions.reader, 'footnotes')
+        call add(l:opts, 'footnotes')
+    endif
     " latex engine    {{{3
     if count(l:params, 'pdfengine') > 0                    " pdf engine
         " latex engine
@@ -1207,11 +1212,6 @@ function! s:_generator (format) abort
     if count(l:params, 'smart') > 0                        " smart
         call add(l:pandoc_extensions.reader, 'smart')
         call add(l:opts, 'smart')
-    endif
-    " process footnotes    {{{3
-    if count(l:params, 'footnotes') > 0                    " footnotes
-        call add(l:pandoc_extensions.reader, 'footnotes')
-        call add(l:opts, 'footnotes')
     endif
     " incorporate external dependencies    {{{3
     if count(l:params, 'selfcontained') > 0                " self-contained
