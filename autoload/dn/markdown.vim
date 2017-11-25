@@ -1134,6 +1134,7 @@ function! s:_generator (format) abort
     " process footnotes    {{{3
     if count(l:params, 'footnotes') > 0                    " footnotes
         call add(l:pandoc_extensions.reader, 'footnotes')
+        call add(l:pandoc_extensions.reader, 'inline_notes')
         call add(l:opts, 'footnotes')
     endif
     " latex engine    {{{3
