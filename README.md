@@ -42,7 +42,7 @@ Ebook-convert: To generate azw3 or mobi output.
 
 Vim plugin: [dn-utils](https://github.com/dnebauer/dn-vim-utils).
 
-System default viewers: Output files are displayed using default system
+System default viewers: Display output files using default system
 applications for each file type.
 
 ## Further documentation ##

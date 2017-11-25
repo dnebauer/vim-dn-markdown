@@ -23,27 +23,54 @@ if !exists('g:dn_help_data')
 endif
 if count(g:dn_help_plugins, 'dn-markdown') == 0
     call add(g:dn_help_plugins, 'dn-markdown')
-    if !has_key(g:dn_help_topics, 'vim')
-        let g:dn_help_topics['vim'] = {}
+    if !has_key(g:dn_help_topics, 'markdown ftplugin')
+        let g:dn_help_topics['markdown ftplugin'] = {}
     endif
-    let g:dn_help_topics['vim']['markdown ftplugin']
-                \ = 'vim_markdown_ftplugin'
-    let g:dn_help_data['vim_markdown_ftplugin'] = [
+    let g:dn_help_topics['markdown ftplugin']['tasks']
+                \ = 'markdown_ftplugin_tasks'
+    let g:dn_help_data['markdown_ftplugin_tasks'] = [
         \ 'This markdown ftplugin automates the following tasks:',
         \ '',
         \ '',
         \ '',
-        \ 'Task                   Mapping  Command',
+        \ 'Task                       Mapping  Command',
         \ '',
-        \ '--------------------   -------  ------------',
+        \ '-------------------------  -------  ----------',
         \ '',
-        \ 'generate html output   \gh      GenerateHTML',
+        \ 'generate output            \og      Generate',
         \ '',
-        \ 'generate pdf output    \gp      GeneratePDF',
+        \ 'regenerate output          \or      Regenerate',
         \ '',
-        \ 'display html output    \vh      ViewHTML',
+        \ 'view output                \ov      View',
         \ '',
-        \ 'display pdf output     \vp      ViewPDF',
+        \ 'insert equation            \ei      EquationInsert',
+        \ '',
+        \ 'insert figure              \fi      FigureInsert',
+        \ '',
+        \ 'insert table               \ti      TableInsert',
+        \ '',
+        \ 'insert equation reference  \er      EquationReference',
+        \ '',
+        \ 'insert figure reference    \fr      FigureReference',
+        \ '',
+        \ 'insert table reference     \tr      TableReference',
+        \ ]
+    let g:dn_help_topics['markdown ftplugin']['utilities']
+                \ = 'markdown_ftplugin_util'
+    let g:dn_help_data['markdown_ftplugin_util'] = [
+        \ 'This markdown ftplugin has the following utility features:',
+        \ '',
+        \ '',
+        \ '',
+        \ 'Feature                    Mapping  Command',
+        \ '',
+        \ '-------------------------  -------  ----------',
+        \ '',
+        \ 'change plugin settings     \se      Settings',
+        \ '',
+        \ 'manually update id list    \iu      UpdateIDs',
+        \ '',
+        \ 'check references           \rc      CheckReferences',
         \ ]
 endif
 
