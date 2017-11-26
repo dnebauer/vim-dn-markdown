@@ -235,7 +235,9 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 "              placeholder for id is '{ID}'
 " -- skel_str: ***unused*** ∵ constructed by specialised functions
 " - multi_ref: whether multiple references to structure are ok
-"              can be 'y', 'w' (causes warning) or 'e' (causes error)
+"              can be 'i' (ignore), 'w' (warning) or 'e' (error)
+" -- zero_ref: whether no references to structure are ok
+"              can be 'i' (ignore), 'w' (warning) or 'e' (error)
 " ---- prefix: ***deprecated***
 " ------ name: human readable name for structure type
 " ------ Name: capitalised human readable name for structure type
@@ -245,7 +247,8 @@ let s:dn_markdown_referenced_types = {
             \   'regex_str' : '{#eq:\([^}]\+\)}',
             \   'regex_ref' : '{@eq:\([^}]\+\)}',
             \   'skel_ref'  : '{@eq:{ID}}',
-            \   'multi_ref' : 'w',
+            \   'multi_ref' : 'warning',
+            \   'zero_ref'  : 'warning',
             \   'prefix'    : 'eq',
             \   'name'      : 'equation',
             \   'Name'      : 'Equation',
@@ -255,7 +258,8 @@ let s:dn_markdown_referenced_types = {
             \   'regex_str' : '{#fig:\([^}]\+\)}',
             \   'regex_ref' : '{@fig:\([^}]\+\)}',
             \   'skel_ref'  : '{@fig:{ID}}',
-            \   'multi_ref' : 'w',
+            \   'multi_ref' : 'warning',
+            \   'zero_ref'  : 'warning',
             \   'prefix'    : 'fig',
             \   'name'      : 'figure',
             \   'Name'      : 'Figure',
@@ -265,13 +269,30 @@ let s:dn_markdown_referenced_types = {
             \   'regex_str' : '{#tbl:\([^}]\+\)}',
             \   'regex_ref' : '{@tbl:\([^}]\+\)}',
             \   'skel_ref'  : '{@tbl:{ID}}',
-            \   'multi_ref' : 'w',
+            \   'multi_ref' : 'warning',
+            \   'zero_ref'  : 'warning',
             \   'prefix'    : 'tbl',
             \   'name'      : 'table',
             \   'Name'      : 'Table',
             \   'complete'  : 'dn#markdown#completeIdTable',
             \   },
             \ }
+" - check validity of multi_ref and zero_ref values (prevent script error)
+let s:valid_ref_values = ['ignore', 'warning', 'error']
+let s:ref_errors       = []
+for s:type in keys(s:dn_markdown_referenced_types)
+    let s:multi = s:dn_markdown_referenced_types[s:type]['multi_ref']
+    if count(s:valid_ref_values, s:multi) < 1  " script error
+        call add(s:ref_errors, "Invalid multi_ref value '" . s:multi . "'")
+    endif
+    let s:zero = s:dn_markdown_referenced_types[s:type]['zero_ref']
+    if count(s:valid_ref_values, s:zero) < 1  " script error
+        call add(s:ref_errors, "Invalid zero_ref value '" . s:zero . "'")
+    endif
+endfor
+if !empty(s:ref_errors) | call dn#util#error(join(s:ref_errors, "\n")) | endif
+unlet s:valid_ref_values s:ref_errors s:type s:multi s:zero
+" - make available to ftplugin file
 function! dn#markdown#referenced_types() abort
     return copy(s:dn_markdown_referenced_types)
 endfunction
@@ -751,18 +772,23 @@ function! s:_check_refs(...) abort
     " check for problems    {{{3
     if !l:startup | echon 'analysing... ' | endif
     for l:type in l:types
+        let l:multi_ref = s:dn_markdown_referenced_types[l:type]['multi_ref']
+        let l:zero_ref  = s:dn_markdown_referenced_types[l:type]['zero_ref']
         for l:id in keys(b:dn_markdown_ids[l:type])
             if has_key(b:dn_markdown_refs[l:type], l:id)
-                " check for multiple references to id (warning)
+                " check for multiple references to id
+                " (ignore, warning or error)
                 let l:count = b:dn_markdown_refs[l:type][l:id]
                 if l:count > 1
-                    if !s:_check_refs_issue(l:issues, l:type, l:id, 'warning',
+                    if !s:_check_refs_issue(
+                                \ l:issues, l:type, l:id, l:multi_ref,
                                 \ 'referenced ' . l:count . ' times')
                         return
                     endif
                 endif
-            else  " no references to id (warning)
-                if !s:_check_refs_issue(l:issues, l:type, l:id, 'warning',
+            else  " no references to id (ignore, warning or error)
+                if !s:_check_refs_issue(
+                            \ l:issues, l:type, l:id, l:zero_ref,
                             \ 'not referenced')
                     return
                 endif
@@ -837,7 +863,7 @@ endfunction
 " params: issues - variable holding issues [Dict, required]
 "         type   - id type [String, required, 'equation'|'figure'|table']
 "         id     - id string [String, required]
-"         class  - issue class [String, required, 'warning'|'error']
+"         class  - issue class [String, required, 'ignore'|'warning'|'error']
 "         msg    - message [String, required]
 " prints: nil
 " return: boolean, whether operation successful
@@ -845,7 +871,8 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     " check params
     if empty(a:msg) | call dn#util#error('No message') | return | endif
     if empty(a:class) | call dn#util#error('No issue class') | return | endif
-    if !has_key({'warning': 1, 'error': 1}, a:class)
+    let l:valid_classes = ['ignore', 'warning', 'error']
+    if count(l:valid_classes, a:class)
         call dn#util#error("Invalid issue class: '" . a:class . "'")
         return
     endif
@@ -861,6 +888,7 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
         call dn#util#error(l:msg)
         return
     endif
+    if a:class ==# 'ignore' | return | endif  " ignore if requested
     " add issue
     " - issues -> type
     if !has_key(a:issues, a:type)
