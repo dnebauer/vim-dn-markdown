@@ -282,11 +282,11 @@ let s:valid_ref_values = ['ignore', 'warning', 'error']
 let s:ref_errors       = []
 for s:type in keys(s:dn_markdown_referenced_types)
     let s:multi = s:dn_markdown_referenced_types[s:type]['multi_ref']
-    if count(s:valid_ref_values, s:multi) < 1  " script error
+    if !count(s:valid_ref_values, s:multi)  " script error
         call add(s:ref_errors, "Invalid multi_ref value '" . s:multi . "'")
     endif
     let s:zero = s:dn_markdown_referenced_types[s:type]['zero_ref']
-    if count(s:valid_ref_values, s:zero) < 1  " script error
+    if !count(s:valid_ref_values, s:zero)  " script error
         call add(s:ref_errors, "Invalid zero_ref value '" . s:zero . "'")
     endif
 endfor
@@ -872,7 +872,7 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     if empty(a:msg) | call dn#util#error('No message') | return | endif
     if empty(a:class) | call dn#util#error('No issue class') | return | endif
     let l:valid_classes = ['ignore', 'warning', 'error']
-    if count(l:valid_classes, a:class)
+    if !count(l:valid_classes, a:class)
         call dn#util#error("Invalid issue class: '" . a:class . "'")
         return
     endif
