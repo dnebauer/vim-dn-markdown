@@ -238,7 +238,6 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 "              can be 'i' (ignore), 'w' (warning) or 'e' (error)
 " -- zero_ref: whether no references to structure are ok
 "              can be 'i' (ignore), 'w' (warning) or 'e' (error)
-" ---- prefix: ***deprecated***
 " ------ name: human readable name for structure type
 " ------ Name: capitalised human readable name for structure type
 " -- complete: name of completion function
@@ -249,7 +248,6 @@ let s:dn_markdown_referenced_types = {
             \   'skel_ref'  : '{@eq:{ID}}',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
-            \   'prefix'    : 'eq',
             \   'name'      : 'equation',
             \   'Name'      : 'Equation',
             \   'complete'  : 'dn#markdown#completeIdEquation',
@@ -260,7 +258,6 @@ let s:dn_markdown_referenced_types = {
             \   'skel_ref'  : '{@fig:{ID}}',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
-            \   'prefix'    : 'fig',
             \   'name'      : 'figure',
             \   'Name'      : 'Figure',
             \   'complete'  : 'dn#markdown#completeIdFigure',
@@ -271,7 +268,6 @@ let s:dn_markdown_referenced_types = {
             \   'skel_ref'  : '{@tbl:{ID}}',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
-            \   'prefix'    : 'tbl',
             \   'name'      : 'table',
             \   'Name'      : 'Table',
             \   'complete'  : 'dn#markdown#completeIdTable',
@@ -1615,8 +1611,6 @@ function! s:_reference_insert(type) abort
         endif
     endif
     " insert reference, i.e., label
-    "let l:prefix = s:dn_markdown_referenced_types[a:type]['prefix']
-    "let l:ref    = '{@' . l:prefix . ':' . l:id . '}'
     let l:ref = s:dn_markdown_referenced_types[a:type]['skel_ref']
     let l:ref = substitute(l:ref, '{ID}', l:id, '')
     call dn#util#insertString(l:ref)
