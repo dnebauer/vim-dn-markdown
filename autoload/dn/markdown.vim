@@ -758,7 +758,7 @@ endfunction
 " return: nil
 " note:   warnings - eq/fig/tbl not referenced
 "                  - duplicate references to same eq/fig/tbl
-"         errors   - reference to non-existant eq/fig/tbl
+"         errors   - reference to non-existent eq/fig/tbl
 "                  - eq/fig/tbl defined multiple times
 function! s:_check_refs(...) abort
     " variables    {{{3
@@ -805,7 +805,7 @@ function! s:_check_refs(...) abort
                         return
                     endif
                 endif
-            else  " reference is to non-existant structure (error)
+            else  " reference is to non-existent structure (error)
                 let l:msg = 'is referenced but not defined anywhere'
                 if !s:_check_refs_issue(l:issues, l:type, l:ref, 'error',
                             \ l:msg)
