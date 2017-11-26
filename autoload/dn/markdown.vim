@@ -2,6 +2,9 @@
 " Author:  David Nebauer
 " URL:     https://github.com/dnebauer/vim-dn-markdown
 
+" TODO: collapse dn#markdown#{equation,figure,table}Ref into one function
+" TODO: collapse dn#markdown#{equation,figure,table}Insert into one function
+
 " Load only once    {{{1
 if exists('g:loaded_dn_markdown_autoload') | finish | endif
 let g:loaded_dn_markdown_autoload = 1
