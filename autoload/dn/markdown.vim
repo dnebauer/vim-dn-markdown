@@ -1058,7 +1058,7 @@ function! s:_file_contents() abort
     let l:contents   = []
     let l:buffer     = []
     let l:in_yaml    = g:dn_false
-    let l:prev_blank = g:dn_false
+    let l:prev_blank = g:dn_true  " so detect start of metadata on first line
     let l:yaml_begin = '^-\{3\}\s*$'
     let l:yaml_end   = '^\(-\{3\}\)\|\(\.\{3\}\)\s*$'
     let l:blank      = '^\s*$'
