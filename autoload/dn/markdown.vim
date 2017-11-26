@@ -1864,22 +1864,6 @@ function! s:_update_ids(...) abort
     let l:lines = s:_file_contents()
     if empty(l:lines) | return | endif
     " extract labels from file contents
-    "for l:type in l:types
-    "    "let l:prefix  = s:dn_markdown_referenced_types[l:type]['prefix']
-    "    "let l:re      = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
-    "    let l:re      = s:dn_markdown_referenced_types[l:type]['regex_str']
-    "    let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
-    "                \ '!empty(v:val)')
-    "    " extract id strings
-    "    let l:start = len(l:prefix) + 3  " the 3 is for '{', '#' and ':'
-    "    let l:ids   = map(l:matches,
-    "                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-    "    " update ids
-    "    let b:dn_markdown_ids[l:type] = {}
-    "    for l:id in l:ids
-    "        call s:_increment_id_count(l:type, l:id)
-    "    endfor
-    "endfor
     for l:line in l:lines
         for l:type in l:types
             " let regex and matchlist function do hard work of extracting id
@@ -1911,29 +1895,6 @@ function! s:_update_refs() abort
     let l:types = keys(s:dn_markdown_referenced_types)
     for l:type in l:types | let b:dn_markdown_refs[l:type] = {} | endfor
     " extract references from file contents
-    "for l:type in l:types
-    "    let l:labels = []
-    "    let l:prefix = s:dn_markdown_referenced_types[l:type]['prefix']
-    "    let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
-    "    for l:line in l:lines
-    "        let l:count = 1
-    "        while 1
-    "            let l:match = matchstr(l:line, l:re, 0, l:count)
-    "            if empty(l:match) | break | endif
-    "            call add(l:labels, l:match)
-    "            let l:count += 1
-    "        endwhile
-    "    endfor
-    "    " extract ref strings
-    "    let l:start = len(l:prefix) + 3  " the 3 is for '{', '@' and ':'
-    "    let l:refs = map(l:labels,
-    "                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-    "    " update refs
-    "    let b:dn_markdown_refs[l:type] = {}
-    "    for l:ref in l:refs
-    "        call s:_increment_ref_count(l:type, l:ref)
-    "    endfor
-    "endfor
     for l:line in l:lines
         for l:type in l:types
             " let regex and matchlist function do hard work of extracting id
