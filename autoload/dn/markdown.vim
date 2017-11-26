@@ -227,24 +227,49 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
             \ = s:dn_markdown_pandoc_params.latex.params
 
 " referenced structures (s:dn_markdown_referenced_types)    {{{2
+" - regex_str: regex for extracting ids from structure labels
+"              the id represented by '[^}]\+'
+" - regex_ref: regex for extracting ids from reference labels
+"              the id represented by '[^}]\+'
+" -- skel_ref: skeleton for reference
+"              placeholder for id is '{ID}'
+" -- skel_str: ***unused*** ∵ constructed by specialised functions
+" - multi_ref: whether multiple references to structure are ok
+"              can be 'y', 'w' (causes warning) or 'e' (causes error)
+" ---- prefix: ***deprecated***
+" ------ name: human readable name for structure type
+" ------ Name: capitalised human readable name for structure type
+" -- complete: name of completion function
 let s:dn_markdown_referenced_types = {
             \ 'equation' : {
-            \   'prefix'   : 'eq',
-            \   'name'     : 'equation',
-            \   'Name'     : 'Equation',
-            \   'complete' : 'dn#markdown#completeIdEquation',
+            \   'regex_str' : '{#eq:\([^}]\+\)}',
+            \   'regex_ref' : '{@eq:\([^}]\+\)}',
+            \   'skel_ref'  : '{@eq:{ID}}',
+            \   'multi_ref' : 'w',
+            \   'prefix'    : 'eq',
+            \   'name'      : 'equation',
+            \   'Name'      : 'Equation',
+            \   'complete'  : 'dn#markdown#completeIdEquation',
             \   },
             \ 'figure' : {
-            \   'prefix'   : 'fig',
-            \   'name'     : 'figure',
-            \   'Name'     : 'Figure',
-            \   'complete' : 'dn#markdown#completeIdFigure',
+            \   'regex_str' : '{#fig:\([^}]\+\)}',
+            \   'regex_ref' : '{@fig:\([^}]\+\)}',
+            \   'skel_ref'  : '{@fig:{ID}}',
+            \   'multi_ref' : 'w',
+            \   'prefix'    : 'fig',
+            \   'name'      : 'figure',
+            \   'Name'      : 'Figure',
+            \   'complete'  : 'dn#markdown#completeIdFigure',
             \   },
             \ 'table' : {
-            \   'prefix'   : 'tbl',
-            \   'name'     : 'table',
-            \   'Name'     : 'Table',
-            \   'complete' : 'dn#markdown#completeIdTable',
+            \   'regex_str' : '{#tbl:\([^}]\+\)}',
+            \   'regex_ref' : '{@tbl:\([^}]\+\)}',
+            \   'skel_ref'  : '{@tbl:{ID}}',
+            \   'multi_ref' : 'w',
+            \   'prefix'    : 'tbl',
+            \   'name'      : 'table',
+            \   'Name'      : 'Table',
+            \   'complete'  : 'dn#markdown#completeIdTable',
             \   },
             \ }
 function! dn#markdown#referenced_types() abort
@@ -900,7 +925,6 @@ function! s:_enter_id(type, ...) abort
     endif
     let l:base = (a:0 > 0 && !empty(a:1)) ? tolower(a:1) : ''
     " set variables
-    let l:prefix  = s:dn_markdown_referenced_types[a:type]['prefix']
     let l:name    = s:dn_markdown_referenced_types[a:type]['name']
     let l:Name    = s:dn_markdown_referenced_types[a:type]['Name']
     let l:default = substitute(l:base, '[^a-z0-9_-]', '-', 'g')
@@ -1019,6 +1043,57 @@ function! s:_figure_insert() abort
     " - has to be unique or would not have been allowed
     call s:_increment_id_count('figure', l:id)
     return g:dn_true
+endfunction
+
+" s:_file_contents()    {{{2
+" does:   get file contents as List
+" params: nil
+" prints: error messages
+" return: List
+" note:   ignore yaml metadata blocks and blank lines
+" note:   concatenate adjacent lines
+function! s:_file_contents() abort
+    let l:lines = getline(1, '$')
+    if len(l:lines) == 1 && empty(l:lines[0]) | return [] | endif
+    let l:contents   = []
+    let l:buffer     = []
+    let l:in_yaml    = g:dn_false
+    let l:prev_blank = g:dn_false
+    let l:yaml_begin = '^-\{3\}\s*$'
+    let l:yaml_end   = '^\(-\{3\}\)\|\(\.\{3\}\)\s*$'
+    let l:blank      = '^\s*$'
+    " process file content line by line
+    " - ignore metadata lines
+    " - buffer other lines
+    " - concatenate buffered lines if enter metadata or reach blank line
+    for l:line in l:lines
+        if l:in_yaml  " handle yaml metadata blocks
+            if l:line =~# l:yaml_end  " exiting yaml metadata block
+                let l:in_yaml = g:dn_false
+            endif
+            let l:prev_blank = g:dn_false
+        elseif l:line =~# l:yaml_begin && l:prev_blank  " entering yaml block
+            let l:in_yaml = g:dn_true
+            if !empty(l:buffer)
+                call add(l:contents, join(l:buffer))
+                let l:buffer = []
+            endif
+            let l:prev_blank = g:dn_false
+        elseif l:line =~# l:blank  " blank line
+            if !empty(l:buffer)
+                call add(l:contents, join(l:buffer))
+                let l:buffer = []
+            endif
+            let l:prev_blank = g:dn_true
+        else  " non-blank, non-metadata line
+            call add(l:buffer, l:line)
+            let l:prev_blank = g:dn_false
+        endif
+    endfor
+    " reached eof
+    if !empty(l:buffer) | call add(l:contents, join(l:buffer)) | endif
+    " return file contents
+    return l:contents
 endfunction
 
 " s:_generator(format)    {{{2
@@ -1512,8 +1587,10 @@ function! s:_reference_insert(type) abort
         endif
     endif
     " insert reference, i.e., label
-    let l:prefix = s:dn_markdown_referenced_types[a:type]['prefix']
-    let l:ref    = '{@' . l:prefix . ':' . l:id . '}'
+    "let l:prefix = s:dn_markdown_referenced_types[a:type]['prefix']
+    "let l:ref    = '{@' . l:prefix . ':' . l:id . '}'
+    let l:ref = s:dn_markdown_referenced_types[a:type]['skel_ref']
+    let l:ref = substitute(l:ref, '{ID}', l:id, '')
     call dn#util#insertString(l:ref)
 endfunction
 
@@ -1782,26 +1859,39 @@ function! s:_update_ids(...) abort
         call dn#util#error(l:msg)
         return
     endif
+    for l:type in l:types | let b:dn_markdown_ids[l:type] = {} | endfor
     " get file contents (and exit if file is empty)
-    let l:lines = getline(1, '$')
-    if len(l:lines) == 1 && empty(l:lines[0]) | return | endif
+    let l:lines = s:_file_contents()
+    if empty(l:lines) | return | endif
     " extract labels from file contents
-    " - looking for pattern >> {#PREFIX:ID} << where PREFIX is determined
-    "   by id type and ID is a unique value entered by the user
-    " - assume no more than one match per line
-    for l:type in l:types
-        let l:prefix  = s:dn_markdown_referenced_types[l:type]['prefix']
-        let l:re      = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
-        let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
-                    \ '!empty(v:val)')
-        " extract id strings
-        let l:start = len(l:prefix) + 3  " the 3 is for '{', '#' and ':'
-        let l:ids   = map(l:matches,
-                    \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-        " update ids
-        let b:dn_markdown_ids[l:type] = {}
-        for l:id in l:ids
-            call s:_increment_id_count(l:type, l:id)
+    "for l:type in l:types
+    "    "let l:prefix  = s:dn_markdown_referenced_types[l:type]['prefix']
+    "    "let l:re      = '{#' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
+    "    let l:re      = s:dn_markdown_referenced_types[l:type]['regex_str']
+    "    let l:matches = filter(map(copy(l:lines), 'matchstr(v:val, l:re)'),
+    "                \ '!empty(v:val)')
+    "    " extract id strings
+    "    let l:start = len(l:prefix) + 3  " the 3 is for '{', '#' and ':'
+    "    let l:ids   = map(l:matches,
+    "                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+    "    " update ids
+    "    let b:dn_markdown_ids[l:type] = {}
+    "    for l:id in l:ids
+    "        call s:_increment_id_count(l:type, l:id)
+    "    endfor
+    "endfor
+    for l:line in l:lines
+        for l:type in l:types
+            " let regex and matchlist function do hard work of extracting id
+            " - i.e., id ends up in l:match_list[1]
+            let l:re = s:dn_markdown_referenced_types[l:type]['regex_str']
+            let l:match_num  = 1
+            let l:match_list = matchlist(l:line, l:re, 0, l:match_num)
+            while !empty(l:match_list) && !empty(l:match_list[1])
+                call s:_increment_id_count(l:type, l:match_list[1])
+                let l:match_num += 1
+                let l:match_list = matchlist(l:line, l:re, 0, l:match_num)
+            endwhile
         endfor
     endfor
 endfunction
@@ -1816,33 +1906,46 @@ endfunction
 "         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
 function! s:_update_refs() abort
     " get file contents (and exit if file is empty)
-    let l:lines = getline(1, '$')
-    if len(l:lines) == 1 && empty(l:lines[0]) | return | endif
+    let l:lines = s:_file_contents()
+    if empty(l:lines) | return | endif
+    let l:types = keys(s:dn_markdown_referenced_types)
+    for l:type in l:types | let b:dn_markdown_refs[l:type] = {} | endfor
     " extract references from file contents
-    " - looking for pattern >> {@PREFIX:ID} << where PREFIX is determined
-    "   by reference type and ID is a unique value entered by the user
-    " - assume no more than one match per line
-    for l:type in keys(s:dn_markdown_referenced_types)
-        let l:labels = []
-        let l:prefix = s:dn_markdown_referenced_types[l:type]['prefix']
-        let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
-        for l:line in l:lines
-            let l:count = 1
-            while 1
-                let l:match = matchstr(l:line, l:re, 0, l:count)
-                if empty(l:match) | break | endif
-                call add(l:labels, l:match)
-                let l:count += 1
+    "for l:type in l:types
+    "    let l:labels = []
+    "    let l:prefix = s:dn_markdown_referenced_types[l:type]['prefix']
+    "    let l:re = '{@' . l:prefix . ':[^}]\+}'  " [^}]\+ is ID
+    "    for l:line in l:lines
+    "        let l:count = 1
+    "        while 1
+    "            let l:match = matchstr(l:line, l:re, 0, l:count)
+    "            if empty(l:match) | break | endif
+    "            call add(l:labels, l:match)
+    "            let l:count += 1
+    "        endwhile
+    "    endfor
+    "    " extract ref strings
+    "    let l:start = len(l:prefix) + 3  " the 3 is for '{', '@' and ':'
+    "    let l:refs = map(l:labels,
+    "                \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
+    "    " update refs
+    "    let b:dn_markdown_refs[l:type] = {}
+    "    for l:ref in l:refs
+    "        call s:_increment_ref_count(l:type, l:ref)
+    "    endfor
+    "endfor
+    for l:line in l:lines
+        for l:type in l:types
+            " let regex and matchlist function do hard work of extracting id
+            " - i.e., id ends up in l:match_list[1]
+            let l:re = s:dn_markdown_referenced_types[l:type]['regex_ref']
+            let l:match_num  = 1
+            let l:match_list = matchlist(l:line, l:re, 0, l:match_num)
+            while !empty(l:match_list) && !empty(l:match_list[1])
+                call s:_increment_ref_count(l:type, l:match_list[1])
+                let l:match_num += 1
+                let l:match_list = matchlist(l:line, l:re, 0, l:match_num)
             endwhile
-        endfor
-        " extract ref strings
-        let l:start = len(l:prefix) + 3  " the 3 is for '{', '@' and ':'
-        let l:refs = map(l:labels,
-                    \ 'strpart(v:val, l:start, len(v:val) - l:start - 1)')
-        " update refs
-        let b:dn_markdown_refs[l:type] = {}
-        for l:ref in l:refs
-            call s:_increment_ref_count(l:type, l:ref)
         endfor
     endfor
 endfunction
