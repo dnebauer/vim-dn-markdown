@@ -2,7 +2,6 @@
 " Author:  David Nebauer
 " URL:     https://github.com/dnebauer/vim-dn-markdown
 
-" TODO: collapse dn#markdown#{equation,figure,table}Ref into one function
 " TODO: collapse dn#markdown#{equation,figure,table}Insert into one function
 
 " Load only once    {{{1
@@ -364,25 +363,6 @@ function! dn#markdown#equationInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-"" dn#markdown#equationRef([insert])    {{{2
-"" does:   insert equation reference at cursor location
-"" params: insert - whether entered from insert mode
-""                  [default=<false>, optional, boolean]
-"" prints: equation reference
-"" return: nil
-"function! dn#markdown#equationRef(...) abort
-"    " universal tasks
-"    echo '' |  " clear command line
-"    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-"    " params
-"    let l:insert = (a:0 > 0 && a:1)
-"    " insert image
-"    call s:_reference_insert('equation')
-"    redraw!
-"    " return to calling mode
-"    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-"endfunction
-
 " dn#markdown#figureInsert([insert])    {{{2
 " does:   insert figure following current line
 " params: insert - whether entered from insert mode
@@ -400,25 +380,6 @@ function! dn#markdown#figureInsert(...) abort
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
-
-"" dn#markdown#figureRef([insert])    {{{2
-"" does:   insert figure reference at cursor location
-"" params: insert - whether entered from insert mode
-""                  [default=<false>, optional, boolean]
-"" prints: figure reference
-"" return: nil
-"function! dn#markdown#figureRef(...) abort
-"    " universal tasks
-"    echo '' |  " clear command line
-"    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-"    " params
-"    let l:insert = (a:0 > 0 && a:1)
-"    " insert image
-"    call s:_reference_insert('figure')
-"    redraw!
-"    " return to calling mode
-"    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-"endfunction
 
 " dn#markdown#generate([params])    {{{2
 " does:   generate output
@@ -657,25 +618,6 @@ function! dn#markdown#tableInsert(...) abort
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
-
-"" dn#markdown#tableRef([insert])    {{{2
-"" does:   insert table reference at cursor location
-"" params: insert - whether entered from insert mode
-""                  [default=<false>, optional, boolean]
-"" prints: table reference
-"" return: nil
-"function! dn#markdown#tableRef(...) abort
-"    " universal tasks
-"    echo '' |  " clear command line
-"    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-"    " params
-"    let l:insert = (a:0 > 0 && a:1)
-"    " insert image
-"    call s:_reference_insert('table')
-"    redraw!
-"    " return to calling mode
-"    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-"endfunction
 
 " dn#markdown#view([params])    {{{2
 " does:   view output of a specified format
