@@ -2,8 +2,6 @@
 " Author:  David Nebauer
 " URL:     https://github.com/dnebauer/vim-dn-markdown
 
-" TODO: collapse dn#markdown#{equation,figure,table}Insert into one function
-
 " Load only once    {{{1
 if exists('g:loaded_dn_markdown_autoload') | finish | endif
 let g:loaded_dn_markdown_autoload = 1
@@ -345,42 +343,6 @@ function! dn#markdown#completeIdTable(A, L, P) abort
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
-" dn#markdown#equationInsert([insert])    {{{2
-" does:   insert equation at cursor location
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#equationInsert(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1)
-    " insert image
-    call s:_equation_insert()
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
-" dn#markdown#figureInsert([insert])    {{{2
-" does:   insert figure following current line
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#figureInsert(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1)
-    " insert image
-    call s:_figure_insert()
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
 " dn#markdown#generate([params])    {{{2
 " does:   generate output
 " params: params - parameters dictionary with the following keys:
@@ -621,24 +583,6 @@ function! dn#markdown#structureInsert(type, ...) abort
     " insert structure
     let l:fn = 's:_' . a:type . '_insert'
     call call(l:fn, [])
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
-
-" dn#markdown#tableInsert([insert])    {{{2
-" does:   insert table title following current line
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" return: nil
-function! dn#markdown#tableInsert(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1)
-    " insert image
-    call s:_table_insert()
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
