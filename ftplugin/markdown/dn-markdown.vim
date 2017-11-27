@@ -355,12 +355,12 @@ if !hasmapto('<Plug>DnEII')
     imap <buffer> <unique> <LocalLeader>ei <Plug>DnEII
 endif
 imap <buffer> <unique> <Plug>DnEII
-            \ <Esc>:call dn#markdown#equationInsert(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#structureInsert('equation', g:dn_true)<CR>
 if !hasmapto('<Plug>DnEIN')
     nmap <buffer> <unique> <LocalLeader>ei <Plug>DnEIN
 endif
 nmap <buffer> <unique> <Plug>DnEIN
-            \ :call dn#markdown#equationInsert()<CR>
+            \ :call dn#markdown#structureInsert('equation')<CR>
 
 " \er : insert equation reference    {{{2
 if !hasmapto('<Plug>DnERI')
@@ -379,12 +379,12 @@ if !hasmapto('<Plug>DnFII')
     imap <buffer> <unique> <LocalLeader>fi <Plug>DnFII
 endif
 imap <buffer> <unique> <Plug>DnFII
-            \ <Esc>:call dn#markdown#figureInsert(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#structureInsert('figure', g:dn_true)<CR>
 if !hasmapto('<Plug>DnFIN')
     nmap <buffer> <unique> <LocalLeader>fi <Plug>DnFIN
 endif
 nmap <buffer> <unique> <Plug>DnFIN
-            \ :call dn#markdown#figureInsert()<CR>
+            \ :call dn#markdown#structureInsert('figure')<CR>
 
 " \fr : insert figure reference    {{{2
 if !hasmapto('<Plug>DnFRI')
@@ -475,12 +475,12 @@ if !hasmapto('<Plug>DnTII')
     imap <buffer> <unique> <LocalLeader>ti <Plug>DnTII
 endif
 imap <buffer> <unique> <Plug>DnTII
-            \ <Esc>:call dn#markdown#tableInsert(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#structureInsert('table', g:dn_true)<CR>
 if !hasmapto('<Plug>DnTIN')
     nmap <buffer> <unique> <LocalLeader>ti <Plug>DnTIN
 endif
 nmap <buffer> <unique> <Plug>DnTIN
-            \ :call dn#markdown#tableInsert()<CR>
+            \ :call dn#markdown#structureInsert('table')<CR>
 
 " \tr : insert table reference    {{{2
 if !hasmapto('<Plug>DnTRI')
@@ -502,7 +502,7 @@ command! -buffer MDCheckReferences
 
 " MDEquationInsert    : insert image    {{{2
 command! -buffer MDEquationInsert
-            \ call dn#markdown#equationInsert()
+            \ call dn#markdown#structureInsert('equation')
 
 " MDEquationReference : insert image reference    {{{2
 command! -buffer MDEquationReference
@@ -515,7 +515,7 @@ command! -buffer -nargs=* -complete=customlist,dn#markdown#completeFormat
 
 " MDFigureInsert      : insert image    {{{2
 command! -buffer MDFigureInsert
-            \ call dn#markdown#figureInsert()
+            \ call dn#markdown#structureInsert('figure')
 
 " MDFigureReference   : insert image reference    {{{2
 command! -buffer MDFigureReference
@@ -531,7 +531,7 @@ command! -buffer MDSettings
 
 " MDTableInsert       : insert image    {{{2
 command! -buffer MDTableInsert
-            \ call dn#markdown#tableInsert()
+            \ call dn#markdown#structureInsert('table')
 
 " MDTableReference    : insert image reference    {{{2
 command! -buffer MDTableReference

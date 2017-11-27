@@ -601,6 +601,31 @@ function! dn#markdown#settings() abort
     let &more = l:more
 endfunction
 
+" dn#markdown#structureInsert(type, [insert])    {{{2
+" does:   insert equation, figure or table title
+" params: type   - structure type [string, required, must be a key of
+"                                  s:dn_markdown_referenced_types]
+"         insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" return: nil
+function! dn#markdown#structureInsert(type, ...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    let l:insert = (a:0 > 0 && a:1)
+    if !s:_valid_referenced_type(a:type)  " script error
+        call dn#util#error('Invalid type: ' . a:type)
+        return
+    endif
+    " insert structure
+    let l:fn = 's:_' . a:type . '_insert'
+    call call(l:fn, [])
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+endfunction
+
 " dn#markdown#tableInsert([insert])    {{{2
 " does:   insert table title following current line
 " params: insert - whether entered from insert mode
@@ -1932,6 +1957,7 @@ endfunction
 " return: whether referenced type is valid - boolean
 " note:   valid values are keys to s:dn_markdown_referenced_types
 function! s:_valid_referenced_type(type) abort
+    if empty(a:type) | return | endif
     return has_key(s:dn_markdown_referenced_types, a:type)
 endfunction
 
