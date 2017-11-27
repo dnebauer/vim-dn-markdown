@@ -367,12 +367,12 @@ if !hasmapto('<Plug>DnERI')
     imap <buffer> <unique> <LocalLeader>er <Plug>DnERI
 endif
 imap <buffer> <unique> <Plug>DnERI
-            \ <Esc>:call dn#markdown#equationRef(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#refInsert('equation', g:dn_true)<CR>
 if !hasmapto('<Plug>DnERN')
     nmap <buffer> <unique> <LocalLeader>er <Plug>DnERN
 endif
 nmap <buffer> <unique> <Plug>DnERN
-            \ :call dn#markdown#equationRef()<CR>
+            \ :call dn#markdown#refInsert('equation')<CR>
 
 " \fi : insert figure    {{{2
 if !hasmapto('<Plug>DnFII')
@@ -391,12 +391,12 @@ if !hasmapto('<Plug>DnFRI')
     imap <buffer> <unique> <LocalLeader>fr <Plug>DnFRI
 endif
 imap <buffer> <unique> <Plug>DnFRI
-            \ <Esc>:call dn#markdown#figureRef(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#refInsert('figure', g:dn_true)<CR>
 if !hasmapto('<Plug>DnFRN')
     nmap <buffer> <unique> <LocalLeader>fr <Plug>DnFRN
 endif
 nmap <buffer> <unique> <Plug>DnFRN
-            \ :call dn#markdown#figureRef()<CR>
+            \ :call dn#markdown#refInsert('figure')<CR>
 
 " \iu : update lists of ids    {{{2
 if !hasmapto('<Plug>DnIUI')
@@ -487,12 +487,12 @@ if !hasmapto('<Plug>DnTRI')
     imap <buffer> <unique> <LocalLeader>tr <Plug>DnTRI
 endif
 imap <buffer> <unique> <Plug>DnTRI
-            \ <Esc>:call dn#markdown#tableRef(g:dn_true)<CR>
+            \ <Esc>:call dn#markdown#refInsert('table', g:dn_true)<CR>
 if !hasmapto('<Plug>DnTRN')
     nmap <buffer> <unique> <LocalLeader>tr <Plug>DnTRN
 endif
 nmap <buffer> <unique> <Plug>DnTRN
-            \ :call dn#markdown#tableRef()<CR>
+            \ :call dn#markdown#refInsert('table')<CR>
 " }}}2
 " Commands    {{{1
 
@@ -506,7 +506,7 @@ command! -buffer MDEquationInsert
 
 " MDEquationReference : insert image reference    {{{2
 command! -buffer MDEquationReference
-            \ call dn#markdown#equationRef()
+            \ call dn#markdown#refInsert('equation')
 
 " MDGenerate          : generate output    {{{2
 command! -buffer -nargs=* -complete=customlist,dn#markdown#completeFormat
@@ -519,7 +519,7 @@ command! -buffer MDFigureInsert
 
 " MDFigureReference   : insert image reference    {{{2
 command! -buffer MDFigureReference
-            \ call dn#markdown#figureRef()
+            \ call dn#markdown#refInsert('figure')
 
 " MDRegenerate        : regenerate all previous output    {{{2
 command! -buffer MDRegenerate
@@ -535,7 +535,7 @@ command! -buffer MDTableInsert
 
 " MDTableReference    : insert image reference    {{{2
 command! -buffer MDTableReference
-            \ call dn#markdown#tableRef()
+            \ call dn#markdown#refInsert('table')
 
 " MDUpdateIDs         : update id lists    {{{2
 command! -buffer MDUpdateIDs

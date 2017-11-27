@@ -557,27 +557,31 @@ command.
 The |dn#markdown#idsUpdate()| function can be called using the mapping
 "<Leader>iu" from either |Insert-mode| or |Normal-mode|. The default
 |mapleader| is a backslash.
-                                                *dn#markdown#equationRef()*
-                           *dn#markdown#figureRef()* *dn#markdown#tableRef()*
+                                                  *dn#markdown#refInsert()*
 To insert a reference to an existing equation, figure or table, use the
-dn#markdown#equationRef(), dn#markdown#figureRef() or
-dn#markdown#tableRef() function. The functions require the user to enter
-the id of the target equation, figure or table using tab completion.
+dn#markdown#refInsert() function with the argument "equation", "figure",
+or "table", respectively. The function requires the user to enter the id
+of the target equation, figure or table using tab completion.
 
                                   *dn-markdown-command-MDEquationReference*
                                     *dn-markdown-command-MDFigureReference*
                                      *dn-markdown-command-MDTableReference*
-The |dn#markdown#equationRef()| function can be called using the
-:MDEquationReference command. The |dn#markdown#figureRef()| function can be
-called using the :MDFigureReference command. The |dn#markdown#tableRef()|
-function can be called using the :MDTableReference command.
+The :MDEquationReference, :MDFigureReference and :MDTableReference
+command calls the |dn#markdown#refInsert()| function with argument
+"equation" to insert an equation reference. The :MDFigureReference
+command calls the |dn#markdown#refInsert()| function with argument "figure"
+to insert a figure reference. The :MDTableReference command calls the
+|dn#markdown#refInsert()| function with argument "table" to insert a table
+reference.
 
                                                    *dn-markdown-mapping-er*
                             *dn-markdown-mapping-fr* *dn-markdown-mapping-tr*
-The |dn#markdown#equationRef()| function can be called using the mapping
-"<Leader>er". The |dn#markdown#figureRef()| function can be called using
-the mapping "<Leader>fr". The |dn#markdown#tableRef()| function can be
-called using the mapping "<Leader>it".
+The mapping "<Leader>er" calls the |dn#markdown#refInsert()| function with
+argument "equation" to insert an equation reference. The mapping
+"<Leader>fr" calls the |dn#markdown#refInsert()| function with argument
+"figure" to insert a figure reference. The mapping "<Leader>tr" calls the
+|dn#markdown#refInsert()| function with argument "table" to insert a table
+reference.
 
 All three mappings can be called from either |Insert-mode| or |Normal-mode|.
 The default |mapleader| is a backslash.

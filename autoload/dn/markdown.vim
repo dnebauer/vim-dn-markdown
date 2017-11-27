@@ -364,24 +364,24 @@ function! dn#markdown#equationInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#equationRef([insert])    {{{2
-" does:   insert equation reference at cursor location
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" prints: equation reference
-" return: nil
-function! dn#markdown#equationRef(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1)
-    " insert image
-    call s:_reference_insert('equation')
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
+"" dn#markdown#equationRef([insert])    {{{2
+"" does:   insert equation reference at cursor location
+"" params: insert - whether entered from insert mode
+""                  [default=<false>, optional, boolean]
+"" prints: equation reference
+"" return: nil
+"function! dn#markdown#equationRef(...) abort
+"    " universal tasks
+"    echo '' |  " clear command line
+"    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+"    " params
+"    let l:insert = (a:0 > 0 && a:1)
+"    " insert image
+"    call s:_reference_insert('equation')
+"    redraw!
+"    " return to calling mode
+"    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+"endfunction
 
 " dn#markdown#figureInsert([insert])    {{{2
 " does:   insert figure following current line
@@ -401,24 +401,24 @@ function! dn#markdown#figureInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#figureRef([insert])    {{{2
-" does:   insert figure reference at cursor location
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" prints: figure reference
-" return: nil
-function! dn#markdown#figureRef(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1)
-    " insert image
-    call s:_reference_insert('figure')
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
+"" dn#markdown#figureRef([insert])    {{{2
+"" does:   insert figure reference at cursor location
+"" params: insert - whether entered from insert mode
+""                  [default=<false>, optional, boolean]
+"" prints: figure reference
+"" return: nil
+"function! dn#markdown#figureRef(...) abort
+"    " universal tasks
+"    echo '' |  " clear command line
+"    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+"    " params
+"    let l:insert = (a:0 > 0 && a:1)
+"    " insert image
+"    call s:_reference_insert('figure')
+"    redraw!
+"    " return to calling mode
+"    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+"endfunction
 
 " dn#markdown#generate([params])    {{{2
 " does:   generate output
@@ -485,6 +485,31 @@ function! dn#markdown#initialise() abort
     if b:dn_markdown_settings.number_start_check.value
         call s:_check_refs(g:dn_true)
     endif
+endfunction
+
+" dn#markdown#refInsert(type, [insert])    {{{2
+" does:   insert reference at cursor location
+" params: type   - reference type [string, required, must be key of
+"                                  s:dn_markdown_referenced_types] 
+"         insert - whether entered from insert mode
+"                  [default=<false>, optional, boolean]
+" prints: equation reference
+" return: nil
+function! dn#markdown#refInsert(type, ...) abort
+    " universal tasks
+    echo '' |  " clear command line
+    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+    " params
+    if !s:_valid_referenced_type(a:type)  " script error
+        call dn#util#error('Invalid type: ' . a:type)
+        return
+    endif
+    let l:insert = (a:0 > 0 && a:1)
+    " insert image
+    call s:_reference_insert(a:type)
+    redraw!
+    " return to calling mode
+    if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
 " dn#markdown#refsCheck([insert])    {{{2
@@ -633,24 +658,24 @@ function! dn#markdown#tableInsert(...) abort
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
 endfunction
 
-" dn#markdown#tableRef([insert])    {{{2
-" does:   insert table reference at cursor location
-" params: insert - whether entered from insert mode
-"                  [default=<false>, optional, boolean]
-" prints: table reference
-" return: nil
-function! dn#markdown#tableRef(...) abort
-    " universal tasks
-    echo '' |  " clear command line
-    if s:_utils_missing() | return | endif  " requires dn-utils plugin
-    " params
-    let l:insert = (a:0 > 0 && a:1)
-    " insert image
-    call s:_reference_insert('table')
-    redraw!
-    " return to calling mode
-    if l:insert | call dn#util#insertMode(g:dn_true) | endif
-endfunction
+"" dn#markdown#tableRef([insert])    {{{2
+"" does:   insert table reference at cursor location
+"" params: insert - whether entered from insert mode
+""                  [default=<false>, optional, boolean]
+"" prints: table reference
+"" return: nil
+"function! dn#markdown#tableRef(...) abort
+"    " universal tasks
+"    echo '' |  " clear command line
+"    if s:_utils_missing() | return | endif  " requires dn-utils plugin
+"    " params
+"    let l:insert = (a:0 > 0 && a:1)
+"    " insert image
+"    call s:_reference_insert('table')
+"    redraw!
+"    " return to calling mode
+"    if l:insert | call dn#util#insertMode(g:dn_true) | endif
+"endfunction
 
 " dn#markdown#view([params])    {{{2
 " does:   view output of a specified format
