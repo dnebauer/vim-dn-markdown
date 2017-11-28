@@ -1877,7 +1877,7 @@ function! s:_structure_insert(type) abort
         endif
     endfor
     " fill in placeholders in template    {{{3
-    for l:placeholder in l:placeholders
+    for l:placeholder in keys(l:placeholders)
         let l:pattern  = '{' . l:placeholder . '}'
         let l:sub      = l:placeholders[l:placeholder]
         let l:template = substitute(l:template, l:pattern, l:sub, 'g')
