@@ -1846,7 +1846,7 @@ function! s:_structure_insert(type) abort
         if     l:type ==# 'id'
             let l:default = ''
             if has_key(l:details, 'default') && !empty(l:details.default)
-                let l:default = l:details.default.param
+                let l:default = l:placeholders[l:details.default.param]
             endif
             let l:id = s:_enter_id(a:type, l:default)
             if empty(l:id) | return | endif
