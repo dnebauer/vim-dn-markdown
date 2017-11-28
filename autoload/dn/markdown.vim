@@ -1873,7 +1873,7 @@ function! s:_structure_insert(type) abort
                 let l:proceed = dn#util#menuSelect(l:options, l:prompt)
                 if !l:proceed | return | endif
             endif
-            let l:placeholders[l:path] = l:input
+            let l:placeholders[l:name] = l:path
         endif
     endfor
     " fill in placeholders in template    {{{3
