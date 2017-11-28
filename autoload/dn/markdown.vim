@@ -2,6 +2,8 @@
 " Author:  David Nebauer
 " URL:     https://github.com/dnebauer/vim-dn-markdown
 
+" TODO: Check structure of s:dn_markdown_referenced_types at startup
+
 " Load only once    {{{1
 if exists('g:loaded_dn_markdown_autoload') | finish | endif
 let g:loaded_dn_markdown_autoload = 1
@@ -948,6 +950,7 @@ function! s:_enter_id(type, ...) abort
     let l:default = substitute(l:base, '[^a-z0-9_-]', '-', 'g')
     let l:default = substitute(l:default, '^-\+', '', '')
     let l:default = substitute(l:default, '-\+$', '', '')
+    let l:default = substitute(l:default, '-\{2,\}', '-', 'g')
     let l:prompt  = 'Enter ' . l:name . ' id (empty to abort): '
     while 1
         let l:id = input(l:prompt, l:default)
