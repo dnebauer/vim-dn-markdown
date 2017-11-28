@@ -229,11 +229,31 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 " referenced structures (s:dn_markdown_referenced_types)    {{{2
 " - regex_str: regex for extracting ids from structure labels
 "              the id represented by '[^}]\+'
+" - write_str: information required to insert structure (Dict)
+"              key 'layout'   : whether inline or block
+"              key 'template' : template containing placeholders
+"              key 'params'   : details of placeholders (List)
+"              each param in params is a hash with one key (which is the
+"              +placeholder string) and a value which is itself a hash
+"              +containing param details
+"              details hash starts with 'type', which can be 'id',
+"              +'string' or 'filepath'; there may be other key-value
+"              +pairs depending on the type:
+"              type 'id' : 
+"                optional key 'default' whose value defaults to empty/null
+"                +or can be a hash with key 'param' and a value which is
+"                +a previous placeholder string
+"              type 'string' :
+"                key 'noun' whose value is a string used in prompts like
+"                +'Enter <noun>:'
+"              type 'filepath' : 
+"                key 'noun' whose value is a string used in prompts like
+"                +'Enter <noun> filepath:' and messages like
+"                +'<Noun> filepath appears to be invalid'
 " - regex_ref: regex for extracting ids from reference labels
 "              the id represented by '[^}]\+'
-" -- skel_ref: skeleton for reference
+" - templ_ref: template for reference
 "              placeholder for id is '{ID}'
-" -- skel_str: ***unused*** ∵ constructed by specialised functions
 " - multi_ref: whether multiple references to structure are ok
 "              can be 'i' (ignore), 'w' (warning) or 'e' (error)
 " -- zero_ref: whether no references to structure are ok
@@ -244,8 +264,15 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 let s:dn_markdown_referenced_types = {
             \ 'equation' : {
             \   'regex_str' : '{#eq:\([^}]\+\)}',
+            \   'write_str' : {
+            \     'layout'   : 'inline',
+            \     'template' : '{#eq:{ID}}',
+            \     'params'   : [
+            \       {'ID' : {'type' : 'id'}},
+            \     ],
+            \   },
             \   'regex_ref' : '{@eq:\([^}]\+\)}',
-            \   'skel_ref'  : '{@eq:{ID}}',
+            \   'templ_ref' : '{@eq:{ID}}',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
             \   'name'      : 'equation',
@@ -254,8 +281,23 @@ let s:dn_markdown_referenced_types = {
             \   },
             \ 'figure' : {
             \   'regex_str' : '{#fig:\([^}]\+\)}',
+            \   'write_str' : {
+            \     'layout'   : 'block',
+            \     'template' : '![{CAP}]({PATH} "{CAP}"){#fig:{ID}}',
+            \     'params'   : [
+            \       { 'CAP' : {   'type' : 'string',
+            \                     'noun' : 'figure caption'},
+            \       },
+            \       {  'ID' : {   'type' : 'id',
+            \                  'default' : {'param' : 'CAP'},},
+            \       },
+            \       {'PATH' : {   'type' : 'filepath',
+            \                     'noun' : 'image'},
+            \       },
+            \     ],
+            \   },
             \   'regex_ref' : '{@fig:\([^}]\+\)}',
-            \   'skel_ref'  : '{@fig:{ID}}',
+            \   'templ_ref' : '{@fig:{ID}}',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
             \   'name'      : 'figure',
@@ -264,8 +306,20 @@ let s:dn_markdown_referenced_types = {
             \   },
             \ 'table' : {
             \   'regex_str' : '{#tbl:\([^}]\+\)}',
+            \   'write_str' : {
+            \     'layout'   : 'block',
+            \     'template' : 'Table: {CAP} {#tbl:{ID}}',
+            \     'params'   : [
+            \       {'CAP' : {   'type' : 'string',
+            \                    'noun' : 'table caption'},
+            \       },
+            \       { 'ID' : {   'type' : 'id',
+            \                 'default' : {'param' : 'CAP'}},
+            \       },
+            \     ],
+            \   },
             \   'regex_ref' : '{@tbl:\([^}]\+\)}',
-            \   'skel_ref'  : '{@tbl:{ID}}',
+            \   'templ_ref' : '{@tbl:{ID}}',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
             \   'name'      : 'table',
@@ -581,8 +635,9 @@ function! dn#markdown#structureInsert(type, ...) abort
         return
     endif
     " insert structure
-    let l:fn = 's:_' . a:type . '_insert'
-    call call(l:fn, [])
+    "let l:fn = 's:_' . a:type . '_insert'
+    "call call(l:fn, [])
+    call s:_structure_insert(a:type)
     redraw!
     " return to calling mode
     if l:insert | call dn#util#insertMode(g:dn_true) | endif
@@ -1550,7 +1605,7 @@ function! s:_reference_insert(type) abort
         endif
     endif
     " insert reference, i.e., label
-    let l:ref = s:dn_markdown_referenced_types[a:type]['skel_ref']
+    let l:ref = s:dn_markdown_referenced_types[a:type]['templ_ref']
     let l:ref = substitute(l:ref, '{ID}', l:id, '')
     call dn#util#insertString(l:ref)
 endfunction
@@ -1762,6 +1817,89 @@ function! s:_settings_configure() abort
     endfor
     " reset outputted formats
     let l:dn_md_outputted_formats = {}
+endfunction
+
+" s:_structure_insert()    {{{2
+" does:   insert referencable structure 
+" params: type - type of structure [required, must be key of
+"                                   s:dn_markdown_referenced_types]
+" prints: user prompts and feedback
+" return: whether operation succeeded
+function! s:_structure_insert(type) abort
+    " check params    {{{3
+    if empty (a:type) || !s:_valid_referenced_type(a:type)
+        " script error
+        call dn#util#error("Invalid type '" . a:type . "' provided")
+        return
+    endif
+    " variables    {{{3
+    let l:placeholders = {}
+    let l:data         = s:dn_markdown_referenced_types[a:type]['write_str']
+    let l:layout       = l:data['layout']
+    let l:template     = l:data['template']
+    let l:params       = l:data['params']
+    " obtain placeholders using params    {{{3
+    for l:param in l:params
+        let l:name = keys(l:param)[0]
+        let l:details = l:param[l:name]
+        let l:type = l:details.type
+        if     l:type ==# 'id'
+            let l:default = ''
+            if has_key(l:details, 'default') && !empty(l:details.default)
+                let l:default = l:details.default.param
+            endif
+            let l:id = s:_enter_id(a:type, l:default)
+            if empty(l:id) | return | endif
+            let l:placeholders[l:name] = l:id
+        elseif l:type ==# 'string'
+            let l:noun = l:details.noun
+            let l:prompt = 'Enter ' . l:noun . ' (empty to abort): '
+            let l:input = input(l:prompt)
+            echo ' ' |  " ensure move to a new line
+            if empty(l:input) | return | endif
+            let l:placeholders[l:name] = l:input
+        elseif l:type ==# 'filepath'
+            let l:noun = l:details.noun
+            let l:Noun = toupper(strpart(l:noun, 0, 1)) . strpart(l:noun, 1)
+            let l:prompt = 'Enter ' . l:noun . ' filepath (empty to abort): '
+            let l:path = input(l:prompt, '', 'file')
+            if empty(l:path) | return | endif
+            if !filereadable(l:path)
+                echo ' '  | " ensure move to a new line
+                let l:prompt  = l:Noun . ' filepath appears to be invalid:'
+                let l:options = []
+                call add(l:options, {'Proceed anyway': g:dn_true})
+                call add(l:options, {'Abort': g:dn_false})
+                let l:proceed = dn#util#menuSelect(l:options, l:prompt)
+                if !l:proceed | return | endif
+            endif
+            let l:placeholders[l:path] = l:input
+        endif
+    endfor
+    " fill in placeholders in template    {{{3
+    for l:placeholder in l:placeholders
+        let l:pattern  = '{' . l:placeholder . '}'
+        let l:sub      = l:placeholders[l:placeholder]
+        let l:template = substitute(l:template, l:pattern, l:sub, 'g')
+    endfor
+    " insert structure    {{{3
+    if     l:layout ==# 'inline'
+        call dn#util#insertString(l:label)
+    elseif l:layout ==# 'block'
+        let l:cursor    = getpos('.')
+        let l:indent    = repeat(' ', indent(line('.')))
+        let l:cursor[1] = l:cursor[1] + 4  " line number
+        let l:cursor[2] = len(l:indent)    " column number
+        let l:lines     = [l:template, l:indent, l:indent]
+        call append(line('.'), l:lines)
+        call setpos('.', l:cursor)
+    endif
+    " update ids list    {{{3
+    " - note: id is unique or would not have been allowed by s:_enter_id
+    if exists('l:id')
+        call s:_increment_id_count(a:type, l:id)
+    endif    " }}}3
+    return g:dn_true
 endfunction
 
 " s:_table_insert()    {{{2
