@@ -970,24 +970,6 @@ function! s:_enter_id(type, ...) abort
     return l:id
 endfunction
 
-" s:_equation_insert()    {{{2
-" does:   insert equation at cursor location
-" params: nil
-" prints: user prompts and feedback
-" return: whether operation succeeded
-function! s:_equation_insert() abort
-    " get equation id (empty means abort)
-    let l:id = s:_enter_id('equation')
-    if empty(l:id) | return | endif
-    let l:label = '{#eq:' . l:id . '}'
-    " insert equation label
-    call dn#util#insertString(l:label)
-    " update ids list
-    " - has to be unique or would not have been allowed
-    call s:_increment_id_count('equation', l:id)
-    return g:dn_true
-endfunction
-
 " s:_execute_shell_command(cmd,[err])    {{{2
 " does:   execute shell command
 " params: cmd - shell command [required, string]
@@ -1018,49 +1000,6 @@ function! s:_execute_shell_command(cmd, ...) abort
     else
         return g:dn_true
     endif
-endfunction
-
-" s:_figure_insert()    {{{2
-" does:   insert figure following current line
-" params: nil
-" prints: user prompts and feedback
-" return: whether operation succeeded
-function! s:_figure_insert() abort
-    " get figure caption
-    let l:caption = input('Enter figure caption (empty to abort): ')
-    echo ' '  | " ensure move to a new line
-    if empty(l:caption) | return | endif
-    " get figure id (empty means abort)
-    let l:id = s:_enter_id('figure', l:caption)
-    if empty(l:id) | return | endif
-    let l:label = '{#fig:' . l:id . '}'
-    " get image filepath
-    let l:prompt = 'Enter image filepath (empty to abort): '
-    let l:path = input(l:prompt, '', 'file')
-    if empty(l:path) | return | endif
-    if !filereadable(l:path)
-        echo ' '  | " ensure move to a new line
-        let l:prompt  = 'Image filepath appears to be invalid:'
-        let l:options = []
-        call add(l:options, {'Proceed anyway': g:dn_true})
-        call add(l:options, {'Abort': g:dn_false})
-        let l:proceed = dn#util#menuSelect(l:options, l:prompt)
-        if !l:proceed | return | endif
-    endif
-    " insert figure
-    let l:cursor    = getpos('.')
-    let l:indent    = repeat(' ', indent(line('.')))
-    let l:cursor[1] = l:cursor[1] + 4  " line number
-    let l:cursor[2] = len(l:indent)    " column number
-    let l:line      = ['![', l:caption, '](', l:path, ' "',
-                \      l:caption, '")', l:label]
-    let l:lines = [join(l:line, ''), l:indent, l:indent]
-    call append(line('.'), l:lines)
-    call setpos('.', l:cursor)
-    " update ids list
-    " - has to be unique or would not have been allowed
-    call s:_increment_id_count('figure', l:id)
-    return g:dn_true
 endfunction
 
 " s:_file_contents()    {{{2
@@ -1843,7 +1782,7 @@ function! s:_structure_insert(type) abort
         let l:name = keys(l:param)[0]
         let l:details = l:param[l:name]
         let l:type = l:details.type
-        if     l:type ==# 'id'
+        if     l:type ==# 'id'    " {{{4
             let l:default = ''
             if has_key(l:details, 'default') && !empty(l:details.default)
                 let l:default = l:placeholders[l:details.default.param]
@@ -1851,14 +1790,14 @@ function! s:_structure_insert(type) abort
             let l:id = s:_enter_id(a:type, l:default)
             if empty(l:id) | return | endif
             let l:placeholders[l:name] = l:id
-        elseif l:type ==# 'string'
+        elseif l:type ==# 'string'    " {{{4
             let l:noun = l:details.noun
             let l:prompt = 'Enter ' . l:noun . ' (empty to abort): '
             let l:input = input(l:prompt)
             echo ' ' |  " ensure move to a new line
             if empty(l:input) | return | endif
             let l:placeholders[l:name] = l:input
-        elseif l:type ==# 'filepath'
+        elseif l:type ==# 'filepath'    " {{{4
             let l:noun = l:details.noun
             let l:Noun = toupper(strpart(l:noun, 0, 1)) . strpart(l:noun, 1)
             let l:prompt = 'Enter ' . l:noun . ' filepath (empty to abort): '
@@ -1874,7 +1813,7 @@ function! s:_structure_insert(type) abort
                 if !l:proceed | return | endif
             endif
             let l:placeholders[l:name] = l:path
-        endif
+        endif    " }}}4
     endfor
     " fill in placeholders in template    {{{3
     for l:placeholder in keys(l:placeholders)
@@ -1899,35 +1838,6 @@ function! s:_structure_insert(type) abort
     if exists('l:id')
         call s:_increment_id_count(a:type, l:id)
     endif    " }}}3
-    return g:dn_true
-endfunction
-
-" s:_table_insert()    {{{2
-" does:   insert table title following current line
-" params: nil
-" prints: user prompts and feedback
-" return: whether operation succeeded
-function! s:_table_insert() abort
-    " get table caption
-    let l:caption = input('Enter table caption (empty to abort): ')
-    echo ' '  | " ensure move to a new line
-    if empty(l:caption) | return | endif
-    " get table id (empty means abort)
-    let l:id = s:_enter_id('table', l:caption)
-    if empty(l:id) | return | endif
-    let l:label = '{#tbl:' . l:id . '}'
-    " insert table title
-    let l:cursor    = getpos('.')
-    let l:indent    = repeat(' ', indent(line('.')))
-    let l:cursor[1] = l:cursor[1] + 4  " line number
-    let l:cursor[2] = len(l:indent)    " column number
-    let l:line      = ['Table:', l:caption, l:label]
-    let l:lines     = [join(l:line, ' '), l:indent, l:indent]
-    call append(line('.'), l:lines)
-    call setpos('.', l:cursor)
-    " update ids list
-    " - has to be unique or would not have been allowed
-    call s:_increment_id_count('table', l:id)
     return g:dn_true
 endfunction
 
