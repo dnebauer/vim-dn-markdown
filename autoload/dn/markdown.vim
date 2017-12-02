@@ -235,15 +235,15 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 "              key 'layout'   : whether inline or block
 "              key 'template' : template containing placeholders
 "              key 'params'   : details of placeholders (List)
-"              each param in params is a hash with one key (which is the
-"              +placeholder string) and a value which is itself a hash
+"              each param in params is a Dict with one key (which is the
+"              +placeholder string) and a value which is itself a Dict
 "              +containing param details
-"              details hash starts with 'type', which can be 'id',
+"              details Dict starts with 'type', which can be 'id',
 "              +'string' or 'filepath'; there may be other key-value
 "              +pairs depending on the type:
 "              type 'id' : 
 "                optional key 'default' whose value defaults to empty/null
-"                +or can be a hash with key 'param' and a value which is
+"                +or can be a Dict with key 'param' and a value which is
 "                +a previous placeholder string
 "              type 'string' :
 "                key 'noun' whose value is a string used in prompts like
