@@ -56,7 +56,7 @@ function! s:main() abort
     if s:_check_referenced_types()
         echo '- definition is VALID'
     else
-        echo '- definition is *INVALID*'
+        call dn#util#warn('- definition is *INVALID*')
     endif    " }}}3
     " last output line can be overwritten by status line on startup    {{{2
     echo ' ' |  " }}}2
@@ -112,14 +112,14 @@ function! s:_check_referenced_types() abort
         if !count(l:valid_ref_values, l:multi_ref)
             let l:var = join([l:type, 'multi_ref'])
             let l:msg = '- ' . l:var . ": invalid value '" . l:multi_ref . "'"
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         let l:zero_ref = l:data.zero_ref
         if !count(l:valid_ref_values, l:zero_ref)
             let l:var = join([l:type, 'zero_ref'])
             let l:msg = '- ' . l:var . ": invalid value '" . l:zero_ref . "'"
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         " complete value needs to be existing function    {{{3
@@ -127,7 +127,7 @@ function! s:_check_referenced_types() abort
         if !exists('*'.l:complete)
             let l:var = join([l:type, 'complete'])
             let l:msg = '- ' . l:var . ": bad funcname '" . l:complete . "'"
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         " write_str value needs to be a Dict   {{{3
@@ -152,7 +152,7 @@ function! s:_check_referenced_types() abort
                 if !count(l:valid_layouts, l:value)
                     let l:msg = '- ' . l:var . ": invalid value '" . l:value
                                 \ . "'"
-                    call dn#util#error(l:msg)
+                    call dn#util#wrap(l:msg, 2)
                     return
                 endif
             endif
@@ -181,7 +181,7 @@ function! s:_check_placeholders(type) abort
     if type(l:params) != type([])
         let l:msg = '- ' . l:var . ': expected List, got '
                     \ . dn#util#varType(l:params)
-        call dn#util#error(l:msg)
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     " process placeholders in turn    {{{2
@@ -194,7 +194,7 @@ function! s:_check_placeholders(type) abort
         let l:count = len(l:keys)
         if l:count != 1
             let l:msg = '- ' . l:var . ': expected 1 key, got ' . l:count
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         let l:term = l:keys[0]
@@ -203,7 +203,7 @@ function! s:_check_placeholders(type) abort
         if has_key(l:placeholders, l:term)
             let l:msg = '- ' . l:var . ': duplicate placeholder term '
                         \ . l:term
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         " store placeholder term    {{{3
@@ -213,7 +213,7 @@ function! s:_check_placeholders(type) abort
         let l:pattern = '{' . l:term . '}'
         if empty(matchstr(l:template, l:pattern))
             let l:msg = '- ' . l:var . ': does not appear in template'
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         " placeholder value is Dict    {{{3
@@ -222,7 +222,7 @@ function! s:_check_placeholders(type) abort
         " placeholder must have 'type' key    {{{3
         if !has_key(l:details, 'type')
             let l:msg = '- ' . l:var . ": no 'type' key"
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
         let l:type = l:details.type
@@ -237,7 +237,7 @@ function! s:_check_placeholders(type) abort
             if l:count > 2  " id-type placeholder has too many keys
                 let l:msg = '- ' . a:type . ' placeholder ' . l:term
                             \ . ': too many keys (>2)'
-                call dn#util#error(l:msg)
+                call dn#util#wrap(l:msg, 2)
                 return
             endif
             if l:count > 1  " id-type placeholder has second key
@@ -247,7 +247,7 @@ function! s:_check_placeholders(type) abort
                 if l:other_key !=# 'default'
                     let l:msg = '- ' . a:type . ' placeholder ' . l:term
                                 \ . ": invalid key '" . l:other_key . "'"
-                    call dn#util#error(l:msg)
+                    call dn#util#wrap(l:msg, 2)
                     return
                 endif
                 " default has to be Dict
@@ -262,7 +262,7 @@ function! s:_check_placeholders(type) abort
                     let l:msg = '- ' . a:type . ' placeholder ' . l:term
                                 \ . " 'default' key: expected 1 key, got "
                                 \ . l:count
-                    call dn#util#error(l:msg)
+                    call dn#util#wrap(l:msg, 2)
                     return
                 endif
                 let l:key = l:keys[0]
@@ -270,7 +270,7 @@ function! s:_check_placeholders(type) abort
                     let l:msg = '- ' . a:type . ' placeholder ' . l:term
                                 \ . " 'default': expected 'param' key, got '"
                                 \ . l:key . "'"
-                    call dn#util#error(l:msg)
+                    call dn#util#wrap(l:msg, 2)
                     return
                 endif
                 " default param has to be string
@@ -285,7 +285,7 @@ function! s:_check_placeholders(type) abort
                     let l:msg = '- ' . a:type . ' ' . l:term . ': uses ' 
                                 \ . l:previous_term
                                 \ . ' which is not previously defined'
-                    call dn#util#error(l:msg)
+                    call dn#util#wrap(l:msg, 2)
                     return
                 endif
             endif
@@ -296,7 +296,7 @@ function! s:_check_placeholders(type) abort
             if l:count != 2  " wrong number of keys
                 let l:msg = '- ' . a:type . ' placeholder ' . l:term
                             \ . ': expected 2 keys, got ' . l:count
-                call dn#util#error(l:msg)
+                call dn#util#wrap(l:msg, 2)
                 return
             endif
             " other key has to be 'noun'
@@ -305,7 +305,7 @@ function! s:_check_placeholders(type) abort
             if l:other_key !=# 'noun'
                 let l:msg = '- ' . a:type . ' placeholder ' . l:term
                             \ . ": invalid key '" . l:other_key . "'"
-                call dn#util#error(l:msg)
+                call dn#util#wrap(l:msg, 2)
                 return
             endif
             " noun param has to be string
@@ -318,7 +318,7 @@ function! s:_check_placeholders(type) abort
             " invalid placeholder type
             let l:msg = '- ' . a:type . ' placeholder ' . l:term
                         \ . ": invalid type '" . l:type . "'"
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif    " }}}3
     endfor    " }}}2
@@ -336,30 +336,32 @@ endfunction
 function! s:_non_type_key(value, var) abort
     " check variable name    {{{2
     if type(a:var) != type('') || empty(a:var)
-        let l:msg = a:var . ': expected non-empty string var, got '
+        let l:msg = '- ' . a:var . ': expected non-empty string var, got '
                     \ . dn#util#varType(a:var) . " with value '"
                     \ . dn#util#stringify(a:var) . "'"
-        call dn#util#error(l:msg)
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     " value must be a Dict    {{{2
     if type(a:value) != type({})
-        let l:msg = a:var . ': expected Dict, got ' . dn#util#varType(a:value)
-        call dn#util#error(l:msg)
+        let l:msg = '- ' . a:var . ': expected Dict, got '
+                    \ . dn#util#varType(a:value)
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     let l:dict = deepcopy(a:value)
     " Dict must have two keys    {{{2
     let l:count = len(l:dict)
     if l:count != 2
-        let l:msg = a:var . ': expected Dict with 2 keys, got '
+        let l:msg = '- ' . a:var . ': expected Dict with 2 keys, got '
                     \ . l:count . ' keys'
-        call dn#util#error(l:msg)
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     " one key must be 'type'    {{{2
     if !has_key(l:dict, 'type')
-        call dn#util#error(a:var . ": key 'type' not found")
+        let l:msg = '- ' . a:var . ": key 'type' not found"
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     " return other key    {{{2
@@ -411,7 +413,8 @@ function! s:_valid_dict(value, var) abort
     " check whether Dict
     if type(a:value) != type({})
         let l:type = dn#util#varType(a:value)
-        call dn#util#error(a:var . ': expected Dict, got ' . l:type)
+        let l:msg = '- ' . a:var . ': expected Dict, got ' . l:type
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     return g:dn_true
@@ -459,25 +462,30 @@ function! s:_valid_keys(valid_keys, keys, var) abort
     endif
     " all keys must be non-empty strings    {{{3
     if len(filter(copy(a:valid_keys), 'type(v:val) != type("")'))
-        call dn#util#error('- ' . a:var . ": non-string 'valid' key(s)")
+        let l:msg = '- ' . a:var . ": non-string 'valid' key(s)"
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     if len(filter(copy(a:keys), 'type(v:val) != type("")'))
-        call dn#util#error('- ' . a:var . ': non-string key(s)')
+        let l:msg = '- ' . a:var . ': non-string key(s)'
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     if len(filter(copy(a:valid_keys), 'empty(v:val)'))
-        call dn#util#error('- ' . a:var . ": empty 'valid' key(s)")
+        let l:msg = '- ' . a:var . ": empty 'valid' key(s)"
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     if len(filter(copy(a:keys), 'empty(v:val)'))
-        call dn#util#error('- ' . a:var . ': empty key(s)')
+        let l:msg = '- ' . a:var . ': empty key(s)'
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     " check that all keys are valid    {{{3
     for l:key in a:keys
         if !count(a:valid_keys, l:key)
-            call dn#util#error('- ' . a:var . ": invalid key '" . l:key . "'")
+            let l:msg = '- ' . a:var . ": invalid key '" . l:key . "'"
+            call dn#util#wrap(l:msg, 2)
             return
         endif
     endfor
@@ -486,7 +494,7 @@ function! s:_valid_keys(valid_keys, keys, var) abort
         let l:count = count(a:keys, l:key)
         if l:count != 1
             let l:msg = '- ' . a:var . ": missing key '" . l:key . "'"
-            call dn#util#error(l:msg)
+            call dn#util#wrap(l:msg, 2)
             return
         endif
     endfor    " }}}3
@@ -512,12 +520,13 @@ function! s:_valid_non_empty_string(value, var) abort
     if type(a:value) != type('')
         let l:type = dn#util#varType(a:value)
         let l:msg  = '- ' . a:var . ': expected string, got ' . l:type
-        call dn#util#error(l:msg)
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     " check that not empty
     if empty(a:value)
-        call dn#util#error('- ' . a:var . ': is empty')
+        let l:msg = '- ' . a:var . ': is empty'
+        call dn#util#wrap(l:msg, 2)
         return
     endif
     return g:dn_true
