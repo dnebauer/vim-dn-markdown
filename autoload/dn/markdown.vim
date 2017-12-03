@@ -261,6 +261,8 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 " ------ name: human readable name for structure type
 " ------ Name: capitalised human readable name for structure type
 " -- complete: name of completion function
+" Note: correctness of definition can be checked with 'check-vars.vim',
+"       which is included with this ftplugin
 let s:dn_markdown_referenced_types = {
             \ 'equation' : {
             \   'regex_str' : '{#eq:\([^}]\+\)}',
@@ -327,21 +329,6 @@ let s:dn_markdown_referenced_types = {
             \   'complete'  : 'dn#markdown#completeIdTable',
             \   },
             \ }
-" - check validity of multi_ref and zero_ref values (prevent script error)
-let s:valid_ref_values = ['ignore', 'warning', 'error']
-let s:ref_errors       = []
-for s:type in keys(s:dn_markdown_referenced_types)
-    let s:multi = s:dn_markdown_referenced_types[s:type]['multi_ref']
-    if !count(s:valid_ref_values, s:multi)  " script error
-        call add(s:ref_errors, "Invalid multi_ref value '" . s:multi . "'")
-    endif
-    let s:zero = s:dn_markdown_referenced_types[s:type]['zero_ref']
-    if !count(s:valid_ref_values, s:zero)  " script error
-        call add(s:ref_errors, "Invalid zero_ref value '" . s:zero . "'")
-    endif
-endfor
-if !empty(s:ref_errors) | call dn#util#error(join(s:ref_errors, "\n")) | endif
-unlet s:valid_ref_values s:ref_errors s:type s:multi s:zero
 " - make available to ftplugin file
 function! dn#markdown#referenced_types() abort
     return copy(s:dn_markdown_referenced_types)
