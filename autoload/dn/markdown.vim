@@ -2,8 +2,6 @@
 " Author:  David Nebauer
 " URL:     https://github.com/dnebauer/vim-dn-markdown
 
-" TODO: Check structure of s:dn_markdown_referenced_types at startup
-
 " Load only once    {{{1
 if exists('g:loaded_dn_markdown_autoload') | finish | endif
 let g:loaded_dn_markdown_autoload = 1
@@ -257,9 +255,9 @@ let s:dn_markdown_pandoc_params.pdf_latex.params
 " - templ_ref: template for reference
 "              placeholder for id is '{ID}'
 " - multi_ref: whether multiple references to structure are ok
-"              can be 'i' (ignore), 'w' (warning) or 'e' (error)
+"              can be 'ignore', 'warning' or 'error'
 " -- zero_ref: whether no references to structure are ok
-"              can be 'i' (ignore), 'w' (warning) or 'e' (error)
+"              can be 'ignore', 'warning' or 'error'
 " ------ name: human readable name for structure type
 " ------ Name: capitalised human readable name for structure type
 " -- complete: name of completion function
