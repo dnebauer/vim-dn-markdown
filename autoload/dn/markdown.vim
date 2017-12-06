@@ -72,20 +72,27 @@ let s:dn_markdown_menu_items = {
             \   ],
             \ }
 " pandoc parameters to set (s:dn_markdown_pandoc_params)    {{{2
-" - created from s:dn_markdown_pandoc_params_source
-" - subkeys:
+" - created from s:dn_markdown_pandoc_params_source at plugin
+"   initialisation; function dn#markdown#initialise() calls
+"   function s:_create_pandoc_params()
+" - format keys:
 "   ---- format: human-readable description of format;
 "                ***warning*** formats must be unique
-"                for function s:_select_formats to work
-"   ---- depend: executables required for conversion
-"   - pandoc_to: value to provide to pandoc's '--to' option
-"   - after_ext: extension of pandoc's output file
-"   -- postproc: whether there is further conversion after pandoc
+"                for function s:_select_formats to work; string
+"   ---- depend: executables required for conversion; List
+"   - pandoc_to: value to provide to pandoc's '--to' option; string
+"   - after_ext: extension of pandoc's output file; string
+"   -- postproc: whether there is further conversion after pandoc;
+"                boolean
 "   - final_ext: extension given to final output file, i.e., after
 "                post-pandoc processing when that occurs; where there
-"                is no post-pandoc processing is the same as 'after_ext'
+"                is no post-pandoc processing is the same as 'after_ext';
+"                string
 "   ---- params: refers to keywords that each signify a parameter/option
-"                to add to pandoc command
+"                to add to pandoc command; List
+"                ***except*** for formats that derive their params
+"                from another format, which have a Dict with key 'source'
+"                and value set to source format
 let s:dn_markdown_pandoc_params = {}
 let s:dn_markdown_pandoc_params_source = {
             \ 'azw3' : {
