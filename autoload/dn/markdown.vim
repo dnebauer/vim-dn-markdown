@@ -225,6 +225,10 @@ let s:dn_markdown_pandoc_params.pdf_html.params
             \ = s:dn_markdown_pandoc_params.html.params
 let s:dn_markdown_pandoc_params.pdf_latex.params
             \ = s:dn_markdown_pandoc_params.latex.params
+" - make available to external file
+function! dn#markdown#pandoc_params() abort
+    return copy(s:dn_markdown_pandoc_params)
+endfunction
 
 " referenced structures (s:dn_markdown_referenced_types)    {{{2
 " - regex_str: regex for extracting ids from structure labels
