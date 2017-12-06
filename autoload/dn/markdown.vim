@@ -215,10 +215,6 @@ let s:dn_markdown_pandoc_params_source = {
             \   'params'    : {'source': 'latex'},
             \   },
             \ }
-" - make derived variable available to external script
-function! dn#markdown#pandoc_params() abort
-    return deepcopy(s:dn_markdown_pandoc_params)
-endfunction
 " - make source variable available to external script
 function! dn#markdown#pandoc_params_source() abort
     return deepcopy(s:dn_markdown_pandoc_params_source)
