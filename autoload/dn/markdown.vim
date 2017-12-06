@@ -72,20 +72,22 @@ let s:dn_markdown_menu_items = {
             \   ],
             \ }
 " pandoc parameters to set (s:dn_markdown_pandoc_params)    {{{2
-"
-" ---- format: human-readable description of format;
-"              ***warning*** formats must be unique
-"              for function s:_select_formats to work
-" ---- depend: executables required for conversion
-" - pandoc_to: value to provide to pandoc's '--to' option
-" - after_ext: extension of pandoc's output file
-" -- postproc: whether there is further conversion after pandoc
-" - final_ext: extension given to final output file, i.e., after
-"              post-pandoc processing when that occurs; where there
-"              is no post-pandoc processing is the same as 'after_ext'
-" ---- params: refers to keywords that each signify a parameter/option
-"              to add to pandoc command
-let s:dn_markdown_pandoc_params = {
+" - created from s:dn_markdown_pandoc_params_source
+" - subkeys:
+"   ---- format: human-readable description of format;
+"                ***warning*** formats must be unique
+"                for function s:_select_formats to work
+"   ---- depend: executables required for conversion
+"   - pandoc_to: value to provide to pandoc's '--to' option
+"   - after_ext: extension of pandoc's output file
+"   -- postproc: whether there is further conversion after pandoc
+"   - final_ext: extension given to final output file, i.e., after
+"                post-pandoc processing when that occurs; where there
+"                is no post-pandoc processing is the same as 'after_ext'
+"   ---- params: refers to keywords that each signify a parameter/option
+"                to add to pandoc command
+let s:dn_markdown_pandoc_params = {}
+let s:dn_markdown_pandoc_params_source = {
             \ 'azw3' : {
             \   'format'    : 'Kindle Format 8 (azw3) via ePub',
             \   'depend'    : ['pandoc', 'ebook-convert'],
@@ -93,7 +95,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_true,
             \   'final_ext' : '.azw3',
-            \   'params'    : '*** copy from |epub| format ***',
+            \   'params'    : {'source': 'epub'},
             \   },
             \ 'context' : {
             \   'format'    : 'ConTeXt (tex)',
@@ -172,7 +174,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_true,
             \   'final_ext' : '.mobi',
-            \   'params'    : '*** copy from |epub| format ***',
+            \   'params'    : {'source': 'epub'},
             \   },
             \ 'odt' : {
             \   'format'    : 'OpenDocument Text (odt)',
@@ -192,7 +194,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.pdf',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.pdf',
-            \   'params'    : '***copy from |context| format ***',
+            \   'params'    : {'source': 'context'},
             \   },
             \ 'pdf_html' : {
             \   'format'    : 'Portable Document Format (pdf) via HTML',
@@ -201,7 +203,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.pdf',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.pdf',
-            \   'params'    : '*** copy from |html| format ***',
+            \   'params'    : {'source': 'html'},
             \   },
             \ 'pdf_latex' : {
             \   'format'    : 'Portable Document Format (pdf) via LaTeX',
@@ -210,24 +212,12 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.pdf',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.pdf',
-            \   'params'    : '*** copy from |latex| format ***',
+            \   'params'    : {'source': 'latex'},
             \   },
             \ }
-" - azw3 and mobi are produced by first creating an epub output file
-let s:dn_markdown_pandoc_params.azw3.params
-            \ = s:dn_markdown_pandoc_params.epub.params
-let s:dn_markdown_pandoc_params.mobi.params
-            \ = s:dn_markdown_pandoc_params.epub.params
-" - pdf creation is based on context, html or latex
-let s:dn_markdown_pandoc_params.pdf_context.params
-            \ = s:dn_markdown_pandoc_params.context.params
-let s:dn_markdown_pandoc_params.pdf_html.params
-            \ = s:dn_markdown_pandoc_params.html.params
-let s:dn_markdown_pandoc_params.pdf_latex.params
-            \ = s:dn_markdown_pandoc_params.latex.params
-" - make available to external file
-function! dn#markdown#pandoc_params() abort
-    return copy(s:dn_markdown_pandoc_params)
+" - make source variable available to external script
+function! dn#markdown#pandoc_params_source() abort
+    return copy(s:dn_markdown_pandoc_params_source)
 endfunction
 
 " referenced structures (s:dn_markdown_referenced_types)    {{{2
@@ -446,6 +436,8 @@ function! dn#markdown#initialise() abort
     " set default html stylesheet (because it must be set dynamically, unlike
     " other settings set statically with b:dn_markdown_settings variable)
     silent call s:_set_default_html_stylesheet()
+    " create s:dn_markdown_pandoc_params
+    call s:_create_pandoc_params()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     silent call s:_settings_configure()
@@ -887,6 +879,37 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     call add(a:issues[a:type][a:id][a:class], a:msg)
     " guess we succeeded!
     return g:dn_true
+endfunction
+
+" s:_create_pandoc_params()    {{{2
+" does:   create variable s:dn_markdown_pandoc_params
+" params: nil
+" return: n/a
+function! s:_create_pandoc_params() abort
+    " should only be called during initialisation    {{{3
+    let l:var = 's:dn_markdown_pandoc_params'
+    if !exists(l:var)  " script error
+        call dn#util#error("Can't find variable '" . l:var . "'")
+        return
+    endif
+    if !empty(s:dn_markdown_pandoc_params)  " script error
+        call dn#util#error("Variable '" . l:var . "' is not empty")
+        return
+    endif
+    " copy from source variable   {{{3
+    let l:new = deepcopy(s:dn_markdown_pandoc_params_source)
+    " copy params where necessary    {{{3
+    for l:format in keys(l:new)
+        let l:params = l:new[l:format]['params']
+        if type(l:params) == type({})
+            let l:source_format = l:params.source
+            let l:source_params = deepcopy(l:new[l:source_format]['params'])
+            let l:new[l:format]['params'] = l:source_params
+        endif
+    endfor
+    " create target variable    {{{3
+    let s:dn_markdown_pandoc_params = deepcopy(l:new)
+    return  | " }}}3
 endfunction
 
 " s:_display_value(value, setting)    {{{2
