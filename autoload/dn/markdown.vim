@@ -1811,7 +1811,7 @@ function! s:_structure_insert(type) abort
     endfor
     " insert structure    {{{3
     if     l:layout ==# 'inline'
-        call dn#util#insertString(l:label)
+        call dn#util#insertString(l:template)
     elseif l:layout ==# 'block'
         let l:cursor    = getpos('.')
         let l:indent    = repeat(' ', indent(line('.')))
