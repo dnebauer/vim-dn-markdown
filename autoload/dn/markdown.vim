@@ -72,9 +72,6 @@ let s:dn_markdown_menu_items = {
             \   ],
             \ }
 " pandoc parameters to set (s:dn_markdown_pandoc_params)    {{{2
-" - created from s:dn_markdown_pandoc_params_source at plugin
-"   initialisation; function dn#markdown#initialise() calls
-"   function s:_create_pandoc_params()
 " - format keys:
 "   ---- format: human-readable description of format;
 "                ***warning*** formats must be unique
@@ -89,12 +86,13 @@ let s:dn_markdown_menu_items = {
 "                is no post-pandoc processing is the same as 'after_ext';
 "                string
 "   ---- params: refers to keywords that each signify a parameter/option
-"                to add to pandoc command; List
-"                ***except*** for formats that derive their params
-"                from another format, which have a Dict with key 'source'
-"                and value set to source format
-let s:dn_markdown_pandoc_params = {}
-let s:dn_markdown_pandoc_params_source = {
+"                to add to pandoc command;
+"                List - if given format defined its own params
+"                or
+"                Dict - if given format uses another format's params
+"                       then hash key is 'source' and the value for this
+"                       key is the format whose params are used
+let s:dn_markdown_pandoc_params = {
             \ 'azw3' : {
             \   'format'    : 'Kindle Format 8 (azw3) via ePub',
             \   'depend'    : ['pandoc', 'ebook-convert'],
@@ -222,9 +220,9 @@ let s:dn_markdown_pandoc_params_source = {
             \   'params'    : {'source': 'latex'},
             \   },
             \ }
-" - make source variable available to external script
-function! dn#markdown#pandoc_params_source() abort
-    return deepcopy(s:dn_markdown_pandoc_params_source)
+" - make variable available to external script
+function! dn#markdown#pandoc_params() abort
+    return deepcopy(s:dn_markdown_pandoc_params)
 endfunction
 
 " referenced structures (s:dn_markdown_referenced_types)    {{{2
@@ -443,8 +441,6 @@ function! dn#markdown#initialise() abort
     " set default html stylesheet (because it must be set dynamically, unlike
     " other settings set statically with b:dn_markdown_settings variable)
     silent call s:_set_default_html_stylesheet()
-    " create s:dn_markdown_pandoc_params
-    call s:_create_pandoc_params()
     " set parameters from configuration variables where available,
     " otherwise set to their default values
     silent call s:_settings_configure()
@@ -888,37 +884,6 @@ function! s:_check_refs_issue(issues, type, id, class, msg) abort
     return g:dn_true
 endfunction
 
-" s:_create_pandoc_params()    {{{2
-" does:   create variable s:dn_markdown_pandoc_params
-" params: nil
-" return: n/a
-function! s:_create_pandoc_params() abort
-    " should only be called during initialisation    {{{3
-    let l:var = 's:dn_markdown_pandoc_params'
-    if !exists(l:var)  " script error
-        call dn#util#error("Can't find variable '" . l:var . "'")
-        return
-    endif
-    if !empty(s:dn_markdown_pandoc_params)  " script error
-        call dn#util#error("Variable '" . l:var . "' is not empty")
-        return
-    endif
-    " copy from source variable   {{{3
-    let l:new = deepcopy(s:dn_markdown_pandoc_params_source)
-    " copy params where necessary    {{{3
-    for l:format in keys(l:new)
-        let l:params = l:new[l:format]['params']
-        if type(l:params) == type({})
-            let l:source_format = l:params.source
-            let l:source_params = deepcopy(l:new[l:source_format]['params'])
-            let l:new[l:format]['params'] = l:source_params
-        endif
-    endfor
-    " create target variable    {{{3
-    let s:dn_markdown_pandoc_params = deepcopy(l:new)
-    return  | " }}}3
-endfunction
-
 " s:_display_value(value, setting)    {{{2
 " does:   get the display value for a setting value
 " params: value   - setting value to display [any, required]
@@ -1133,6 +1098,11 @@ function! s:_generator (format) abort
     "         one per line, while other are added to l:opts
     "         and displayed in a single line
     let l:params = s:dn_markdown_pandoc_params[a:format]['params']
+    if type(l:params) == type({})  " copy params where necessary
+        let l:source_format = l:params.source
+        let l:params = deepcopy(
+                    \ s:dn_markdown_pandoc_params[l:source_format]['params'])
+    endif
     let l:opts   = []
     " variables    {{{3
     let l:cmd = [l:pandoc_exe]
