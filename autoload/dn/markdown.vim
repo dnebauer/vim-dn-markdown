@@ -72,6 +72,9 @@ let s:dn_markdown_menu_items = {
             \   ],
             \ }
 " pandoc parameters to set (s:dn_markdown_pandoc_params)    {{{2
+" - warning: ftplugin does not check correctness of this variable
+"            during execution, but can check with util 'check-vars.vim',
+"            which is included with this ftplugin
 " - format keys:
 "   ---- format: human-readable description of format;
 "                ***warning*** formats must be unique
@@ -226,42 +229,44 @@ function! dn#markdown#pandoc_params() abort
 endfunction
 
 " referenced structures (s:dn_markdown_referenced_types)    {{{2
-" - regex_str: regex for extracting ids from structure labels
-"              the id represented by '[^}]\+'
-" - write_str: information required to insert structure (Dict)
-"              key 'layout'   : whether inline or block
-"              key 'template' : template containing placeholders
-"              key 'params'   : details of placeholders (List)
-"              each param in params is a Dict with one key (which is the
-"              +placeholder string) and a value which is itself a Dict
-"              +containing param details
-"              details Dict starts with 'type', which can be 'id',
-"              +'string' or 'filepath'; there may be other key-value
-"              +pairs depending on the type:
-"              type 'id' : 
-"                optional key 'default' whose value defaults to empty/null
-"                +or can be a Dict with key 'param' and a value which is
-"                +a previous placeholder string
-"              type 'string' :
-"                key 'noun' whose value is a string used in prompts like
-"                +'Enter <noun>:'
-"              type 'filepath' : 
-"                key 'noun' whose value is a string used in prompts like
-"                +'Enter <noun> filepath:' and messages like
-"                +'<Noun> filepath appears to be invalid'
-" - regex_ref: regex for extracting ids from reference labels
-"              the id represented by '[^}]\+'
-" - templ_ref: template for reference
-"              placeholder for id is '{ID}'
-" - multi_ref: whether multiple references to structure are ok
-"              can be 'ignore', 'warning' or 'error'
-" -- zero_ref: whether no references to structure are ok
-"              can be 'ignore', 'warning' or 'error'
-" ------ name: human readable name for structure type
-" ------ Name: capitalised human readable name for structure type
-" -- complete: name of completion function
-" Note: correctness of definition can be checked with 'check-vars.vim',
-"       which is included with this ftplugin
+" - warning: ftplugin does not check correctness of this variable
+"            during execution, but can check with util 'check-vars.vim',
+"            which is included with this ftplugin
+" - type keys:
+"   - regex_str: regex for extracting ids from structure labels
+"                the id represented by '[^}]\+'
+"   - write_str: information required to insert structure (Dict)
+"                key 'layout'   : whether inline or block
+"                key 'template' : template containing placeholders
+"                key 'params'   : details of placeholders (List)
+"                each param in params is a Dict with one key (which is the
+"                +placeholder string) and a value which is itself a Dict
+"                +containing param details
+"                details Dict starts with 'type', which can be 'id',
+"                +'string' or 'filepath'; there may be other key-value
+"                +pairs depending on the type:
+"                type 'id' : 
+"                  optional key 'default' whose value defaults to empty/null
+"                  +or can be a Dict with key 'param' and a value which is
+"                  +a previous placeholder string
+"                type 'string' :
+"                  key 'noun' whose value is a string used in prompts like
+"                  +'Enter <noun>:'
+"                type 'filepath' : 
+"                  key 'noun' whose value is a string used in prompts like
+"                  +'Enter <noun> filepath:' and messages like
+"                  +'<Noun> filepath appears to be invalid'
+"   - regex_ref: regex for extracting ids from reference labels
+"                the id represented by '[^}]\+'
+"   - templ_ref: template for reference
+"                placeholder for id is '{ID}'
+"   - multi_ref: whether multiple references to structure are ok
+"                can be 'ignore', 'warning' or 'error'
+"   -- zero_ref: whether no references to structure are ok
+"                can be 'ignore', 'warning' or 'error'
+"   ------ name: human readable name for structure type
+"   ------ Name: capitalised human readable name for structure type
+"   -- complete: name of completion function
 let s:dn_markdown_referenced_types = {
             \ 'equation' : {
             \   'regex_str' : '{#eq:\([^}]\+\)}',
