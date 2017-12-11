@@ -369,7 +369,7 @@ function! s:_check_pandoc_params() abort
                 \        'odt',  'pdf_context', 'pdf_html', 'pdf_latex']
     let l:valid_format_params = ['format',    'depend',   'pandoc_to',
                 \                'after_ext', 'postproc', 'final_ext',
-                \                'params']
+                \                'steps']
     let l:valid_format_depends = ['context', 'ebook-convert', 'latex',
                 \                 'pandoc',  'wkhtmltopdf']
     let l:valid_format_steps = ['citeproc',   'contextlinks',  'cover_epub',
