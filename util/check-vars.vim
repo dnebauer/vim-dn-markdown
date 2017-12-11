@@ -449,15 +449,41 @@ function! s:_check_pandoc_params() abort
         " check steps values    {{{3
         let l:var   = join([l:name, 'steps'])
         let l:value = l:data['steps']
-        if !s:_valid_list(l:value, l:var) | return | endif
-        for l:step in l:value
-            if !count(l:valid_format_steps, l:step)
-                let l:msg = '- ' . l:var . ": invalid value '" 
-                            \ . l:step . "'"
+        " - can be Dict {'source': <valid-name>}
+        if     type(l:value) == type({})
+            let l:keys = keys(l:value)
+            if !(len(l:keys) == 1 && l:keys[0] ==# 'source')
+                let l:msg = '- ' . l:var
+                            \ . ": expected single key 'source', got key(s) "
+                            \ . join(l:keys, ', ')
                 call dn#util#wrap(l:msg, 2)
                 return
             endif
-        endfor
+            let l:source = l:keys[0]
+            let l:var    = join([l:name, 'steps', 'source'])
+            if !s:_valid_non_empty_string(l:source, l:var) | return | endif
+            if !count(l:valid_names, l:source) || l:source ==# l:name
+                let l:msg = '- ' . l:var . ': invalid value: '
+                            \ . dn#util#stringify(l:value)
+                call dn#util#wrap(l:msg, 2)
+                return
+            endif
+        " - can be List
+        elseif type(l:value) == type([])
+            for l:step in l:value
+                if !count(l:valid_format_steps, l:step)
+                    let l:msg = '- ' . l:var . ": invalid value '" 
+                                \ . l:step . "'"
+                    call dn#util#wrap(l:msg, 2)
+                    return
+                endif
+            endfor
+        else  " invalid variable type
+            let l:msg = '- ' . l:var . ': expected List or Dict, got '
+                        \ . dn#util#varType(l:value)
+            call dn#util#wrap(l:msg, 2)
+            return
+        endif
         " check format value    {{{3
         " - already checked that it is a string
         let l:value = l:data['format']
