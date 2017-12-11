@@ -51,9 +51,34 @@ function! s:main() abort
             return
         endif
     endif
+    " - s:pandoc_params    {{{3
+    if exists('s:pandoc_params') && !empty(s:pandoc_params)
+        echo "variable 's:pandoc_params' set by this script"
+    else  " retrieve from ftplugin autoload
+        " - use function to retrieve value of target variable
+        let l:fn = 'dn#markdown#pandoc_params'
+        if !exists('*'.l:fn)
+            let l:msg = "can't find function " . l:fn . '()'
+            call dn#util#error(l:msg)
+            return
+        endif
+        let s:pandoc_params = dn#markdown#pandoc_params()
+        if empty(s:pandoc_params)
+            let l:msg = 'unable to retrieve value for '
+                        \ . 's:dn_markdown_pandoc_params'
+            call dn#util#error(l:msg)
+            return
+        endif
+    endif
     " test variables for validity    {{{2
     " - s:dn_markdown_referenced_types    {{{3
     if s:_check_referenced_types()
+        echo '- definition is VALID'
+    else
+        call dn#util#warn('- definition is *INVALID*')
+    endif
+    " - s:dn_markdown_pandoc_params    {{{3
+    if s:_check_pandoc_params()
         echo '- definition is VALID'
     else
         call dn#util#warn('- definition is *INVALID*')
@@ -76,11 +101,16 @@ function! s:_check_referenced_types() abort
     echo 's:dn_markdown_referenced_types'
     " variables    {{{2
     let l:placeholders = {}
+    "let l:valid_types = ['equation', 'figure', 'footnote', 'link', 'table']
+    let l:valid_types = ['equation', 'figure', 'table']
+    let l:valid_type_params = ['regex_str', 'write_str', 'regex_ref',
+                \              'templ_ref', 'multi_ref', 'zero_ref',
+                \              'name',      'Name',      'complete']
+    let l:valid_ref_values = ['ignore', 'warning', 'error']
+    let l:valid_write_str_params = ['layout', 'template', 'params']
     " must be Dict    {{{2
     if !s:_valid_dict(s:referenced_types, 'var') | return | endif
     " must have correct keys    {{{2
-    "let l:valid_types = ['equation', 'figure', 'footnote', 'link', 'table']
-    let l:valid_types = ['equation', 'figure', 'table']
     let l:types = keys(s:referenced_types)
     if !s:_valid_keys(l:valid_types, l:types, 'var') | return | endif
     " process value for each reference type    {{{2
@@ -90,11 +120,8 @@ function! s:_check_referenced_types() abort
         let l:var  = 'type ' . l:type
         if !s:_valid_dict(l:data, l:var) | return | endif
         " check that keys are valid    {{{3
-        let l:valid_params = ['regex_str', 'write_str', 'regex_ref',
-                    \         'templ_ref', 'multi_ref', 'zero_ref',
-                    \         'name',      'Name',      'complete']
         let l:params = keys(l:data)
-        if !s:_valid_keys(l:valid_params, l:params, l:var)
+        if !s:_valid_keys(l:valid_type_params, l:params, l:var)
             return
         endif
         " all params except 'write_str' must be non-empty strings    {{{3
@@ -107,7 +134,6 @@ function! s:_check_referenced_types() abort
             endif
         endfor
         " multi_ref and zero_ref have restricted values    {{{3
-        let l:valid_ref_values = ['ignore', 'warning', 'error']
         let l:multi_ref = l:data.multi_ref
         if !count(l:valid_ref_values, l:multi_ref)
             let l:var = join([l:type, 'multi_ref'])
@@ -135,9 +161,8 @@ function! s:_check_referenced_types() abort
         let l:write_str = l:data.write_str
         if !s:_valid_dict(l:write_str, l:var) | return | endif
         " write_str Dict needs right keys    {{{3
-        let l:valid_params = ['layout', 'template', 'params']
         let l:params = keys(l:write_str)
-        if !s:_valid_keys(l:valid_params, l:params, l:var)
+        if !s:_valid_keys(l:valid_write_str_params, l:params, l:var)
             return
         endif
         " check write_str keys layout and template    {{{3
@@ -321,6 +346,128 @@ function! s:_check_placeholders(type) abort
             call dn#util#wrap(l:msg, 2)
             return
         endif    " }}}3
+    endfor    " }}}2
+    " report success    {{{2
+    return g:dn_true    " }}}2
+endfunction
+
+" s:_check_pandoc_params()    {{{1
+" does:   check that s:dn_markdown_pandoc_params is valid
+" params: nil
+" prints: error message if invalidity detected
+" return: whether variable is valid
+function! s:_check_pandoc_params() abort
+    " feedback    {{{2
+    echo ' ' |  " clear command line
+    echo 's:dn_markdown_pandoc_params'
+    " variables    {{{2
+    " - note unfortunate naming convention
+    let l:formats = {}
+    let l:valid_names = ['azw3', 'context',     'docbook',  'docx',
+                \        'epub', 'html',        'latex',    'mobi',
+                \        'odt',  'pdf_context', 'pdf_html', 'pdf_latex']
+    let l:valid_format_params = ['format',    'depend',   'pandoc_to',
+                \                'after_ext', 'postproc', 'final_ext',
+                \                'params']
+    let l:valid_format_depends = ['context', 'ebook-convert', 'latex',
+                \                 'pandoc',  'wkhtmltopdf']
+    let l:valid_format_steps = ['citeproc',   'contextlinks',  'cover_epub',
+                \               'equations',  'figures',       'fontsize',
+                \               'footnotes',  'latexlinks',    'papersize',
+                \               'pdfengine',  'selfcontained', 'smart',
+                \               'standalone', 'style_docx',    'style_epub',
+                \               'style_html', 'style_odt',     'tables',
+                \               'template']
+    let l:string_format_params    = ['pandoc_to', 'format']
+    let l:extension_format_params = ['after_ext', 'final_ext']
+    let l:boolean_format_params   = ['postproc']
+    " must be Dict    {{{2
+    if !s:_valid_dict(s:pandoc_params, 'var') | return | endif
+    " must have correct keys    {{{2
+    let l:names = keys(s:pandoc_params)
+    if !s:_valid_keys(l:valid_names, l:names, 'var') | return | endif
+    " process value for each format name    {{{2
+    for l:name in l:names
+        " needs to be a Dict    {{{3
+        let l:data = s:pandoc_params[l:name]
+        let l:var  = 'format ' . l:name
+        if !s:_valid_dict(l:data, l:var) | return | endif
+        " check that keys are valid    {{{3
+        let l:format_params = keys(l:data)
+        if !s:_valid_keys(l:valid_format_params, l:format_params, l:var)
+            return
+        endif
+        " check all string params are non-empty strings    {{{3
+        for l:param in l:string_format_params
+            let l:var   = join([l:name, l:param])
+            let l:value = l:data[l:param]
+            if !s:_valid_non_empty_string(l:value, l:var) | return | endif
+        endfor
+        " check all extension params are valid    {{{3
+        for l:param in l:extension_format_params
+            let l:var   = join([l:name, l:param])
+            let l:value = l:data[l:param]
+            if !s:_valid_non_empty_string(l:value, l:var) | return | endif
+            if l:value !~# '\.[a-z0-9]\+$'
+                let l:msg = '- ' . l:var . ': expected extension, got '
+                            \ . dn#util#stringify(l:value, g:dn_true)
+                call dn#util#wrap(l:msg, 2)
+                return
+            endif
+        endfor
+        " check all boolean params are valid    {{{3
+        for l:param in l:boolean_format_params
+            let l:var   = join([l:name, l:param])
+            let l:value = l:data[l:param]
+            " can be integer 1 or 0
+            if type(l:value) == type(0) && (l:value == 1 || l:value == 0)
+                continue
+            endif
+            " can be a true boolean
+            if exists('v:t_number') && type(l:value) == type(v:true)
+                continue
+            endif
+            " otherwise is invalid
+            let l:msg = '- ' . l:var . ': expected boolean, got '
+                        \ . dn#util#stringify(l:value, g:dn_true)
+            call dn#util#wrap(l:msg, 2)
+            return
+        endfor
+        " check depend values    {{{3
+        let l:var   = join([l:name, 'depend'])
+        let l:value = l:data['depend']
+        if !s:_valid_list(l:value, l:var) | return | endif
+        for l:depend in l:value
+            if !count(l:valid_format_depends, l:depend)
+                let l:msg = '- ' . l:var . ": invalid value '"
+                            \ . l:depend . "'"
+                call dn#util#wrap(l:msg, 2)
+                return
+            endif
+        endfor
+        " check steps values    {{{3
+        let l:var   = join([l:name, 'steps'])
+        let l:value = l:data['steps']
+        if !s:_valid_list(l:value, l:var) | return | endif
+        for l:step in l:value
+            if !count(l:valid_format_steps, l:step)
+                let l:msg = '- ' . l:var . ": invalid value '" 
+                            \ . l:step . "'"
+                call dn#util#wrap(l:msg, 2)
+                return
+            endif
+        endfor
+        " check format value    {{{3
+        " - already checked that it is a string
+        let l:value = l:data['format']
+        if has_key(l:formats, l:value)
+            let l:var = join([l:name, 'format'])
+            let l:msg = '- ' . l:var . ": duplicate value '" . l:value . "'"
+            call dn#util#wrap(l:msg, 2)
+            return
+        else
+            let l:formats[l:value] = 1
+        endif
     endfor    " }}}2
     " report success    {{{2
     return g:dn_true    " }}}2
@@ -543,6 +690,31 @@ function! s:_valid_dict(value, var) abort
     if type(a:value) != type({})
         let l:type = dn#util#varType(a:value)
         let l:msg = '- ' . a:var . ': expected Dict, got ' . l:type
+        call dn#util#wrap(l:msg, 2)
+        return
+    endif
+    return g:dn_true
+endfunction
+
+" s:_valid_list(value, var)    {{{1
+" does:   check that value is a list
+" params: value - value to test [required, any]
+"         var   - name of variable used in error messages [required, string]
+" prints: error message if not a valid List
+" return: whether value is a List
+function! s:_valid_list(value, var) abort
+    " params
+    if type(a:var) != type('') || empty(a:var)
+        let l:msg = 'expected string var name, got '
+                    \ . dn#util#varType(a:var) . " with value '"
+                    \ . dn#util#stringify(a:var) . "'"
+        call dn#util#error(l:msg)
+        return
+    endif
+    " check whether List
+    if type(a:value) != type([])
+        let l:type = dn#util#varType(a:value)
+        let l:msg = '- ' . a:var . ': expected List, got ' . l:type
         call dn#util#wrap(l:msg, 2)
         return
     endif
