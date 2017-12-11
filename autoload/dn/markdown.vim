@@ -78,23 +78,23 @@ let s:dn_markdown_menu_items = {
 " - format keys:
 "   ---- format: human-readable description of format;
 "                ***warning*** formats must be unique
-"                for function s:_select_formats to work; string
+"                for function s:_select_formats to work
+"                type = string
 "   ---- depend: executables required for conversion; List
 "   - pandoc_to: value to provide to pandoc's '--to' option; string
 "   - after_ext: extension of pandoc's output file; string
-"   -- postproc: whether there is further conversion after pandoc;
-"                boolean
+"   -- postproc: whether there is further conversion after pandoc
+"                type = boolean
 "   - final_ext: extension given to final output file, i.e., after
 "                post-pandoc processing when that occurs; where there
-"                is no post-pandoc processing is the same as 'after_ext';
-"                string
-"   ---- params: refers to keywords that each signify a parameter/option
-"                to add to pandoc command;
-"                List - if given format defined its own params
-"                or
-"                Dict - if given format uses another format's params
-"                       then hash key is 'source' and the value for this
-"                       key is the format whose params are used
+"                is no post-pandoc processing is the same as 'after_ext'
+"                type = string
+"   ----- steps: refers to steps in output generation
+"                type = List or Dict:
+"                List - if given format defines its own steps
+"                Dict - if given format uses another format's steps
+"                       then Dict key is 'source', whose value is
+"                       the format whose steps are used
 let s:dn_markdown_pandoc_params = {
             \ 'azw3' : {
             \   'format'    : 'Kindle Format 8 (azw3) via ePub',
@@ -103,7 +103,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_true,
             \   'final_ext' : '.azw3',
-            \   'params'    : {'source': 'epub'},
+            \   'steps'     : {'source': 'epub'},
             \   },
             \ 'context' : {
             \   'format'    : 'ConTeXt (tex)',
@@ -112,7 +112,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['figures',   'equations',    'tables',
+            \   'steps'     : ['figures',   'equations',    'tables',
             \                  'footnotes', 'standalone',   'smart',
             \                  'citeproc',  'contextlinks', 'papersize',
             \                  'template',  'fontsize'],
@@ -124,7 +124,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.xml',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.xml',
-            \   'params'    : ['figures',   'equations',  'tables',
+            \   'steps'     : ['figures',   'equations',  'tables',
             \                  'footnotes', 'standalone', 'template',
             \                  'citeproc'],
             \   },
@@ -135,7 +135,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.docx',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.docx',
-            \   'params'    : ['figures',   'equations',  'tables',
+            \   'steps'     : ['figures',   'equations',  'tables',
             \                  'footnotes', 'standalone', 'smart',
             \                  'citeproc',  'style_docx', 'template'],
             \   },
@@ -146,7 +146,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.epub',
-            \   'params'    : ['figures',    'equations',  'tables',
+            \   'steps'     : ['figures',    'equations',  'tables',
             \                  'footnotes',  'standalone', 'smart',
             \                  'style_epub', 'cover_epub', 'citeproc',
             \                  'template'],
@@ -158,7 +158,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.html',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.html',
-            \   'params'    : ['figures',       'equations',  'tables',
+            \   'steps'     : ['figures',       'equations',  'tables',
             \                  'footnotes',     'standalone', 'smart',
             \                  'selfcontained', 'citeproc',   'style_html',
             \                  'template'],
@@ -170,7 +170,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.tex',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.tex',
-            \   'params'    : ['figures',    'equations',  'tables',
+            \   'steps'     : ['figures',    'equations',  'tables',
             \                  'footnotes',  'standalone', 'citeproc',
             \                  'smart',      'pdfengine',  'fontsize',
             \                  'latexlinks', 'papersize',  'template'],
@@ -182,7 +182,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.epub',
             \   'postproc'  : g:dn_true,
             \   'final_ext' : '.mobi',
-            \   'params'    : {'source': 'epub'},
+            \   'steps'     : {'source': 'epub'},
             \   },
             \ 'odt' : {
             \   'format'    : 'OpenDocument Text (odt)',
@@ -191,7 +191,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.odt',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.odt',
-            \   'params'    : ['figures',   'equations',  'tables',
+            \   'steps'     : ['figures',   'equations',  'tables',
             \                  'footnotes', 'standalone', 'smart',
             \                  'citeproc',  'style_odt',  'template'],
             \   },
@@ -202,7 +202,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.pdf',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.pdf',
-            \   'params'    : {'source': 'context'},
+            \   'steps'     : {'source': 'context'},
             \   },
             \ 'pdf_html' : {
             \   'format'    : 'Portable Document Format (pdf) via HTML',
@@ -211,7 +211,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.pdf',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.pdf',
-            \   'params'    : {'source': 'html'},
+            \   'steps'     : {'source': 'html'},
             \   },
             \ 'pdf_latex' : {
             \   'format'    : 'Portable Document Format (pdf) via LaTeX',
@@ -220,7 +220,7 @@ let s:dn_markdown_pandoc_params = {
             \   'after_ext' : '.pdf',
             \   'postproc'  : g:dn_false,
             \   'final_ext' : '.pdf',
-            \   'params'    : {'source': 'latex'},
+            \   'steps'     : {'source': 'latex'},
             \   },
             \ }
 " - make variable available to external script
@@ -1102,11 +1102,11 @@ function! s:_generator (format) abort
     " - note: some output options are displayed explicitly,
     "         one per line, while other are added to l:opts
     "         and displayed in a single line
-    let l:params = s:dn_markdown_pandoc_params[a:format]['params']
-    if type(l:params) == type({})  " copy params where necessary
-        let l:source_format = l:params.source
-        let l:params = deepcopy(
-                    \ s:dn_markdown_pandoc_params[l:source_format]['params'])
+    let l:steps = s:dn_markdown_pandoc_params[a:format]['steps']
+    if type(l:steps) == type({})  " copy params where necessary
+        let l:source_format = l:steps.source
+        let l:steps = deepcopy(
+                    \ s:dn_markdown_pandoc_params[l:source_format]['steps'])
     endif
     let l:opts   = []
     " variables    {{{3
@@ -1115,7 +1115,7 @@ function! s:_generator (format) abort
     " number figures    {{{3
     " - pandoc-fignos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
-    if count(l:params, 'figures') > 0                      " number figures
+    if count(l:steps, 'figures') > 0                       " number figures
         let l:use_fignos = b:dn_markdown_settings.number_figures.value
         " requires pandoc-fignos filter be installed
         if l:use_fignos && !executable('pandoc-fignos')
@@ -1131,7 +1131,7 @@ function! s:_generator (format) abort
     " number equations    {{{3
     " - pandoc-eqnos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
-    if count(l:params, 'equations') > 0                    " number equations
+    if count(l:steps, 'equations') > 0                     " number equations
         let l:use_eqnos = b:dn_markdown_settings.number_equations.value
         " requires pandoc-eqnos filter be installed
         if l:use_eqnos && !executable('pandoc-eqnos')
@@ -1147,7 +1147,7 @@ function! s:_generator (format) abort
     " number tables    {{{3
     " - pandoc-tablenos filter must be called before
     "   pandoc-citeproc filter or --bibliography=FILE
-    if count(l:params, 'tables') > 0                       " number tables
+    if count(l:steps, 'tables') > 0                        " number tables
         let l:use_tablenos = b:dn_markdown_settings.number_tables.value
         " requires pandoc-tablenos filter be installed
         if l:use_tablenos && !executable('pandoc-tablenos')
@@ -1161,13 +1161,13 @@ function! s:_generator (format) abort
         endif
     endif
     " process footnotes    {{{3
-    if count(l:params, 'footnotes') > 0                    " footnotes
+    if count(l:steps, 'footnotes') > 0                     " footnotes
         call add(l:pandoc_extensions.reader, 'footnotes')
         call add(l:pandoc_extensions.reader, 'inline_notes')
         call add(l:opts, 'footnotes')
     endif
     " latex engine    {{{3
-    if count(l:params, 'pdfengine') > 0                    " pdf engine
+    if count(l:steps, 'pdfengine') > 0                     " pdf engine
         " latex engine
         " - can be pdflatex, lualatex or xelatex (default)
         " - xelatex is better at handling exotic unicode
@@ -1180,7 +1180,7 @@ function! s:_generator (format) abort
         call s:_say({'msg': ['PDF engine:', l:engine]})
     endif
     " make links visible    {{{3
-    if count(l:params, 'latexlinks') > 0                   " latex links
+    if count(l:steps, 'latexlinks') > 0                    " latex links
         " available colours are:
         "   black,    blue,    brown, cyan,
         "   darkgray, gray,    green, lightgray,
@@ -1196,7 +1196,7 @@ function! s:_generator (format) abort
         call add(l:cmd, '--variable urlcolor='  . l:link_color)
         call s:_say({'msg': ['Link colour:', l:link_color]})
     endif
-    if count(l:params, 'contextlinks') > 0                 " context links
+    if count(l:steps, 'contextlinks') > 0                  " context links
         " available colours are:
         "   black   white
         "   gray    {light,middle,dark}gray
@@ -1213,7 +1213,7 @@ function! s:_generator (format) abort
         call s:_say({'msg': ['Link colour:', l:link_color]})
     endif
     " custom font size    {{{3
-    if count(l:params, 'fontsize') > 0                     " font size
+    if count(l:steps, 'fontsize') > 0                      " font size
         let l:font_size = b:dn_markdown_settings.fontsize_print.value
         if empty(l:font_size)
             call s:_say({'msg': ['Font size:', 'default']})
@@ -1224,7 +1224,7 @@ function! s:_generator (format) abort
         endif
     endif
     " custom paper size    {{{3
-    if count(l:params, 'papersize') > 0                    " paper size
+    if count(l:steps, 'papersize') > 0                     " paper size
         let l:paper_size = b:dn_markdown_settings.papersize_print.value
         if empty(l:paper_size)
             call s:_say({'msg': ['Paper size:', 'default']})
@@ -1234,22 +1234,22 @@ function! s:_generator (format) abort
         endif
     endif
     " add header and footer    {{{3
-    if count(l:params, 'standalone') > 0                   " standalone
+    if count(l:steps, 'standalone') > 0                    " standalone
         call add(l:cmd, '--standalone')
         call add(l:opts, 'standalone')
     endif
     " convert quotes, em|endash, ellipsis    {{{3
-    if count(l:params, 'smart') > 0                        " smart
+    if count(l:steps, 'smart') > 0                         " smart
         call add(l:pandoc_extensions.reader, 'smart')
         call add(l:opts, 'smart')
     endif
     " incorporate external dependencies    {{{3
-    if count(l:params, 'selfcontained') > 0                " self-contained
+    if count(l:steps, 'selfcontained') > 0                 " self-contained
         call add(l:cmd, '--self-contained')
         call add(l:opts, 'self-contained')
     endif
     " use citeproc if selected by user    {{{3
-    if count(l:params, 'citeproc') > 0                     " citeproc
+    if count(l:steps, 'citeproc') > 0                      " citeproc
         let l:use_citeproc = b:dn_markdown_settings.citeproc_all.value
         if l:use_citeproc
             call add(l:cmd, '--filter pandoc-citeproc')
@@ -1257,7 +1257,7 @@ function! s:_generator (format) abort
         endif
     endif
     " use css stylesheet for html    {{{3
-    if count(l:params, 'style_html') > 0                   " style/html
+    if count(l:steps, 'style_html') > 0                    " style/html
         let l:style_html = b:dn_markdown_settings.stylesheet_html.value
         if !empty(l:style_html)
             call add(l:cmd, '--css=' . shellescape(l:style_html))
@@ -1265,7 +1265,7 @@ function! s:_generator (format) abort
         endif
     endif
     " use css stylesheet for epub    {{{3
-    if count(l:params, 'style_epub') > 0                   " style/epub
+    if count(l:steps, 'style_epub') > 0                    " style/epub
         let l:style_epub = b:dn_markdown_settings.stylesheet_epub.value
         if !empty(l:style_epub)
             call add(l:cmd, '--epub-stylesheet='
@@ -1274,7 +1274,7 @@ function! s:_generator (format) abort
         endif
     endif
     " use cover image for epub    {{{3
-    if count(l:params, 'cover_epub') > 0                   " cover/epub
+    if count(l:steps, 'cover_epub') > 0                    " cover/epub
         let l:cover_epub = ''
         for l:ext in ['gif', 'jpg', 'png']
             let l:candidate = 'cover.' . l:ext
@@ -1289,7 +1289,7 @@ function! s:_generator (format) abort
         endif
     endif
     " use docx stylesheet    {{{3
-    if count(l:params, 'style_docx') > 0                   " style/docx
+    if count(l:steps, 'style_docx') > 0                    " style/docx
         let l:style_docx =
                     \ b:dn_markdown_settings.stylesheet_docx.value
         if !empty(l:style_docx)
@@ -1299,7 +1299,7 @@ function! s:_generator (format) abort
         endif
     endif
     " use custom template    {{{3
-    if count(l:params, 'template') > 0                     " template
+    if count(l:steps, 'template') > 0                      " template
         let l:setting  = 'template_' . a:format
         let l:template = b:dn_markdown_settings[l:setting]['value']
         if !empty(l:template)
