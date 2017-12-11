@@ -462,6 +462,7 @@ function! s:_check_pandoc_params() abort
             let l:source = l:keys[0]
             let l:var    = join([l:name, 'steps', 'source'])
             if !s:_valid_non_empty_string(l:source, l:var) | return | endif
+            breakadd here
             if !count(l:valid_names, l:source) || l:source ==# l:name
                 let l:msg = '- ' . l:var . ': invalid value: '
                             \ . dn#util#stringify(l:value)
