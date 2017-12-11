@@ -1,6 +1,7 @@
 " Test vim-dn-markdown ftplugin variables for correctness
 
 " Tests: s:dn_markdown_referenced_types
+"        s:dn_markdown_pandoc_params
 
 " Usage: open script in vim, execute command ':source %'
 "        open from command line with 'vim check-vars.vim "+source %"'
@@ -533,7 +534,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.epub',
                 \   'postproc'  : g:dn_true,
                 \   'final_ext' : '.azw3',
-                \   'params'    : {'source': 'epub'},
+                \   'steps'     : {'source': 'epub'},
                 \   },
                 \ 'context' : {
                 \   'format'    : 'ConTeXt (tex)',
@@ -542,7 +543,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.tex',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.tex',
-                \   'params'    : ['figures',   'equations',    'tables',
+                \   'steps'     : ['figures',   'equations',    'tables',
                 \                  'footnotes', 'standalone',   'smart',
                 \                  'citeproc',  'contextlinks', 'papersize',
                 \                  'template',  'fontsize'],
@@ -554,7 +555,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.xml',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.xml',
-                \   'params'    : ['figures',   'equations',  'tables',
+                \   'steps'     : ['figures',   'equations',  'tables',
                 \                  'footnotes', 'standalone', 'template',
                 \                  'citeproc'],
                 \   },
@@ -565,7 +566,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.docx',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.docx',
-                \   'params'    : ['figures',   'equations',  'tables',
+                \   'steps'     : ['figures',   'equations',  'tables',
                 \                  'footnotes', 'standalone', 'smart',
                 \                  'citeproc',  'style_docx', 'template'],
                 \   },
@@ -576,7 +577,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.epub',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.epub',
-                \   'params'    : ['figures',    'equations',  'tables',
+                \   'steps'     : ['figures',    'equations',  'tables',
                 \                  'footnotes',  'standalone', 'smart',
                 \                  'style_epub', 'cover_epub', 'citeproc',
                 \                  'template'],
@@ -588,7 +589,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.html',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.html',
-                \   'params'    : ['figures',       'equations',  'tables',
+                \   'steps'     : ['figures',       'equations',  'tables',
                 \                  'footnotes',     'standalone', 'smart',
                 \                  'selfcontained', 'citeproc',   'style_html',
                 \                  'template'],
@@ -600,7 +601,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.tex',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.tex',
-                \   'params'    : ['figures',    'equations',  'tables',
+                \   'steps'     : ['figures',    'equations',  'tables',
                 \                  'footnotes',  'standalone', 'citeproc',
                 \                  'smart',      'pdfengine',  'fontsize',
                 \                  'latexlinks', 'papersize',  'template'],
@@ -612,7 +613,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.epub',
                 \   'postproc'  : g:dn_true,
                 \   'final_ext' : '.mobi',
-                \   'params'    : {'source': 'epub'},
+                \   'steps'     : {'source': 'epub'},
                 \   },
                 \ 'odt' : {
                 \   'format'    : 'OpenDocument Text (odt)',
@@ -621,7 +622,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.odt',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.odt',
-                \   'params'    : ['figures',   'equations',  'tables',
+                \   'steps'     : ['figures',   'equations',  'tables',
                 \                  'footnotes', 'standalone', 'smart',
                 \                  'citeproc',  'style_odt',  'template'],
                 \   },
@@ -632,7 +633,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.pdf',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.pdf',
-                \   'params'    : {'source': 'context'},
+                \   'steps'     : {'source': 'context'},
                 \   },
                 \ 'pdf_html' : {
                 \   'format'    : 'Portable Document Format (pdf) via HTML',
@@ -641,7 +642,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.pdf',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.pdf',
-                \   'params'    : {'source': 'html'},
+                \   'steps'     : {'source': 'html'},
                 \   },
                 \ 'pdf_latex' : {
                 \   'format'    : 'Portable Document Format (pdf) via LaTeX',
@@ -650,7 +651,7 @@ function! s:_set_vars_manually() abort
                 \   'after_ext' : '.pdf',
                 \   'postproc'  : g:dn_false,
                 \   'final_ext' : '.pdf',
-                \   'params'    : {'source': 'latex'},
+                \   'steps'     : {'source': 'latex'},
                 \   },
                 \ }
     return
