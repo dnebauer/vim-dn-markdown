@@ -423,15 +423,15 @@ nmap <buffer> <unique> <Plug>DnLIN
             \ :call dn#markdown#structureInsert('link')<CR>
 
 " \lr : insert link reference    {{{2
-if !hasmapto('<Plug>DnNRI')
-    imap <buffer> <unique> <LocalLeader>lr <Plug>DnNRI
+if !hasmapto('<Plug>DnLRI')
+    imap <buffer> <unique> <LocalLeader>lr <Plug>DnLRI
 endif
-imap <buffer> <unique> <Plug>DnNRI
+imap <buffer> <unique> <Plug>DnLRI
             \ <Esc>:call dn#markdown#refInsert('link', g:dn_true)<CR>
-if !hasmapto('<Plug>DnNRN')
-    nmap <buffer> <unique> <LocalLeader>lr <Plug>DnNRN
+if !hasmapto('<Plug>DnLRN')
+    nmap <buffer> <unique> <LocalLeader>lr <Plug>DnLRN
 endif
-nmap <buffer> <unique> <Plug>DnNRN
+nmap <buffer> <unique> <Plug>DnLRN
             \ :call dn#markdown#refInsert('link')<CR>
 
 " \ni : insert footnote    {{{2
