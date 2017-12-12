@@ -310,6 +310,48 @@ let s:dn_markdown_referenced_types = {
             \   'Name'      : 'Figure',
             \   'complete'  : 'dn#markdown#completeIdFigure',
             \   },
+            \ 'footnote' : {
+            \   'regex_str' : '\[\^\([^\]]\+\)\]:',
+            \   'write_str' : {
+            \     'layout'   : 'block',
+            \     'template' : '[^{ID}]: {CONTENT}',
+            \     'params'   : [
+            \       {     'ID' : {'type' : 'id'},
+            \       },
+            \       {'CONTENT' : {'type' : 'string',
+            \                     'noun' : 'footnote content'},
+            \       },
+            \     ],
+            \   },
+            \   'regex_ref' : '\[\^\([^\]]\+\)\]',
+            \   'templ_ref' : '[^{ID}]',
+            \   'multi_ref' : 'error',
+            \   'zero_ref'  : 'warning',
+            \   'name'      : 'footnote',
+            \   'Name'      : 'Footnote',
+            \   'complete'  : 'dn#markdown#completeIdFootnote',
+            \   },
+            \ 'link' : {
+            \   'regex_str' : '\[\([^\]]\+\)\]:',
+            \   'write_str' : {
+            \     'layout'   : 'block',
+            \     'template' : '[{ID}]: {URL}',
+            \     'params'   : [
+            \       { 'ID' : {'type' : 'id'},
+            \       },
+            \       {'URL' : {'type' : 'string',
+            \                 'noun' : 'link url'},
+            \       },
+            \     ],
+            \   },
+            \   'regex_ref' : '\[\([^\]]\+\)\]',
+            \   'templ_ref' : '[{ID}]',
+            \   'multi_ref' : 'warning',
+            \   'zero_ref'  : 'warning',
+            \   'name'      : 'link',
+            \   'Name'      : 'Link',
+            \   'complete'  : 'dn#markdown#completeIdLink',
+            \   },
             \ 'table' : {
             \   'regex_str' : '{#tbl:\([^}]\+\)}',
             \   'write_str' : {
@@ -374,6 +416,28 @@ endfunction
 " return: List of ids
 function! dn#markdown#completeIdFigure(A, L, P) abort
     let l:ids = sort(keys(b:dn_markdown_ids.figure))
+    return filter(l:ids, 'v:val =~# "' . a:A . '"')
+endfunction
+
+" dn#markdown#completeIdFootnote(A, L, P)    {{{2
+" does:   perform completion on footnote ids
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of ids
+function! dn#markdown#completeIdFootnote(A, L, P) abort
+    let l:ids = sort(keys(b:dn_markdown_ids.footnote))
+    return filter(l:ids, 'v:val =~# "' . a:A . '"')
+endfunction
+
+" dn#markdown#completeIdLink(A, L, P)    {{{2
+" does:   perform completion on link ids
+" params: ArgLead   - see help for |command-completion-custom|
+"         CmdLine   - see help for |command-completion-custom|
+"         CursorPos - see help for |command-completion-custom|
+" return: List of ids
+function! dn#markdown#completeIdLink(A, L, P) abort
+    let l:ids = sort(keys(b:dn_markdown_ids.link))
     return filter(l:ids, 'v:val =~# "' . a:A . '"')
 endfunction
 
