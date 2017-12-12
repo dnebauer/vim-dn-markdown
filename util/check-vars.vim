@@ -102,8 +102,7 @@ function! s:_check_referenced_types() abort
     echo 's:dn_markdown_referenced_types'
     " variables    {{{2
     let l:placeholders = {}
-    "let l:valid_types = ['equation', 'figure', 'footnote', 'link', 'table']
-    let l:valid_types = ['equation', 'figure', 'table']
+    let l:valid_types = ['equation', 'figure', 'footnote', 'link', 'table']
     let l:valid_type_params = ['regex_str', 'write_str', 'regex_ref',
                 \              'templ_ref', 'multi_ref', 'zero_ref',
                 \              'name',      'Name',      'complete']
