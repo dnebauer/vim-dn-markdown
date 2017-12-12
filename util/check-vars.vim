@@ -430,6 +430,7 @@ function! s:_check_pandoc_params() abort
             endif
             " otherwise is invalid
             let l:msg = '- ' . l:var . ': expected boolean, got '
+                        \ . dn#util#varType(l:value) . ' with value '
                         \ . dn#util#stringify(l:value, g:dn_true)
             call dn#util#wrap(l:msg, 2)
             return
@@ -437,15 +438,9 @@ function! s:_check_pandoc_params() abort
         " check depend values    {{{3
         let l:var   = join([l:name, 'depend'])
         let l:value = l:data['depend']
-        if !s:_valid_list(l:value, l:var) | return | endif
-        for l:depend in l:value
-            if !count(l:valid_format_depends, l:depend)
-                let l:msg = '- ' . l:var . ": invalid value '"
-                            \ . l:depend . "'"
-                call dn#util#wrap(l:msg, 2)
-                return
-            endif
-        endfor
+        if !s:_valid_items(l:valid_format_depends, l:value, l:var)
+            return
+        endif
         " check steps values    {{{3
         let l:var   = join([l:name, 'steps'])
         let l:value = l:data['steps']
@@ -454,7 +449,7 @@ function! s:_check_pandoc_params() abort
             let l:keys = keys(l:value)
             if !(len(l:keys) == 1 && l:keys[0] ==# 'source')
                 let l:msg = '- ' . l:var
-                            \ . ": expected single key 'source', got key(s) "
+                            \ . ": expected single key 'source', got key(s): "
                             \ . join(l:keys, ', ')
                 call dn#util#wrap(l:msg, 2)
                 return
@@ -463,21 +458,16 @@ function! s:_check_pandoc_params() abort
             let l:var    = join([l:name, 'steps', 'source'])
             if !s:_valid_non_empty_string(l:source, l:var) | return | endif
             if !count(l:valid_names, l:source) || l:source ==# l:name
-                let l:msg = '- ' . l:var . ': invalid value: '
-                            \ . dn#util#stringify(l:value)
+                let l:msg = '- ' . l:var . ': invalid format '
+                            \ . dn#util#stringify(l:source)
                 call dn#util#wrap(l:msg, 2)
                 return
             endif
         " - can be List
         elseif type(l:value) == type([])
-            for l:step in l:value
-                if !count(l:valid_format_steps, l:step)
-                    let l:msg = '- ' . l:var . ": invalid value '" 
-                                \ . l:step . "'"
-                    call dn#util#wrap(l:msg, 2)
-                    return
-                endif
-            endfor
+            if !s:_valid_items(l:valid_format_steps, l:value, l:var)
+                return
+            endif
         else  " invalid variable type
             let l:msg = '- ' . l:var . ': expected List or Dict, got '
                         \ . dn#util#varType(l:value)
@@ -780,7 +770,7 @@ function! s:_valid_keys(valid_keys, keys, var) abort
     endif
     if type(a:valid_keys) != type([])
         let l:msg = "invalid 'valid_keys' param: expected List, got "
-                    \ . dn#util#varType(a:keys)
+                    \ . dn#util#varType(a:valid_keys)
         call dn#util#error(l:msg)
         return
     endif
@@ -790,8 +780,8 @@ function! s:_valid_keys(valid_keys, keys, var) abort
     endif
     " all keys must be non-empty strings    {{{3
     if len(filter(copy(a:valid_keys), 'type(v:val) != type("")'))
-        let l:msg = '- ' . a:var . ": non-string 'valid' key(s)"
-        call dn#util#wrap(l:msg, 2)
+        let l:msg = a:var . ": non-string 'valid' key(s)"
+        call dn#util#error(l:msg)
         return
     endif
     if len(filter(copy(a:keys), 'type(v:val) != type("")'))
@@ -800,8 +790,8 @@ function! s:_valid_keys(valid_keys, keys, var) abort
         return
     endif
     if len(filter(copy(a:valid_keys), 'empty(v:val)'))
-        let l:msg = '- ' . a:var . ": empty 'valid' key(s)"
-        call dn#util#wrap(l:msg, 2)
+        let l:msg = a:var . ": empty 'valid' key(s)"
+        call dn#util#error(l:msg)
         return
     endif
     if len(filter(copy(a:keys), 'empty(v:val)'))
@@ -826,6 +816,74 @@ function! s:_valid_keys(valid_keys, keys, var) abort
             return
         endif
     endfor    " }}}3
+    return g:dn_true
+endfunction
+
+" s:_valid_items(valid_items, items, var)    {{{1
+" does:   check list of items to ensure they are valid
+" params: valid_items - valid items [required, List]
+"         items       - candidate items [required, List, can be empty]
+"         var         - name of variable [required, string]
+" prints: error message if invalidity detected
+" return: whether all items are valid
+" note:   all items need *not* be present, no duplicates allowed
+function! s:_valid_items(valid_items, items, var) abort
+    " check params    {{{3
+    if type(a:var) != type('')
+        let l:msg = "invalid 'var' param: expected string, got "
+                    \ . dn#util#varType(a:var)
+        call dn#util#error(l:msg)
+        return
+    endif
+    if empty(a:var)
+        call dn#util#error("empty 'var' string param")
+        return
+    endif
+    if type(a:items) != type([])
+        let l:msg = '- ' . a:var . ': expected List, got '
+                    \ . dn#util#varType(a:items)
+        call dn#util#wrap(l:msg, 2)
+        return
+    endif
+    if type(a:valid_items) != type([])
+        let l:msg = "invalid 'valid_items' param: expected List, got "
+                    \ . dn#util#varType(a:valid_items)
+        call dn#util#error(l:msg)
+        return
+    endif
+    if empty(a:valid_items)
+        call dn#util#error("empty 'valid_items' List param")
+        return
+    endif
+    " all items must be non-empty strings    {{{3
+    if len(filter(copy(a:valid_items), 'type(v:val) != type("")'))
+        let l:msg = a:var . ": non-string 'valid' item(s)"
+        call dn#util#error(l:msg)
+        return
+    endif
+    if len(filter(copy(a:items), 'type(v:val) != type("")'))
+        let l:msg = '- ' . a:var . ': non-string item(s)'
+        call dn#util#wrap(l:msg, 2)
+        return
+    endif
+    if len(filter(copy(a:valid_items), 'empty(v:val)'))
+        let l:msg = a:var . ": empty 'valid' item(s)"
+        call dn#util#error(l:msg)
+        return
+    endif
+    if len(filter(copy(a:items), 'empty(v:val)'))
+        let l:msg = '- ' . a:var . ': empty item(s)'
+        call dn#util#wrap(l:msg, 2)
+        return
+    endif
+    " check that all items are valid    {{{3
+    for l:item in a:items
+        if !count(a:valid_items, l:item)
+            let l:msg = '- ' . a:var . ": invalid item '" . l:item . "'"
+            call dn#util#wrap(l:msg, 2)
+            return
+        endif
+    endfor
     return g:dn_true
 endfunction
 
