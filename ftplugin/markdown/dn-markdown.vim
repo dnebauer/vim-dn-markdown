@@ -398,42 +398,6 @@ endif
 nmap <buffer> <unique> <Plug>DnFRN
             \ :call dn#markdown#refInsert('figure')<CR>
 
-" \fi : insert footnote    {{{2
-if !hasmapto('<Plug>DnNII')
-    imap <buffer> <unique> <LocalLeader>ni <Plug>DnNII
-endif
-imap <buffer> <unique> <Plug>DnNII
-            \ <Esc>:call dn#markdown#structureInsert('footnote', g:dn_true)<CR>
-if !hasmapto('<Plug>DnNIN')
-    nmap <buffer> <unique> <LocalLeader>ni <Plug>DnNIN
-endif
-nmap <buffer> <unique> <Plug>DnNIN
-            \ :call dn#markdown#structureInsert('footnote')<CR>
-
-" \fi : insert link    {{{2
-if !hasmapto('<Plug>DnLII')
-    imap <buffer> <unique> <LocalLeader>li <Plug>DnLII
-endif
-imap <buffer> <unique> <Plug>DnLII
-            \ <Esc>:call dn#markdown#structureInsert('link', g:dn_true)<CR>
-if !hasmapto('<Plug>DnLIN')
-    nmap <buffer> <unique> <LocalLeader>li <Plug>DnLIN
-endif
-nmap <buffer> <unique> <Plug>DnLIN
-            \ :call dn#markdown#structureInsert('link')<CR>
-
-" \fr : insert figure reference    {{{2
-if !hasmapto('<Plug>DnFRI')
-    imap <buffer> <unique> <LocalLeader>fr <Plug>DnFRI
-endif
-imap <buffer> <unique> <Plug>DnFRI
-            \ <Esc>:call dn#markdown#refInsert('figure', g:dn_true)<CR>
-if !hasmapto('<Plug>DnFRN')
-    nmap <buffer> <unique> <LocalLeader>fr <Plug>DnFRN
-endif
-nmap <buffer> <unique> <Plug>DnFRN
-            \ :call dn#markdown#refInsert('figure')<CR>
-
 " \iu : update lists of ids    {{{2
 if !hasmapto('<Plug>DnIUI')
     imap <buffer> <unique> <LocalLeader>iu <Plug>DnIUI
@@ -445,6 +409,54 @@ if !hasmapto('<Plug>DnIUN')
 endif
 nmap <buffer> <unique> <Plug>DnIUN
             \ :call dn#markdown#idsUpdate()<CR>
+
+" \li : insert link    {{{2
+if !hasmapto('<Plug>DnLII')
+    imap <buffer> <unique> <LocalLeader>li <Plug>DnLII
+endif
+imap <buffer> <unique> <Plug>DnLII
+            \ <Esc>:call dn#markdown#structureInsert('link', g:dn_true)<CR>
+if !hasmapto('<Plug>DnLIN')
+    nmap <buffer> <unique> <LocalLeader>li <Plug>DnLIN
+endif
+nmap <buffer> <unique> <Plug>DnLIN
+            \ :call dn#markdown#structureInsert('link')<CR>
+
+" \lr : insert link reference    {{{2
+if !hasmapto('<Plug>DnNRI')
+    imap <buffer> <unique> <LocalLeader>lr <Plug>DnNRI
+endif
+imap <buffer> <unique> <Plug>DnNRI
+            \ <Esc>:call dn#markdown#refInsert('link', g:dn_true)<CR>
+if !hasmapto('<Plug>DnNRN')
+    nmap <buffer> <unique> <LocalLeader>lr <Plug>DnNRN
+endif
+nmap <buffer> <unique> <Plug>DnNRN
+            \ :call dn#markdown#refInsert('link')<CR>
+
+" \ni : insert footnote    {{{2
+if !hasmapto('<Plug>DnNII')
+    imap <buffer> <unique> <LocalLeader>ni <Plug>DnNII
+endif
+imap <buffer> <unique> <Plug>DnNII
+            \ <Esc>:call dn#markdown#structureInsert('footnote', g:dn_true)<CR>
+if !hasmapto('<Plug>DnNIN')
+    nmap <buffer> <unique> <LocalLeader>ni <Plug>DnNIN
+endif
+nmap <buffer> <unique> <Plug>DnNIN
+            \ :call dn#markdown#structureInsert('footnote')<CR>
+
+" \nr : insert footnote reference    {{{2
+if !hasmapto('<Plug>DnNRI')
+    imap <buffer> <unique> <LocalLeader>nr <Plug>DnNRI
+endif
+imap <buffer> <unique> <Plug>DnNRI
+            \ <Esc>:call dn#markdown#refInsert('footnote', g:dn_true)<CR>
+if !hasmapto('<Plug>DnNRN')
+    nmap <buffer> <unique> <LocalLeader>nr <Plug>DnNRN
+endif
+nmap <buffer> <unique> <Plug>DnNRN
+            \ :call dn#markdown#refInsert('footnote')<CR>
 
 " \og : output generation    {{{2
 if !hasmapto('<Plug>DnOGI')
