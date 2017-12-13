@@ -332,7 +332,7 @@ let s:dn_markdown_referenced_types = {
             \   'complete'  : 'dn#markdown#completeIdFootnote',
             \   },
             \ 'link' : {
-            \   'regex_str' : '^ \{0,3\}\[\([^]]\+\)\]:\s',
+            \   'regex_str' : '^ \{0,3\}\[\([^\]]\+\)\]:\s',
             \   'write_str' : {
             \     'layout'   : 'block',
             \     'template' : '   [{ID}]: {URL}',
@@ -493,7 +493,7 @@ function! dn#markdown#idsUpdate(...) abort
     " params
     let l:insert = (a:0 > 0 && a:1)
     " update ids
-    call s:_update_ids('equation', 'figure', 'table')
+    call s:_update_ids()
     echo 'Updated lists of equation, figure and table ids'
     call dn#util#prompt()
     redraw!
@@ -812,7 +812,7 @@ function! s:_check_refs(...) abort
     let l:issues  = {}
     " update ref and id indices    {{{3
     if !l:startup | echo 'Updating... ' | endif
-    call s:_update_ids('equation', 'figure', 'table')
+    call s:_update_ids()
     call s:_update_refs()
     " check for problems    {{{3
     if !l:startup | echon 'analysing... ' | endif
@@ -1902,21 +1902,17 @@ function! s:_structure_insert(type) abort
     return g:dn_true
 endfunction
 
-" s:_update_ids(type, [type, [type]])    {{{2
-" does:   update ids for figures, tables or equations in current file 
+" s:_update_ids([type[, ...]])    {{{2
+" does:   update ids for referenced types
 " params: type - id types
-"                [string, required, can be 'equation'|'table'|'figure']
+"                [string, required, must be key of
+"                 s:dn_markdown_referenced_types, default=all keys]
 " return: n/a
-" note:   follows basic style of
-"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
-"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
-"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
 function! s:_update_ids(...) abort
     " check params
     let l:types = uniq(sort(copy(a:000)))
-    if empty(l:types)  " script error
-        call dn#util#error('No id types provided')
-        return
+    if empty(l:types)
+        let l:types = keys(s:dn_markdown_referenced_types)
     endif
     let l:invalid = []
     for l:type in l:types
@@ -1951,13 +1947,9 @@ function! s:_update_ids(...) abort
 endfunction
 
 " s:_update_refs()    {{{2
-" does:   update references for figures, tables or equations in current file 
+" does:   update references for referenced types
 " params: nil
 " return: n/a
-" note:   follows basic style of
-"         pandoc-fignos (https://github.com/tomduck/pandoc-fignos),
-"         pandoc-eqnos (https://github.com/tomduck/pandoc-eqnos) and
-"         pandoc-tablenos (https://github.com/tomduck/pandoc-tablenos)
 function! s:_update_refs() abort
     " get file contents (and exit if file is empty)
     let l:lines = s:_file_contents()
