@@ -496,8 +496,9 @@ A url hyperlink can be inserted by calling the dn#markdown#linkInsert()
 function. The user enters the hyperlink id and url. The hyperlink is
 inserted following the current line. Each hyperlink id must be unique
 among all hyperlinks in a given file. This function creates a reference
-hyperlink. While this filetype plugin supports inline hyperlinks in
-output generation, it provides no support for inserting them.
+hyperlink. While this filetype plugin supports inline, automatic,
+shortcut and internal hyperlinks in output generation, it provides no
+support for inserting them.
 
                                                 *dn#markdown#tableInsert()*
 A table title (label, caption and label) can be inserted by calling the
