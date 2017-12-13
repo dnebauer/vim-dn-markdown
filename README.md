@@ -26,7 +26,9 @@ schema supported by the pandoc filters [pandoc-eqnos][eq], [pandoc-fignos][fig]
 and [pandoc-tblnos][tbl].
 
    [eq]:  https://github.com/tomduck/pandoc-eqnos
+
    [fig]: https://github.com/tomduck/pandoc-fignos
+
    [tbl]: https://github.com/tomduck/pandoc-tablenos
 
 ## Requires ##
