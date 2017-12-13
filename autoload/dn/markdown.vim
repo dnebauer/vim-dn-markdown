@@ -311,7 +311,7 @@ let s:dn_markdown_referenced_types = {
             \   'complete'  : 'dn#markdown#completeIdFigure',
             \   },
             \ 'footnote' : {
-            \   'regex_str' : ' \{0,3\}\[\^\([^\]]\+\)\]: ',
+            \   'regex_str' : '\[\^\([^\]]\+\)\]: ',
             \   'write_str' : {
             \     'layout'   : 'block',
             \     'template' : '   [^{ID}]: {CONTENT}',
@@ -332,7 +332,7 @@ let s:dn_markdown_referenced_types = {
             \   'complete'  : 'dn#markdown#completeIdFootnote',
             \   },
             \ 'link' : {
-            \   'regex_str' : ' \{0,3\}\[\([^\^][^\]]\+\)\]: ',
+            \   'regex_str' : '\[\([^\^][^\]]\+\)\]: ',
             \   'write_str' : {
             \     'layout'   : 'block',
             \     'template' : '   [{ID}]: {URL}',
