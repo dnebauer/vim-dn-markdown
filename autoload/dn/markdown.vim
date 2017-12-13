@@ -323,7 +323,7 @@ let s:dn_markdown_referenced_types = {
             \       },
             \     ],
             \   },
-            \   'regex_ref' : '\[\^\([^\]\s]\+\)\][^:]',
+            \   'regex_ref' : '[^\^]\[\^\([^\]]\+\)\][^:]',
             \   'templ_ref' : '[^{ID}]',
             \   'multi_ref' : 'error',
             \   'zero_ref'  : 'warning',
@@ -332,7 +332,7 @@ let s:dn_markdown_referenced_types = {
             \   'complete'  : 'dn#markdown#completeIdFootnote',
             \   },
             \ 'link' : {
-            \   'regex_str' : '^ \{0,3\}\[\([^\]]\+\)\]: ',
+            \   'regex_str' : '^ \{0,3\}\[[^\^]\([^\]]\+\)\]: ',
             \   'write_str' : {
             \     'layout'   : 'block',
             \     'template' : '   [{ID}]: {URL}',
@@ -344,7 +344,7 @@ let s:dn_markdown_referenced_types = {
             \       },
             \     ],
             \   },
-            \   'regex_ref' : '\[[^\]]\+\]\[\([^\]]\+\)\]',
+            \   'regex_ref' : '\[[^\^][^\]]*\]\[\([^\^][^\]]*\)\]',
             \   'templ_ref' : '[{ID}]',
             \   'multi_ref' : 'warning',
             \   'zero_ref'  : 'warning',
