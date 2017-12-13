@@ -1931,7 +1931,7 @@ function! s:_update_ids(...) abort
     if empty(l:lines) | return | endif
     " extract labels from file contents
     for l:line in l:lines
-        echohl ErrorMsg | echo l:line | echohl Normal
+        echohl WarningMsg | echo l:line | echohl Normal
         for l:type in l:types
             " let regex and matchlist function do hard work of extracting id
             " - i.e., id ends up in l:match_list[1]
