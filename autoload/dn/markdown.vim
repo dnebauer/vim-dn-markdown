@@ -323,7 +323,7 @@ let s:dn_markdown_referenced_types = {
             \       },
             \     ],
             \   },
-            \   'regex_ref' : '\[\^\([^\]]\+\)\][^:]',
+            \   'regex_ref' : '\[\^\([^\]\s]\+\)\][^:]',
             \   'templ_ref' : '[^{ID}]',
             \   'multi_ref' : 'error',
             \   'zero_ref'  : 'warning',
