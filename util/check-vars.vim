@@ -185,6 +185,8 @@ function! s:_check_referenced_types() abort
         " test write_str params value, i.e, placeholders    {{{3
         if !s:_check_placeholders(l:type) | return | endif    " }}}3
     endfor    " }}}2
+    " check regexes    {{{2
+    if !s:_check_regexes() | return | endif    " }}}2
     " report success    {{{2
     return g:dn_true    " }}}2
 endfunction
@@ -280,7 +282,7 @@ function! s:_check_placeholders(type) abort
                 let l:var = join([a:type, 'write_str', 'placeholder', l:term, 
                             \ 'default'])
                 if !s:_valid_dict(l:default, l:var) | return | endif
-                " default has to be Dict with single key 'param'
+                " default has to be Dict with single key 'param' or 'funcref'
                 let l:keys = keys(l:default)
                 let l:count = len(l:keys)
                 if l:count != 1
@@ -291,27 +293,61 @@ function! s:_check_placeholders(type) abort
                     return
                 endif
                 let l:key = l:keys[0]
-                if l:key !=# 'param'
+                if !count(['param', 'funcref'], l:key)
                     let l:msg = '- ' . a:type . ' placeholder ' . l:term
-                                \ . " 'default': expected 'param' key, got '"
+                                \ . " 'default': expected key to be 'param'"
+                                \ . " or 'funcref', instead was '"
                                 \ . l:key . "'"
                     call dn#util#wrap(l:msg, 2)
                     return
                 endif
-                " default param has to be string
-                let l:var = join([a:type, 'write_str', 'placeholder', l:term, 
-                            \ 'default param'])
-                let l:previous_term = l:default.param
-                if !s:_valid_non_empty_string(l:previous_term, l:var)
-                    return
+                " check default param
+                if l:key ==# 'param'
+                    " has to be string
+                    let l:var = join([a:type, 'write_str', 'placeholder',
+                                \ l:term, 'default param'])
+                    let l:previous_term = l:default.param
+                    if !s:_valid_non_empty_string(l:previous_term, l:var)
+                        return
+                    endif
+                    " has to be previously defined placeholder term
+                    if !has_key(l:placeholders, l:previous_term)
+                        let l:msg = '- ' . a:type . ' ' . l:term . ': uses ' 
+                                    \ . l:previous_term
+                                    \ . ' which is not previously defined'
+                        call dn#util#wrap(l:msg, 2)
+                        return
+                    endif
                 endif
-                " default param has to be previously defined placeholder term
-                if !has_key(l:placeholders, l:previous_term)
-                    let l:msg = '- ' . a:type . ' ' . l:term . ': uses ' 
-                                \ . l:previous_term
-                                \ . ' which is not previously defined'
-                    call dn#util#wrap(l:msg, 2)
-                    return
+                " check default funcref
+                if l:key ==# 'funcref'
+                    " has to be funcref
+                    let l:var = join([a:type, 'write_str', 'placeholder',
+                                \ l:term, 'default funcref'])
+                    let l:Fn = l:default.funcref
+                    if type(l:Fn) != type(function('tr'))
+                        let l:msg = '- ' . l:var . ': expected funcref, got '
+                                    \ . dn#util#varType(l:Fn)
+                        call dn#util#wrap(l:msg, 2)
+                        return
+                    endif
+                    " funcref has to refer to existing function
+                    " - but may be a script function this script cannot 'see'
+                    let l:var = join([a:type, 'write_str', 'placeholder',
+                                \ l:term, 'default funcref'])
+                    let l:funcname = string(l:Fn)
+                    if !exists('*' . l:funcname)
+                        echohl WarningMsg
+                        echo 'WARNING:'
+                        echohl Normal
+                        let l:msg = '- ' . l:var . ": function is '"
+                                    \ . l:funcname . "' but cannot locate it;"
+                                    \ . ' this is okay if it is a script'
+                                    \ . ' function, otherwise this is a fatal'
+                                    \ . ' error!'
+                        call dn#util#wrap(l:msg, 2)
+                        return
+                    endif
                 endif
             endif
         " - placeholder type: 'string', 'filepath'    {{{4
@@ -349,6 +385,45 @@ function! s:_check_placeholders(type) abort
     endfor    " }}}2
     " report success    {{{2
     return g:dn_true    " }}}2
+endfunction
+
+" s:_check_regexes()    {{{1
+" does:   check regexes
+" params: nil
+" prints: error message if invalidity detected
+" return: whether regexes are valid
+function! s:_check_regexes() abort
+    " variables    {{{2
+    let l:types = keys(s:referenced_types)
+    " - test data for regex_str values
+    let l:str_data  = [
+                \   {
+                \     'pattern': '',
+                \     'tests': [
+                \       { 'label': '',
+                \          'type': '',
+                \         'count': 1,
+                \        'expect': '',
+                \       },
+                \     ],
+                \   },
+                \ ]
+    " - test data for regex_ref values
+    let l:ref_data  = [
+                \   {
+                \     'pattern': '',
+                \     'tests': [
+                \       { 'label': '',
+                \          'type': '',
+                \         'count': 1,
+                \        'expect': '',
+                \       },
+                \     ],
+                \   },
+                \ ]
+    " test regexes    {{{2
+    if !s:_valid_regexes('str', l:str_data) | return | endif
+    if !s:_valid_regexes('ref', l:ref_data) | return | endif
 endfunction
 
 " s:_check_pandoc_params()    {{{1
@@ -560,6 +635,195 @@ function! s:_utils_missing() abort
     endif
 endfunction
 
+
+" s:_valid_regexes(use, data)    {{{1
+" does:   check regex data
+" params: use  - use for regex [required, string, is 'str' or 'ref']
+"         data - test data [required, Dict]
+" prints: error message if invalidity detected
+" return: whether regexes test as valid
+function! s:_valid_regexes(use, data) abort
+    " check params are valid    {{{2
+    " - non-empty arguments
+    if empty(a:data)
+        call dn#util#error('No regex test data provided')
+        return
+    endif
+    if empty(a:use)
+        call dn#util#error('No regex use provided')
+        return
+    endif
+    " - use value is 'str' or 'ref'
+    if !count(['str', 'ref'], a:use)
+        call dn#util#error("Invalid regex use '" . a:use . "'")
+        return
+    endif
+    " - data value is a List
+    let l:var = 'Checking regex_' . a:use . ' values: '
+    if type(a:data) != type([])
+        let l:msg = l:var . 'expected List item, got '
+                    \ . dn#util#varType(a:data)
+        call dn#util#error(l:msg)
+        return
+    endif
+    let l:types = keys(s:referenced_types)
+    for l:item in a:data
+        " - each data List item is a Dict
+        if type(l:item) != type({})
+            let l:msg = l:var . 'expected Dict, got '
+                        \ . dn#util#varType(l:item)
+            call dn#util#error(l:msg)
+            return
+        endif
+        " - check that keys are valid
+        let l:valid_keys = ['pattern', 'tests']
+        let l:keys = keys(l:item)
+        if len(l:keys) != len(l:valid_keys)
+            let l:msg = l:var . 'expected ' . len(l:valid_keys)
+                        \ . ' items in Dict, got ' . len(l:keys)
+            call dn#util#error(l:msg)
+            return
+        endif
+        for l:key in l:valid_keys
+            if !count(l:keys, l:key)
+                let l:msg = l:var . "could not find Dict key '" . l:key . "'"
+                call dn#util#error(l:msg)
+                return
+            endif
+        endfor
+        " - Dict pattern value is a non-empty string
+        let l:pattern = l:item.pattern
+        if type(l:pattern) != type('')
+            let l:msg = l:var . 'expected pattern string, got '
+                        \ . dn#util#varType(l:pattern)
+            call dn#util#error(l:msg)
+            return
+        endif
+        if empty(l:pattern)
+            let l:msg = l:var . 'got empty pattern string'
+            call dn#util#error(l:msg)
+            return
+        endif
+        " - Dict tests value is a List
+        let l:tests = l:item.tests
+        if type(l:tests) != type([])
+            let l:msg = l:var . 'expected tests List, got '
+                        \ . dn#util#varType(l:tests)
+            call dn#util#error(l:msg)
+            return
+        endif
+        " - check tests
+        for l:test in l:tests
+            " - each test is a Dict
+            if type(l:test) != type({})
+                let l:msg = l:var . 'expected Dict test, got '
+                            \ . dn#util#varType(l:test)
+                call dn#util#error(l:msg)
+                return
+            endif
+            " - check that keys are valid
+            let l:valid_keys = ['label', 'type', 'count', 'expect']
+            let l:keys = keys(l:test)
+            if len(l:keys) != len(l:valid_keys)
+                let l:msg = l:var . 'expected ' . len(l:valid_keys)
+                            \ . ' items in test Dict, got ' . len(l:keys)
+                call dn#util#error(l:msg)
+                return
+            endif
+            for l:key in l:valid_keys
+                if !count(l:keys, l:key)
+                    let l:msg = l:var . "could not find test Dict key '"
+                                \ . l:key . "'"
+                    call dn#util#error(l:msg)
+                    return
+                endif
+            endfor
+            " - test label is non-empty string
+            let l:label = l:test.label
+            if type(l:label) != type('')
+                let l:msg = l:var . 'expected string test label, got '
+                            \ . dn#util#varType(l:label)
+                call dn#util#error(l:msg)
+                return
+            endif
+            if empty(l:label)
+                let l:msg = l:var . 'got empty test label string'
+                call dn#util#error(l:msg)
+                return
+            endif
+            " type must be valid format type
+            let l:type = l:item.type
+            if type(l:type) != type('')
+                let l:msg = l:var . 'expected string test type, got '
+                            \ . dn#util#varType(l:type)
+                call dn#util#error(l:msg)
+                return
+            endif
+            if empty(l:type)
+                let l:msg = l:var . 'got empty test type string'
+                call dn#util#error(l:msg)
+                return
+            endif
+            if !count(l:types, l:type)
+                let l:msg = l:var . "invalid test format type '"
+                            \ . l:type . "'"
+                call dn#util#error(l:msg)
+                return
+            endif
+            " - test count is non-zero positive integer
+            let l:count = l:item.count
+            if type(l:type) != type(0)
+                let l:msg = l:var . 'expected integer test count, got '
+                            \ . dn#util#varType(l:count)
+                call dn#util#error(l:msg)
+                return
+            endif
+            if l:count < 1
+                let l:msg = l:var . 'got test count < 1: ' . l:count
+                call dn#util#error(l:msg)
+                return
+            endif
+            " - test expected value is string (which can be empty)
+            let l:expect = l:test.expect
+            if type(l:expect) != type('')
+                let l:msg = l:var . 'expected string test expect, got '
+                            \ . dn#util#varType(l:label)
+                call dn#util#error(l:msg)
+                return
+            endif
+        endfor  " l:test in l:tests
+    endfor  " l:item in a:data    }}}2
+    " test regex data    {{{2
+    for l:item in a:data
+        let l:pattern = l:item.pattern
+        let l:tests   = l:item.tests
+        for l:test in l:tests
+            let l:label  = l:test.label
+            let l:type   = l:test.type
+            let l:count  = l:test.count
+            let l:expect = l:test.expect
+            let l:key    = 'regex_' . a:use
+            let l:regex  = s:referenced_types[l:type][l:key]
+            let l:retval = matchlist(l:pattern, l:regex, 0, l:count)
+            if !empty(l:retval) && !empty(l:retval[1])
+                let l:match = l:retval[1]
+            else
+                let l:match = ''
+            endif
+            if l:match !=# l:expect
+                let l:msg = "- performed test '" . l:label
+                            \ . "' on the regex_" . a:use . ' for format '
+                            \ . l:type . ": expected '" . l:expect
+                            \ . "', got '" . l:match . "'"
+                call dn#util#wrap(l:msg, 2)
+                return
+            endif
+        endfor  " l:test in l:tests
+    endfor  " l:item in a:data    }}}2
+    " report success    {{{2
+    return g:dn_true    " }}}2
+endfunction
+
 " s:_valid_dict(value, var)    {{{1
 " does:   check that value is a dict
 " params: value - value to test [required, any]
@@ -649,7 +913,7 @@ function! s:_valid_keys(valid_keys, keys, var) abort
     if empty(a:valid_keys)
         call dn#util#error("empty 'valid_keys' List param")
         return
-    endif
+    endif    " }}}3
     " all keys must be non-empty strings    {{{3
     if len(filter(copy(a:valid_keys), 'type(v:val) != type("")'))
         let l:msg = a:var . ": non-string 'valid' key(s)"
@@ -670,7 +934,7 @@ function! s:_valid_keys(valid_keys, keys, var) abort
         let l:msg = '- ' . a:var . ': empty key(s)'
         call dn#util#wrap(l:msg, 2)
         return
-    endif
+    endif    " }}}3
     " check that all keys are valid    {{{3
     for l:key in a:keys
         if !count(a:valid_keys, l:key)
@@ -678,7 +942,7 @@ function! s:_valid_keys(valid_keys, keys, var) abort
             call dn#util#wrap(l:msg, 2)
             return
         endif
-    endfor
+    endfor    " }}}3
     " check that all valid keys are present    {{{3
     for l:key in a:valid_keys
         let l:count = count(a:keys, l:key)
