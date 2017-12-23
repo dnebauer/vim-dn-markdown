@@ -233,8 +233,26 @@ endfunction
 "            during execution, but can check with util 'check-vars.vim',
 "            which is included with this ftplugin
 " - type keys:
+"   TODO: match id against legal id characters only
+"         - equation: [A-Za-z0-9/_-]\+
+"                     letters, numbers, dashes, slashes, underscores
+"         -   figure: [A-Za-z0-9/_-]\+
+"                     letters, numbers, dashes, slashes, underscores
+"         - footnote: [^\s\]]\+
+"                     all but whitespace
+"                     square brackets: ✓=[,\[  ✗=],\]
+"         -     link: [^\[\]]\+
+"                     all
+"                     square brackets: ✓=\[,\]  ✗=[,]
+"         -    table: [A-Za-z0-9/_-]\+
+"                     letters, numbers, dashes, slashes, underscores
 "   - regex_str: regex for extracting ids from structure labels
-"                the id represented by '[^}]\+'
+"                the id is represented by '[^}]\+'
+"                regex cannot assume pattern is on own line, even if 'block'
+"                +type, because adjacent lines in file are joined by space
+"                +before regex is applied (and there is no way to
+"                +guarantee each line containing a referenced structure is
+"                +surrounded by empty lines)
 "   - write_str: information required to insert structure (Dict)
 "                key 'layout'   : whether inline or block
 "                key 'template' : template containing placeholders
@@ -246,9 +264,12 @@ endfunction
 "                +'string' or 'filepath'; there may be other key-value
 "                +pairs depending on the type:
 "                type 'id' : 
-"                  optional key 'default' whose value defaults to empty/null
-"                  +or can be a Dict with key 'param' and a value which is
-"                  +a previous placeholder string
+"                  optional key 'default' whose value:
+"                    defaults to empty/null if key not present
+"                    or Dict {'param': '<previous-placeholder-string>'}
+"                    or Dict {'funcref': '<funcref>'}
+"                    * value provided by placeholder or function is later
+"                      converted to a valid candidate id
 "                type 'string' :
 "                  key 'noun' whose value is a string used in prompts like
 "                  +'Enter <noun>:'
@@ -257,7 +278,7 @@ endfunction
 "                  +'Enter <noun> filepath:' and messages like
 "                  +'<Noun> filepath appears to be invalid'
 "   - regex_ref: regex for extracting ids from reference labels
-"                the id represented by '[^}]\+'
+"                the id is represented by '[^}]\+'
 "   - templ_ref: template for reference
 "                placeholder for id is '{ID}'
 "   - multi_ref: whether multiple references to structure are ok
@@ -1844,9 +1865,17 @@ function! s:_structure_insert(type) abort
         let l:details = l:param[l:name]
         let l:type = l:details.type
         if     l:type ==# 'id'    " {{{4
-            let l:default = ''
+            "if has_key(l:details, 'default') && !empty(l:details.default)
+            "    let l:default = l:placeholders[l:details.default.param]
+            "endif
             if has_key(l:details, 'default') && !empty(l:details.default)
-                let l:default = l:placeholders[l:details.default.param]
+                if has_key(l:details.default, 'param')
+                    let l:default = l:placeholders[l:details.default.param]
+                endif
+                if has_key(l:details.default, 'function')
+                    let l:Func = l:placeholders[l:details.default.funcref]
+                    let l:default = call(l:Func, [])
+                endif
             endif
             let l:id = s:_enter_id(a:type, l:default)
             if empty(l:id) | return | endif
