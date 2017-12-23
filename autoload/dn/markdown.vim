@@ -233,7 +233,7 @@ endfunction
 "            during execution, but can check with util 'check-vars.vim',
 "            which is included with this ftplugin
 " - type keys:
-"   TODO: match id against legal id characters only
+"   TODO: match structure ids against legal id characters only
 "         - equation: [A-Za-z0-9/_-]\+
 "                     letters, numbers, dashes, slashes, underscores
 "         -   figure: [A-Za-z0-9/_-]\+

@@ -401,7 +401,7 @@ function! s:_check_regexes() abort
                 \     'pattern': '',
                 \     'tests': [
                 \       { 'label': '',
-                \          'type': '',
+                \         'types': [],
                 \         'count': 1,
                 \        'expect': '',
                 \       },
@@ -414,7 +414,7 @@ function! s:_check_regexes() abort
                 \     'pattern': '',
                 \     'tests': [
                 \       { 'label': '',
-                \          'type': '',
+                \         'types': [],
                 \         'count': 1,
                 \        'expect': '',
                 \       },
@@ -722,7 +722,7 @@ function! s:_valid_regexes(use, data) abort
                 return
             endif
             " - check that keys are valid
-            let l:valid_keys = ['label', 'type', 'count', 'expect']
+            let l:valid_keys = ['label', 'types', 'count', 'expect']
             let l:keys = keys(l:test)
             if len(l:keys) != len(l:valid_keys)
                 let l:msg = l:var . 'expected ' . len(l:valid_keys)
@@ -751,25 +751,39 @@ function! s:_valid_regexes(use, data) abort
                 call dn#util#error(l:msg)
                 return
             endif
-            " type must be valid format type
-            let l:type = l:item.type
-            if type(l:type) != type('')
-                let l:msg = l:var . 'expected string test type, got '
-                            \ . dn#util#varType(l:type)
+            " types must be non-empty List
+            let l:types = l:item.types
+            if type(l:types) != type([])
+                let l:msg = l:var . 'expected List of test types, got '
+                            \ . dn#util#varType(l:types)
                 call dn#util#error(l:msg)
                 return
             endif
-            if empty(l:type)
-                let l:msg = l:var . 'got empty test type string'
+            if !len(l:types)
+                let l:msg = l:var . 'empty List of test types'
                 call dn#util#error(l:msg)
                 return
             endif
-            if !count(l:types, l:type)
-                let l:msg = l:var . "invalid test format type '"
-                            \ . l:type . "'"
-                call dn#util#error(l:msg)
-                return
-            endif
+            " each test type must be valid format
+            for l:type in l:types
+                if type(l:type) != type('')
+                    let l:msg = l:var . 'expected string test type, got '
+                                \ . dn#util#varType(l:type)
+                    call dn#util#error(l:msg)
+                    return
+                endif
+                if empty(l:type)
+                    let l:msg = l:var . 'got empty test type string'
+                    call dn#util#error(l:msg)
+                    return
+                endif
+                if !count(l:types, l:type)
+                    let l:msg = l:var . "invalid test format type '"
+                                \ . l:type . "'"
+                    call dn#util#error(l:msg)
+                    return
+                endif
+            endfor  " l:type in l:types
             " - test count is non-zero positive integer
             let l:count = l:item.count
             if type(l:type) != type(0)
@@ -799,25 +813,27 @@ function! s:_valid_regexes(use, data) abort
         let l:tests   = l:item.tests
         for l:test in l:tests
             let l:label  = l:test.label
-            let l:type   = l:test.type
+            let l:types  = l:test.types
             let l:count  = l:test.count
             let l:expect = l:test.expect
             let l:key    = 'regex_' . a:use
-            let l:regex  = s:referenced_types[l:type][l:key]
-            let l:retval = matchlist(l:pattern, l:regex, 0, l:count)
-            if !empty(l:retval) && !empty(l:retval[1])
-                let l:match = l:retval[1]
-            else
-                let l:match = ''
-            endif
-            if l:match !=# l:expect
-                let l:msg = "- performed test '" . l:label
-                            \ . "' on the regex_" . a:use . ' for format '
-                            \ . l:type . ": expected '" . l:expect
-                            \ . "', got '" . l:match . "'"
-                call dn#util#wrap(l:msg, 2)
-                return
-            endif
+            for l:type in l:types
+                let l:regex  = s:referenced_types[l:type][l:key]
+                let l:retval = matchlist(l:pattern, l:regex, 0, l:count)
+                if !empty(l:retval) && !empty(l:retval[1])
+                    let l:match = l:retval[1]
+                else
+                    let l:match = ''
+                endif
+                if l:match !=# l:expect
+                    let l:msg = "- performed test '" . l:label
+                                \ . "' on the regex_" . a:use . ' for format '
+                                \ . l:type . ": expected '" . l:expect
+                                \ . "', got '" . l:match . "'"
+                    call dn#util#wrap(l:msg, 2)
+                    return
+                endif
+            endfor  " l:type in l:types
         endfor  " l:test in l:tests
     endfor  " l:item in a:data    }}}2
     " report success    {{{2
